@@ -16,7 +16,7 @@ http://ibmstreams.github.io/streamsx.text/com.ibm.streamsx.text/doc/spldoc/html/
 
 # Features
 
-https://github.com/IBMStreams/streamsx.text/wiki/Overview
+https://github.com/IBMStreams/streamsx.text/wiki/Features
 
 # Getting Started
 
