@@ -5,13 +5,16 @@ The Text Toolkit includes operators to extract information from text data and pr
 The Text Toolkit integrates the Text Analytics component of Apache Uima, which provides a system for extracting information from text data.
 
 This version of the toolkit is intended for use with IBM Streams release 3.2 and later.
+
+# Overview
+
 Project Overview at: http://ibmstreams.github.io/streamsx.text/
 
 Operators, functions & types are described using SPLDOC at
 
 http://ibmstreams.github.io/streamsx.text/com.ibm.streamsx.text/doc/spldoc/html/index.html
 
-# Overview
+# Features
 
 https://github.com/IBMStreams/streamsx.text/wiki/Overview
 
