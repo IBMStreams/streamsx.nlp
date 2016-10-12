@@ -14,9 +14,9 @@ Incubation for projects is covered here: https://github.com/IBMStreams/administr
   * Status: **TBD**
 - [ ] :red_circle: Sufficient testing
   * Status: **TBD**
-- [ ] :red_circle: Instructions on how to get started with development and contributing to project
+- [ ] :white_check_mark: Instructions on how to get started with development and contributing to project
   * Status: **TBD**
-- [ ] :red_circle: Website that contains information and documentation of the project
+- [ ] :white_check_mark: Website that contains information and documentation of the project
   * Status: **TBD**
 - [ ] :red_circle: Clear release plan
   * Status: **TBD**
