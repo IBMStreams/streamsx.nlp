@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="SPL File LinearClassification.spl"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_compilationunit"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>SPL File LinearClassification.spl</title>
+</head>
+<body id="spldoc_compilationunit">
+
+
+<h1 class="title topictitle1">SPL File <tt class="ph tt">LinearClassification.spl</tt></h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.text.html">com.ibm.streamsx.text 1.0.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.text.html">com.ibm.streamsx.text</a> &gt; LinearClassification.spl</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Content</h2>
+  
+  <dl class="dl">
+    <dt class="dt dlterm"/>
+<dd class="dd"/>
+
+    
+      <dt class="dt dlterm splhead-2">Operators</dt>
+
+      <dd class="dd">
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.text$LinearClassification.html#spldoc_compilationunit__composite_operator__LinearClassification">LinearClassification</a></strong>: This operator identifies to which of a set of categories the input text belongs on the basis of a previously trained model.
+</li>
+
+</ul>
+
+      </dd>
+
+    
+    
+      <dt class="dt dlterm splhead-2">Types</dt>
+
+      <dd class="dd">
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.text$LinearClassification.html#spldoc_compilationunit__composite_type__LinearClassification.resultType">LinearClassification.resultType</a></strong>
+</li>
+
+</ul>
+
+      </dd>
+
+    
+  </dl>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Composites</h2>
+  
+</div>
+
+<div class="section" id="spldoc_compilationunit__composite_operator__LinearClassification"><h2 class="title sectiontitle splpart">composite LinearClassification(output OutStream; input InStream)</h2>
+  
+</div>
+
+<div class="section splgraph">
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.text/op$com.ibm.streamsx.text$LinearClassification.svg" width="482" height="141"/>
+</div>
+
+<div class="section">
+
+<p class="p">This operator identifies to which of a set of categories the input text belongs on the basis of a previously trained model.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Parameters</h2>
+
+<ul class="sl simple">
+<li class="sli"><strong class="ph b">pythonCommand</strong>: The name of the python binary. The default name is <tt class="ph tt">python</tt>. With this parameter you can change the version and the location of the python command according to your environment. Linear classification scripts need python 2.6 or above! 
+</li>
+
+<li class="sli"><strong class="ph b">pythonScript</strong>: The name of the python script. The default is <tt class="ph tt">&lt;toolkit_dir&gt;/etc/python/LinearClassification.py</tt>. 
+</li>
+
+<li class="sli"><strong class="ph b">modelFilesDirectory</strong>: The name of the directory where the model pkl files are located. 
+</li>
+
+<li class="sli"><strong class="ph b">documentAttribute</strong>: The attribute used for the classification 
+</li>
+
+<li class="sli"><strong class="ph b">outStreamType</strong>: The OutStream (output port 0) schema of this operator. The schema must contain the schema defined by the resultType.
+</li>
+
+</ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Input Ports</h2>
+
+<ul class="sl simple">
+<li class="sli"><strong class="ph b">InStream</strong>: One tuple is one document. 
+</li>
+
+</ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Output Ports</h2>
+
+<ul class="sl simple">
+<li class="sli"><strong class="ph b">OutStream</strong>: The result tuple with one attribute 'classes' which is the list of classifications/predictions and a second attribute 'decisions' which is a list&lt;float64&gt; with the list of decisions This stream must contain the schema defined by the resultType. 
+</li>
+
+</ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Static Types</h2>
+  
+</div>
+
+   <div class="section" id="spldoc_compilationunit__composite_type__LinearClassification.resultType">
+     <dl class="dl">
+       
+         <dt class="dt dlterm">LinearClassification.resultType = tuple&lt;list&lt;rstring&gt; classes, list&lt;float64&gt; decisions&gt;;</dt>
+
+         <dd class="dd"/>
+
+       
+     </dl>
+
+   </div>
+
+</div>
+
+
+</body>
+</html>
