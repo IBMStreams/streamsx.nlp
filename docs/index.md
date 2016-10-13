@@ -1,4 +1,0 @@
-# streamsx.text
-
-
-
