@@ -16,7 +16,7 @@ Project Overview at: http://ibmstreams.github.io/streamsx.text/
 
 Operators, functions & types are described using SPLDOC at
 
-http://ibmstreams.github.io/streamsx.text/com.ibm.streamsx.text/doc/spldoc/html/index.html
+https://ibmstreams.github.io/streamsx.text/doc/spldoc/html/tk$com.ibm.streamsx.text/tk$com.ibm.streamsx.text.html
 
 # Features
 
