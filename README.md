@@ -1,8 +1,8 @@
-# IBM Streams Text Toolkit
+# IBM streamsx.text Toolkit
 
-The Text Toolkit includes operators to extract information from text data and provides operations for text analysis, like lemmatization and text annotation with UIMA Ruta scripts or existing project specific UIMA pear files.
+The streamx.text Toolkit includes operators to extract information from text data and provides operations for text analysis, like lemmatization and text annotation with UIMA Ruta scripts or existing project specific UIMA pear files.
 
-The Text Toolkit integrates the Text Analytics component of Apache UIMA, which provides a system for extracting information from text data.
+The streamsx.text Toolkit integrates the Text Analytics component of Apache UIMA, which provides a system for extracting information from text data.
 
 This version of the toolkit is intended for use with IBM Streams release 3.2 and later.
 
