@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="SPL File UimaDynamicUpdateSample.spl"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_compilationunit"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>SPL File UimaDynamicUpdateSample.spl</title>
+</head>
+<body id="spldoc_compilationunit">
+
+
+<h1 class="title topictitle1">SPL File <tt class="ph tt">UimaDynamicUpdateSample.spl</tt></h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$UimaDynamicUpdateSample.html">UimaDynamicUpdateSample 1.0.0</a> &gt; <a class="xref" href="ns$.html">&lt;default&gt;</a> &gt; UimaDynamicUpdateSample.spl</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Content</h2>
+  
+  <dl class="dl">
+    <dt class="dt dlterm"/>
+<dd class="dd"/>
+
+    
+      <dt class="dt dlterm splhead-2">Operators</dt>
+
+      <dd class="dd">
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$.$UimaDynamicUpdateSample.html#spldoc_compilationunit__composite_operator__UimaDynamicUpdateSample">UimaDynamicUpdateSample</a></strong>
+</li>
+
+</ul>
+
+      </dd>
+
+    
+  </dl>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Composites</h2>
+  
+</div>
+
+<div class="section" id="spldoc_compilationunit__composite_operator__UimaDynamicUpdateSample"><h2 class="title sectiontitle splpart">public composite UimaDynamicUpdateSample</h2>
+  
+</div>
+
+<div class="section splgraph">
+  <embed class="image" src="../../image/tk$UimaDynamicUpdateSample/op$.$UimaDynamicUpdateSample.svg" width="640" height="175"/>
+</div>
+
+<div class="section">
+</div>
+
+<div class="section">
+</div>
+
+<div class="section">
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-2">SPL Source Code</h2>
+  
+</div>
+
+
+<div class="section">
+   <pre class="pre codeblock">
+
+ composite UimaDynamicUpdateSample
+ {
+ 	type
+ 		AnnoSpan = tuple&lt;rstring building, rstring shortDateString&gt;;
+ 
+ 	graph
+ 
+ 		stream&lt;rstring documentFile&gt; Filenames as O = Custom() {
+ 			logic state: {
+ 				mutable int32 loop_ = 4;
+ 			}
+ 			onProcess: {
+ 				mutable rstring filename = "";
+ 				for (int32 l in range(loop_)) {
+ 					println("--"+(rstring)l+"--");
+ 					for (int32 iter in range(5)) {
+ 						filename = "input/input" +(rstring)(iter) + ".txt";
+ 						submit({documentFile=filename}, O);
+ 					}
+ 				}
+ 			}
+ 		}
+ 
+ 		(
+ 		stream&lt;rstring documentFile&gt; FilenameStream as O;
+ 		stream&lt;rstring documentFile&gt; DocumentFilenames as D
+ 		) as FilenameBypass = Custom(Filenames as I) {
+ 			logic
+ 				onTuple I: {
+ 					submit(I, O); // first by pass the filename, since FileSource does not forward the filename
+ 					submit(I, D);
+ 				}
+ 			config placement: partitionColocation("INPUT");
+ 		}
+ 
+ 		stream&lt;rstring oneline&gt; Line = FileSource(DocumentFilenames) {
+ 			param
+ 				format : line;
+ 			config placement: partitionColocation("INPUT");
+ 		}
+ 
+ 		stream&lt;rstring entireDoc, rstring documentFile&gt; Documents as O = Custom(Line as I; FilenameStream as F) {
+ 			logic state: {
+ 				mutable rstring soFar = "";
+ 				mutable rstring filename = "";
+ 			}
+ 			onTuple I: {
+ 				soFar +=(rstring) "\n" + I.oneline;
+ 			}
+ 			onTuple F: {
+ 				filename = F.documentFile;
+ 			}
+ 			onPunct I: {
+ 				if(currentPunct() == Sys.WindowMarker) {
+ 					submit({entireDoc = soFar, documentFile = filename}, O);
+ 					soFar =(rstring) "";
+ 					filename = "";
+ 					block(0.5); // slow down the processing, in order to have a chance to update the PEAR before all files are processed
+ 				}
+ 				else {
+ 					// it's a final punctuation, so send it on.
+ 					submit(currentPunct(), O);
+ 				}
+ 			}
+ 			config placement: partitionColocation("INPUT");
+ 		}
+ 
+ 		(stream&lt;rstring filename&gt; ControlStream as C ) as CtrlGen = Custom() {
+ 			logic
+ 				onProcess:
+ 				{
+ 					block(3.0); // wait some time to process some files with inital PEAR before update
+ 					submit({filename="RoomNumberAnnotator2_Java17.pear"}, C); // relative to data dir
+ 					println("---activate new PEAR---");
+ 					submit(Sys.WindowMarker, C);
+ 				}
+ 		}
+ 		
+ 		(stream&lt;rstring documentFile, rstring xmi1, list&lt;AnnoSpan&gt; annotations&gt; TextAnnotated) as PEARUpdateTest = UimaText(Documents; ControlStream){
+ 			param
+ 				inputDoc: "entireDoc";
+ 				pearFile: "DateTimeAnnotator_Java17.pear";
+ 				casOut: "xmi1";
+ 				outputAttributes: "annotations";
+ 				outputTypes: "org.apache.uima.tutorial.RoomNumber", "org.apache.uima.tutorial.DateAnnot";
+ 		}
+ 
+ 		() as CustomOut = Custom(TextAnnotated as I){
+ 			logic
+ 				onTuple I : {
+ 					println(I.annotations);
+ 				}
+ 		}
+ 
+ 		stream&lt;rstring result&gt; ResultStream as O = Custom(TextAnnotated as I){
+ 			logic
+ 				state: {
+ 					mutable rstring result = "failed";
+ 					mutable boolean dateAnnotations = false;
+ 					mutable boolean buildingAnnotations = false;
+ 					mutable boolean resultSent = false;
+ 				}
+ 				onTuple I : {
+ 					if (false == resultSent) {
+ 						if (spl.collection::size(I.annotations) &gt; 0) {
+ 							for (AnnoSpan s in I.annotations) {
+ 								if (s.shortDateString != "") {
+ 									dateAnnotations = true;
+ 								}
+ 								if (s.building != "") {
+ 									buildingAnnotations = true;
+ 								}
+ 							}
+ 						}
+ 						if ((dateAnnotations) &amp;&amp; (buildingAnnotations)) {
+ 							result = "passed";
+ 							submit({result=result}, O);
+ 							resultSent = true;
+ 						}
+ 					}
+ 				}
+ 				onPunct I : {
+ 					if ((currentPunct() == Sys.FinalMarker) &amp;&amp; (false == resultSent)) {
+ 						submit({result=result}, O);
+ 					}
+ 					submit(currentPunct(), O);
+ 				}
+ 		}
+ 
+ 		() as Sink1 = FileSink(ResultStream) {
+  			param
+ 				file:  "out.txt";
+ 				format: txt;
+ 				flushOnPunctuation: true;
+ 		}
+ 
+ }
+
+   </pre>
+
+</div>
+
+</div>
+
+
+</body>
+</html>
