@@ -1,0 +1,38 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite UimaMultiViewSample
+{
+	type
+		Span1 = tuple<rstring text, rstring typeDescription, int32 begin, int32 end>;
+		Span2 = tuple<rstring sofaString>;
+
+	graph 
+
+ 		stream<rstring text> TextStream = FileSource() {
+			param file : "input.txt";
+			parsing : permissive;
+		}
+
+		(stream<rstring text, rstring xmi1, list<Span2> germanView, list<Span1> englishView> TextAnnotated1 as O) as UIMA_Text = UimaText(TextStream as I){
+			param inputDoc: "text"; // text to analyze
+			      pearFile: "MultiViewAnnotator_Java17.pear"; // relative to etc dir
+			      view: "EnglishDocument";
+			      casOut: "xmi1"; // serialized CAS
+			      outputAttributes: "germanView", "englishView"; // this attribute must be of type list<tuple>
+			      outputViews: "GermanDocument", "EnglishDocument";
+			      outputTypes: "uima.tcas.DocumentAnnotation";
+		}
+
+		() as Sink1 = FileSink(TextAnnotated1) {
+ 			param
+				file:  "out.txt";
+				format: csv;
+				suppress: xmi1;
+				flushOnPunctuation: true;
+		}
+
+}

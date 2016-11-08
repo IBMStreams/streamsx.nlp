@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uimatypes>
+	<uimatype name="uima.cas.String">rstring</uimatype>
+	<uimatype name="uima.cas.Integer">int32</uimatype>
+	<uimatype name="uima.cas.Boolean">boolean</uimatype>
+	<uimatype name="uima.cas.Short">int16</uimatype>
+	<uimatype name="uima.cas.Long">int64</uimatype>
+	<uimatype name="uima.cas.Byte">int8</uimatype>
+	<uimatype name="uima.cas.Double">float64</uimatype>
+	<uimatype name="uima.cas.Float">float32</uimatype>
+	<uimatype name="uima.cas.EmptyStringList">list&lt;rstring&gt;</uimatype>
+	<uimatype name="uima.cas.NonEmptyStringList">list&lt;rstring&gt;</uimatype>
+	<uimatype name="uima.cas.StringArray">list&lt;rstring&gt;</uimatype>
+	<uimatype name="uima.cas.BooleanArray">list&lt;boolean&gt;</uimatype>
+	<uimatype name="uima.cas.ByteArray">list&lt;int8&gt;</uimatype>
+	<uimatype name="uima.cas.DoubleArray">list&lt;float64&gt;</uimatype>
+	<uimatype name="uima.cas.FloatArray">list&lt;float32&gt;</uimatype>
+	<uimatype name="uima.cas.IntegerArray">list&lt;int32&gt;</uimatype>
+	<uimatype name="uima.cas.ShortArray">list&lt;int16&gt;</uimatype>
+	<uimatype name="uima.cas.LongArray">list&lt;int64&gt;</uimatype>
+	<uimatype name="uima.cas.FloatList">list&lt;float32&gt;</uimatype>
+	<uimatype name="uima.cas.IntegerList">list&lt;int32&gt;</uimatype>
+	<uimatype name="uima.cas.StringList">list&lt;rstring&gt;</uimatype>
+	<uimatype name="uima.cas.NonEmptyFloatList">list&lt;float32&gt;</uimatype>
+	<uimatype name="uima.cas.NonEmptyIntegerList">list&lt;int32&gt;</uimatype>
+</uimatypes>
+

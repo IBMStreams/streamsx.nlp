@@ -1,0 +1,2 @@
+{text="By a former marriage, Mr. Henry Dashwood had one son: by his present lady, three daughters.",annotations=[{text="Mr. Henry Dashwood",begin=22,end=40,typeDescription="com.ibm.getNamesUima.fullNameWithTitle"}]}
+{text="Mrs. Jennings enforced the necessity.",annotations=[]}

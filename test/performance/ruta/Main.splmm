@@ -1,0 +1,62 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace ruta;
+
+use com.ibm.streamsx.text::*;
+
+use common::PerfTest;
+use common::AnnoSpan;
+
+<%
+my $STREAMS_INSTALL=$ENV{STREAMS_INSTALL};
+my $ST=$STREAMS_INSTALL."/bin/streamtool";
+
+sub getStreamsVersion()
+{
+	return substr(`$ST version | grep Version`, 8, 3,);
+}
+my $version = getStreamsVersion();
+%>
+
+<%if ($version >= "4.2") {%>
+@threading(model=manual)<%}%>
+composite Main
+{
+	param
+		expression<int32>   $loop: (int32)getSubmissionTimeValue("loop", "1");
+
+	graph
+
+		() as TestRuta = PerfTest() {
+			param
+				loop: $loop;
+				textExtract: RutaTextExtract;
+				outputFilename: "rutaSpanWithText.out";
+				resultFilename: "ruta_result.out";
+			config placement: partitionColocation("PERFTEST");
+		}
+}
+
+public composite RutaTextExtract (
+	input 
+		Documents;
+	output
+		NamesList
+)
+{
+	param
+		expression<rstring> $pearFile: (rstring)getSubmissionTimeValue("pear", "getNames2.pear");
+
+	graph
+
+		stream<rstring documentFile, list<AnnoSpan> annotations, rstring entireDoc> NamesList = RutaText(Documents){
+			param
+				inputDoc: "entireDoc"; // text to analyze
+				pearFile: $pearFile; // relative to etc dir
+				outputAttributes: "annotations";
+				outputTypes: "uima.ruta.getNames2.Main.TitleAndName"; // filter type descriptions
+		}
+}
+

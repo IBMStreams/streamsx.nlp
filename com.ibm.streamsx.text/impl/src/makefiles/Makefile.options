@@ -1,0 +1,39 @@
+# -----------------------------------------------------------------------------
+# If the application framework (or com.ibm.streams.teda.internal.shm functions)
+# are used with InfoSphere Streams 3.2 on a Power architecture then additional
+# CXXFLAGS are required.
+#
+# InfoSphere Streams 3.2 uses the AT5 toolchain and provides the streams_boost
+# version 1.42. This combination requires the -fno-inline -fpermissive CXXFLAGS
+# or will fail during compilation or runtime while interacting with the
+# streams_boost interprocess library.
+# -----------------------------------------------------------------------------
+
+# Per default additional compiler flags are not required.
+CXXFLAGS :=
+
+### determine 'streamtool'
+ifneq ($(realpath $(STREAMS_INSTALL)),)
+ST=$(STREAMS_INSTALL)/bin/streamtool
+else 
+$(error STREAMS_INSTALL not defined)
+endif
+
+# The additional compiler flags are required for the Power architecture only.
+IS_PPC := $(shell uname -m | grep ppc64 -c)
+ifeq ("$(IS_PPC)","1")
+
+	# The additional compiler flags are required for InfoSphere Streams 3.2 only
+	# but not for InfoSphere Streams 3.2.2 that is a beta release.
+	REQUIRED = $(shell $(ST) version | perl -ne 'm/^Version=(.*)/ && (print ($$1 =~ m/^3\.2\.[01]\./ ? "yes" : "no"));')
+	ifeq ("$(REQUIRED)","yes")
+
+		CXXFLAGS := -fno-inline -fpermissive
+		# Tab in front of the $(info ...) means that the line is interpreted
+		# as command of a make target but we have no make target here. So,
+		# either use spaces or no indent.
+$(info INFO: The application framework requires for InfoSphere Streams 3.2.0 and 3.2.1 on Power the following sc compiler cxx-flags: $(CXXFLAGS))
+
+	endif
+
+endif

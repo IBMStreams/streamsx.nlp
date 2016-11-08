@@ -1,0 +1,48 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite RutaChainSample
+{
+	graph
+
+ 		stream<rstring text> TextRutaStream = FileSource() {
+			param
+				file:   "input.txt";
+				format: line;
+		}
+
+		(stream<rstring text, rstring xmi1> RutaAnnotated1 as O) as Ruta_Text = RutaText(TextRutaStream as I){
+			param
+				inputDoc: "text"; // text to analyze
+				pearFile: "Firefly1b.pear"; // relative to etc dir
+				casOut: "xmi1"; // serialized CAS
+		}
+		
+		(stream<rstring text, rstring xmi2> RutaAnnotated2 as O) as Ruta_CAS = RutaCas(RutaAnnotated1 as I){
+			param
+				pearFile: "Firefly2b.pear"; // relative to etc dir
+				casIn: "xmi1";
+				casOut: "xmi2";
+				removeBasics: true;
+		}
+
+		() as SinkRuta = FileSink(RutaAnnotated2) {
+ 			param
+				file:  "out.txt";
+				format: csv;
+				suppress: xmi2;
+				flushOnPunctuation: true;
+		}
+
+		() as SinkXMI = FileSink(RutaAnnotated2) {
+ 			param
+				file:  "out.xmi";
+				format: csv;
+				suppress: text;
+				flushOnPunctuation: true;
+				quoteStrings: false;
+		}
+}

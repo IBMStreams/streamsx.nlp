@@ -1,0 +1,34 @@
+________________________________________________________________
+
+	 	   Authors of GPoSTTL
+________________________________________________________________
+
+Golam Mortuza Hossain <gmhossain at gmail dot com>
+	(Tokenizer, Lemmatizer, PennTag Enhancer)
+
+Eleonora <eleonora46_at_gme_dot_net>
+    (Lexicon corrections)
+
+Progga <abulfazl at juniv dot edu>
+	(FreeBSD patches)
+________________________________________________________________
+
+Previous Authors:
+-----------------
+
+GPoSTTL is an enhanced version of Brill's rule-based
+Parts-of-Speech  Tagger,  with  in-built  Tokenizer  and
+Lemmatizer. It is based on LPost package by Jimmy Lin
+(jimmylin at umd.edu). LPost itself it based on Benjamin
+Han's ePost package which is a cleaned-up version of Brill's
+original code.  The lemma list is based on e_lemma.txt
+(Ver.1), complied by Yasumasa Someya (someya at
+someya-net.com).
+
+Acknowledgements:
+------------------
+Prof. Yasumasa Someya; for permitting the use of his
+e_lemma.txt.
+
+________________________________________________________________
+

@@ -1,0 +1,51 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+composite LemmatizerSample
+{
+	graph 
+
+ 		stream<rstring text> TextStream = FileSource() {
+			param
+				file: "SourceData.txt";
+				parsing: permissive;
+		}
+
+		(
+		stream<rstring text, rstring normalizedtext, list<com.ibm.streamsx.text::WordPosLemmaType> result, list<rstring> lemmas> TextNormalized as O
+		) as Lemmatizer  = com.ibm.streamsx.text::Lemmatizer(TextStream) {
+			param
+				textAttribute: text;
+			output O:
+				normalizedtext = NormalizedText(),
+				lemmas = Lemmas(),
+				result = TagWords();
+		}
+
+ 		() as SinkLemmas = FileSink(TextNormalized) {
+ 			param                        
+				file:  "out.txt";
+				format: txt;
+				flushOnPunctuation: true;
+		}
+		
+		() as Output = Custom(TextStream as I){
+			logic
+				state: {
+					boolean ok = com.ibm.streamsx.text.utils::initializeLemmatizer();
+				}
+				onTuple I: {
+					mutable list<rstring> words = [];
+					mutable list<rstring> pos = [];
+					mutable list<rstring> lemmas = [];
+					com.ibm.streamsx.text.utils::lemmatize(text, words, pos, lemmas);
+					
+					mutable int32 i = 0;
+					for (rstring w in words) {
+						printStringLn ("word[" + (rstring)i + "]=" + w + " pos[" + (rstring)i + "]=" + pos[i] + " lemma[" + (rstring)i + "]=" + lemmas[i]);
+						i++;
+					}
+				}
+		}
+}

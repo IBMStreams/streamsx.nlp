@@ -1,0 +1,64 @@
+<%
+
+# Copyright (C) 2016  International Business Machines Corporation
+# All Rights Reserved
+
+%>
+
+#include "LinuxShell.h"
+
+<%SPL::CodeGen::headerPrologue($model);%>
+
+class MY_OPERATOR : public MY_BASE_OPERATOR
+{
+
+public:
+
+  // ----------- standard operator methods ----------
+
+  MY_OPERATOR();
+  virtual ~MY_OPERATOR();
+  void allPortsReady();
+  void prepareToShutdown();
+  void process(uint32_t idx);
+  void process(Tuple & tuple, uint32_t port);
+  void process(Tuple const & tuple, uint32_t port);
+  void process(Punctuation const & punct, uint32_t port);
+
+private:
+
+  // ----------- operator state variables ----------
+
+  bool drained_;
+  SPL::CV drainCV_;
+  SPL::Mutex drainMutex_;
+  SPL::Mutex mutex_;
+  com::ibm::streamsx::linuxshell::LinuxShell shell_;
+
+  // ----------- operator input and output tuples ----------
+
+  IPort0Type inputTuple;
+  OPort0Type outputTuple0;
+  <% if ($model->getNumberOfOutputPorts()>1) { %> OPort1Type outputTuple1; <% } %>
+
+  // ----------- operator result variables ----------
+
+  SPL::rstring commandline;
+  SPL::list<SPL::uint64> linecounters;
+  SPL::rstring stdinline;
+  SPL::rstring stdoutline;
+  SPL::rstring stderrline;
+  SPL::uint8 exitcode;
+  SPL::rstring exitreason;
+
+  // ----------- assignment functions for output attributes ----------
+
+  SPL::rstring commandLine() { return commandline; }
+  SPL::rstring stdinLine() { return stdinline; }
+  SPL::rstring stdoutLine() { return stdoutline; }
+  SPL::rstring stderrLine() { return stderrline; }
+  SPL::list<SPL::uint64> lineCounters() { return linecounters; }
+
+};
+
+<%SPL::CodeGen::headerEpilogue($model);%>

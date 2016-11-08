@@ -1,0 +1,99 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace aql;
+
+use com.ibm.streams.text.analytics::TextExtract;
+
+use common::PerfTest;
+use common::AnnoSpan;
+
+<%
+my $STREAMS_INSTALL=$ENV{STREAMS_INSTALL};
+my $ST=$STREAMS_INSTALL."/bin/streamtool";
+
+sub getStreamsVersion()
+{
+	return substr(`$ST version | grep Version`, 8, 3,);
+}
+my $version = getStreamsVersion();
+%>
+
+<%if ($version >= "4.2") {%>
+@threading(model=manual)<%}%>
+composite Main
+{
+	param
+		expression<int32>   $loop: (int32)getSubmissionTimeValue("loop", "1");
+	graph
+
+		() as TestAql = PerfTest() {
+			param
+				loop: $loop;
+				textExtract: AqlTextExtract;
+				outputFilename: "aqlSpanWithText.out";
+				resultFilename: "aql_result.out";
+			config placement: partitionColocation("PERFTEST");
+		}
+}
+
+public composite AqlTextExtract (
+	input 
+		Documents;
+	output
+		NamesList
+)
+{
+	graph
+		(
+		stream<rstring documentFile, AnnoSpan fullName, rstring title> NamesSpanWithText;
+		stream<I> PassThrough
+                ) = TextExtract(Documents as I) {
+ 
+			param
+				moduleName : "getNames";
+				modulePath : <%if ($version == "3.2") {%>dataDirectory()+"/../"+<%}%>"etc/modulelib";
+				outputMode : "multiPort";
+				inputDoc : "entireDoc";
+				passThrough: true;
+		}
+
+		stream<rstring documentFile, list<AnnoSpan> annotations, rstring entireDoc> NamesList = Custom(NamesSpanWithText as I; PassThrough as P) {
+			logic
+				state: {
+					mutable list<AnnoSpan> annotations_ = [];
+					mutable rstring documentFile_ = "";
+					mutable rstring entireDoc_ = "";
+					mutable rstring filename = "";
+				}
+				onTuple P: {
+					submit({documentFile=P.documentFile, annotations = annotations_, entireDoc=P.entireDoc}, NamesList);
+					submit(Sys.WindowMarker, NamesList);
+				}
+				onTuple I: {
+					entireDoc_ = I.fullName.text;
+					documentFile_ = I.documentFile;
+					mutable AnnoSpan anno = {};
+					anno.text = title + " " + substring(I.fullName.text, I.fullName.begin, I.fullName.end-I.fullName.begin);
+					anno.begin = I.fullName.begin;
+					anno.end = I.fullName.end;
+					appendM(annotations_, anno);
+				}
+				onPunct I: {
+					//printStringLn("currentPunct()="+(rstring)currentPunct());
+					if (currentPunct() == Sys.WindowMarker) {
+						if ("" != documentFile_) {
+							submit({documentFile=documentFile_, annotations = annotations_, entireDoc=entireDoc_}, NamesList);
+							clearM(annotations_);
+							entireDoc_="";
+							documentFile_="";
+							submit(currentPunct(), NamesList);
+						}
+					}
+					else {
+						submit(currentPunct(), NamesList) ;
+					}
+				}
+		}
+}

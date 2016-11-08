@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="impl/java/bin" path="impl/java/src"/>
+	<classpathentry exported="true" kind="con" path="com.ibm.streams.java/com.ibm.streams.operator"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="impl/lib/apache-uima/ruta-core-2.4.0.jar"/>
+	<classpathentry kind="lib" path="impl/lib/apache-uima/uima-core.jar"/>
+	<classpathentry kind="lib" path="impl/lib/apache-uima/uimafit-core-2.1.0.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

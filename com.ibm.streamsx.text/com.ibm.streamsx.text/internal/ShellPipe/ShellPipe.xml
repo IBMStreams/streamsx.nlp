@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<operatorModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ibm.com/xmlns/prod/streams/spl/operator" xmlns:cmn="http://www.ibm.com/xmlns/prod/streams/spl/common" xsi:schemaLocation="http://www.ibm.com/xmlns/prod/streams/spl/operator operatorModel.xsd">
+  <cppOperatorModel>
+    <context>
+      <description>
+
+ShellPipe is an operator for the IBM Streams product that executes
+a Linux command or command pipeline in a shell. Lines of text received
+as input tuples from the operator's required input port are written to the command's STDIN input.
+The command's STDOUT output is emitted as tuples by the operator's required output port,
+one tuple per line.
+If a second output port is configured, the command's STDERR output is emitted
+as tuples on that port.
+
+The command or pipeline is specified as an operator parameter.
+Command pipelines can be specified with the usual shell pipe character "|".
+
+The command is executed in separate Linux shell, as specified by
+the `/bin/sh` program, which is the Bash shell on most Linux systems.
+
+The ShellPipe operator is part of the 'com.ibm.streamsx.shell' toolkit.
+
+# Processes and Threads
+
+The ShellPipe operator creates a separate process to execute the shell command or pipeline,
+and creates a separate thread within the operator's process to receive output from the command.
+
+# Punctuation
+
+The ShellPipe operator emits punctuation on all configured output ports after 
+the shell command exits.
+
+# Exceptions
+
+The ShellPipe operator throws an exception if it is unable to execute the 
+`/bin/sh` program, which is the Bash shell on most Linux systems.
+
+# Sample Applications
+
+The network toolkit includes several
+[./tk$SampleShellPipe/tk$SampleShellPipe.html|sample applications]
+that illustrate how to use this operator.
+
+      </description>
+      <customOutputFunctions>
+        <customOutputFunction>
+          <name>STDOUT_functions</name>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of either output port.
+It assigns a string value containing the shell command.
+
+            </description>
+            <prototype>rstring commandLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of either output port.
+It assigns a string value containing the most recently received line
+sent to the shell command's STDIN input.
+
+Note that shell commands execute asynchronously from the operator, and 
+may emit no output, or many lines of output, for each input line, so the 
+value of this function is not synchronized with the output tuples produced 
+by either output port.
+
+            </description>
+            <prototype>rstring stdinLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can only be used in the `output` clause of output port 0.
+It assigns a string value containing one line of text written to STDOUT by the shell command.
+
+            </description>
+            <prototype>rstring stdoutLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of either output port.
+It assigns a list of three `uint64` numbers: counts of the shell command's STDIN, STDOUT, and STDERR lines, respectively.
+
+            </description>
+            <prototype>list&lt;uint64> lineCounters()</prototype>
+          </function>
+          <function>
+            <description>
+
+Output attributes that match input attributes in name and type
+are automatically copied from those input attributes in the most recently received input tuple.
+
+Note that shell commands execute asynchronously from the operator, and 
+may emit no output, or many lines of output, for each input line, so the 
+attributes copied are not synchronized with the output tuples produced 
+by either output port.
+
+            </description>
+            <prototype>&lt;any T> T copy()</prototype>
+          </function>
+        </customOutputFunction>
+        <customOutputFunction>
+          <name>STDERR_functions</name>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of either output port.
+It assigns a string value containing the shell command.
+
+            </description>
+            <prototype>rstring commandLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of either output port.
+It assigns a string value containing the most recently received line
+sent to the shell command's STDIN input.
+
+Note that shell commands execute asynchronously from the operator, and 
+may emit no output, or many lines of output, for each input line, so the 
+value of this function is not synchronized with the output tuples produced 
+by either output port.
+
+            </description>
+            <prototype>rstring stdinLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can only be used in the `output` clause of output port 1.
+It assigns a string value containing one line of text written to STDERR by the shell command.
+
+            </description>
+            <prototype>rstring stderrLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of either output port.
+It assigns a list of three `uint64` numbers: counts of the shell command's STDIN, STDOUT, and STDERR lines, respectively.
+
+            </description>
+            <prototype>list&lt;uint64> lineCounters()</prototype>
+          </function>
+          <function>
+            <description>
+
+Output attributes that match input attributes in name and type
+are automatically copied from those input attributes in the most recently received input tuple.
+
+Note that shell commands execute asynchronously from the operator, and 
+may emit no output, or many lines of output, for each input line, so the 
+attributes copied are not synchronized with the output tuples produced 
+by either output port.
+
+            </description>
+            <prototype>&lt;any T> T copy()</prototype>
+          </function>
+        </customOutputFunction>
+      </customOutputFunctions>
+      <libraryDependencies>
+        <library>
+          <cmn:description></cmn:description>
+          <cmn:managedLibrary>
+            <cmn:includePath>../../../impl/include/shell</cmn:includePath>
+          </cmn:managedLibrary>
+        </library>
+      </libraryDependencies>
+      <providesSingleThreadedContext>Never</providesSingleThreadedContext>
+      <allowCustomLogic>true</allowCustomLogic>
+    </context>
+    <parameters>
+      <description></description>
+      <allowAny>false</allowAny>
+      <parameter>
+        <name>command</name>
+        <description>
+
+This required parameter takes an expression of type `rstring` that specifies the shell command 
+or pipeline to be executed by the operator. 
+
+        </description>
+        <optional>false</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>AttributeFree</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>stdinAttribute</name>
+        <description>
+
+This optional parameter specifies an input attribute of type `rstring` that contains lines of 
+text to be written to the shell command's STDIN input.
+
+If this parameter is not specified, 
+STDIN input lines are taken from the first input attribute of type `rstring`.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Attribute</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>stdoutAttribute</name>
+        <description>
+
+This optional parameter specifies the name of an output attribute of type `rstring` for output port 0. 
+Lines of text written to STDOUT by the shell command will be assigned to this attribute in output tuples.
+
+If this parameter is not specified, 
+the first output attribute of type `rstring` for output port 0 will be used.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Constant</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>stderrAttribute</name>
+        <description>
+
+This optional parameter specifies the name of an output attribute of type `rstring` for output port 1,
+if there is one. 
+Lines of text written to STDERR by the shell command will be assigned to this attribute in output tuples.
+
+If this parameter is not specified, 
+the first output attribute of type `rstring` for output port 1 will be used.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Constant</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+    </parameters>
+    <inputPorts>
+      <inputPortSet>
+        <description>
+
+The ShellPipe operator has one required input port.
+
+Lines of text are taken from input tuples and written to the shell command's STDIN input.
+The `stdinAttribute` parameter specifies the input attribute containing input lines,
+or if not specified, the first input attribute of type `rstring` is used.
+
+        </description>
+        <windowingDescription></windowingDescription>
+        <tupleMutationAllowed>false</tupleMutationAllowed>
+        <windowingMode>NonWindowed</windowingMode>
+        <windowPunctuationInputMode>Oblivious</windowPunctuationInputMode>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </inputPortSet>
+    </inputPorts>
+    <outputPorts>
+      <outputPortSet>
+        <description>
+
+The ShellPipe operator has one required output port.
+
+Output port 0 produces a tuple for each line of text 
+written to STDOUT by the shell command.
+The `stdoutAttribute` parameter specifies the output attribute STDOUT lines are assigned to,
+or if not specified, the first output attribute of type `rstring` is used.
+Alternatively, the assigment function 'stdoutLine()' can be used in an `output` clause
+for port 0 to assign STDOUT lines to an output attribute.
+
+        </description>
+        <expressionMode>Expression</expressionMode>
+        <autoAssignment>false</autoAssignment>
+        <completeAssignment>false</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+        <outputFunctions>
+          <default>copy</default>
+          <type>STDOUT_functions</type>
+        </outputFunctions>
+        <windowPunctuationOutputMode>Preserving</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>0</windowPunctuationInputPort>
+        <tupleMutationAllowed>false</tupleMutationAllowed>
+        <allowNestedCustomOutputFunctions>true</allowNestedCustomOutputFunctions>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </outputPortSet>
+      <outputPortSet>
+        <description>
+
+The ShellPipe operator has an additional optional output port.
+
+If output port 1 is configured, it produces a tuple for each line of text 
+written to STDERR by the shell command.
+The `stderrAttribute` parameter specifies the output attribute STDERR lines are assigned to,
+or if not specified, the first output attribute of type `rstring` is used.
+Alternatively, the function 'stderrLine()' can be used in an `output` clause
+for port 1 to assign STDERR lines to an output attribute.
+
+        </description>
+        <expressionMode>Expression</expressionMode>
+        <autoAssignment>false</autoAssignment>
+        <completeAssignment>false</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+        <outputFunctions>
+          <default>copy</default>
+          <type>STDERR_functions</type>
+        </outputFunctions>
+        <windowPunctuationOutputMode>Preserving</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>0</windowPunctuationInputPort>
+        <tupleMutationAllowed>false</tupleMutationAllowed>
+        <allowNestedCustomOutputFunctions>true</allowNestedCustomOutputFunctions>
+        <cardinality>1</cardinality>
+        <optional>true</optional>
+      </outputPortSet>
+    </outputPorts>
+  </cppOperatorModel>
+</operatorModel>

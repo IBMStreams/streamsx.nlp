@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<operatorModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ibm.com/xmlns/prod/streams/spl/operator" xmlns:cmn="http://www.ibm.com/xmlns/prod/streams/spl/common" xsi:schemaLocation="http://www.ibm.com/xmlns/prod/streams/spl/operator operatorModel.xsd">
+  <cppOperatorModel>
+    <context>
+      <description>
+
+ShellSource is an operator for the IBM Streams product that executes
+Linux commands or command pipelines in a shell. The command's STDOUT
+output is emitted as tuples by the operator's required output port, 
+one tuple per line.
+If a second output port is configured, the command's STDERR output is emitted
+as tuples on that port.
+If a third output port is configued, a tuple is emitted on that port when 
+the command exits.
+
+The command or pipeline may be specified as an operator parameter,
+or, the operator can receive commands as input tuples from an
+optional input port.  
+Command pipelines can be specified with the usual shell pipe character "|".
+
+Each command is executed in separate Linux shell, as specified by
+the `/bin/sh` program, which is the Bash shell on most Linux systems.
+
+The ShellSource operator is part of the 'com.ibm.streamsx.shell' toolkit.
+
+# Processes and Threads
+
+The ShellSource operator creates separate processes to execute shell commands,
+and creates a separate thread within the operator's process to receive output from commands.
+
+# Punctuation
+
+The ShellSource operator emits punctuation on all configured output ports after each
+shell command exits.
+
+# Exceptions
+
+The ShellSource operator throws an exception if it is unable to execute the 
+`/bin/sh` program, which is the Bash shell on most Linux systems.
+
+# Sample Applications
+
+The network toolkit includes several
+[./tk$SampleShellSource/tk$SampleShellSource.html|sample applications]
+that illustrate how to use this operator.
+
+      </description>
+      <customOutputFunctions>
+        <customOutputFunction>
+          <name>STDOUT_functions</name>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of any output port.
+It assigns a string value containing the shell command that produced the current output tuple.
+
+            </description>
+            <prototype>rstring commandLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can only be used in the `output` clause of output port 0.
+It assigns a string value containing one line of text written to STDOUT by the shell command.
+
+            </description>
+            <prototype>rstring stdoutLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of any output port.
+It assigns a list of three `uint64` numbers: counts of the shell command's STDIN, STDOUT, and STDERR lines, respectively.
+
+            </description>
+            <prototype>list&lt;uint64> lineCounters()</prototype>
+          </function>
+          <function>
+            <description>
+
+When an input port is configured, output attributes that match input attributes in name and type
+are automatically copied from those input attributes.
+
+            </description>
+            <prototype>&lt;any T> T copy()</prototype>
+          </function>
+        </customOutputFunction>
+        <customOutputFunction>
+          <name>STDERR_functions</name>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of any output port.
+It assigns a string value containing the shell command that produced the current output tuple.
+
+            </description>
+            <prototype>rstring commandLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can only be used in the `output` clause of output port 1, if there is one.
+It assigns a string value containing one line of text written to STDERR by the shell command.
+
+            </description>
+            <prototype>rstring stderrLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of any output port.
+It assigns a list of three `uint64` numbers: counts of the shell command's STDIN, STDOUT, and STDERR lines, respectively.
+
+            </description>
+            <prototype>list&lt;uint64> lineCounters()</prototype>
+          </function>
+          <function>
+            <description>
+
+When an input port is configured, output attributes that match input attributes in name and type
+are automatically copied from those input attributes.
+
+            </description>
+            <prototype>&lt;any T> T copy()</prototype>
+          </function>
+        </customOutputFunction>
+        <customOutputFunction>
+          <name>STATUS_functions</name>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of any output port.
+It assigns a string value containing the shell command that produced the current output tuple.
+
+            </description>
+            <prototype>rstring commandLine()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can only be used in the `output` clause of output port 2, if there is one.
+It assigns the `int32` value of the shell command's exit code.
+
+            </description>
+            <prototype>int32 exitCode()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can only be used in the `output` clause of output port 2, if there is one.
+It assigns a string value describing the reason the shell command exited: 
+
+* "Exit", if the shell exited normally
+* "Shutdown", if the Streams process is shutting down
+* "Unknown", if the reason is not known
+
+            </description>
+            <prototype>rstring exitReason()</prototype>
+          </function>
+          <function>
+            <description>
+
+This function can be used in the `output` clause of any output port.
+It assigns a list of three `uint64` numbers: counts of the shell command's STDIN, STDOUT, and STDERR lines, respectively.
+
+            </description>
+            <prototype>list&lt;uint64> lineCounters()</prototype>
+          </function>
+          <function>
+            <description>
+
+When an input port is configured, output attributes that match input attributes in name and type
+are automatically copied from those input attributes.
+
+            </description>
+            <prototype>&lt;any T> T copy()</prototype>
+          </function>
+        </customOutputFunction>
+      </customOutputFunctions>
+
+      <libraryDependencies>
+        <library>
+          <cmn:description></cmn:description>
+          <cmn:managedLibrary>
+            <cmn:includePath>../../../impl/include/shell</cmn:includePath>
+          </cmn:managedLibrary>
+        </library>
+      </libraryDependencies>
+
+      <providesSingleThreadedContext>Never</providesSingleThreadedContext>
+      <allowCustomLogic>true</allowCustomLogic>
+    </context>
+    <parameters>
+      <description></description>
+      <allowAny>false</allowAny>
+      <parameter>
+        <name>initDelay</name>
+        <description>
+
+This optional parameter takes an expression of type `float64` that specifies the
+number of seconds the operator will wait before executing the shell command.
+
+The default value is 0.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>AttributeFree</expressionMode>
+        <type>float64</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>iterationCount</name>
+        <description>
+
+This optional parameter takes an expression of type `uint32` that specifies the
+number of times the shell command will be executed.
+
+The default value is 0.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>AttributeFree</expressionMode>
+        <type>uint32</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>iterationInterval</name>
+        <description>
+
+This optional parameter takes an expression of type `float64` that specifies the
+time, in seconds, between executions of the shell command, when the `iterationCount` parameter
+is specified.
+
+Note that if the shell command takes longer to complete than the time value specified with this 
+parameter, the shell command will be executed again immediately.
+
+The default value is 0.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>AttributeFree</expressionMode>
+        <type>float64</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>command</name>
+        <description>
+
+This optional parameter takes an expression of type `rstring` that specifies the shell command 
+or pipeline to be executed by the operator. 
+
+If this parameter is specified, the `commandAttribute` parameter may not be specified. 
+If neither parameter is specified, and an input port is configured, 
+shell commands are consumed from the first input attribute of type `rstring`.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>AttributeFree</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>commandAttribute</name>
+        <description>
+
+When an input port is configured, 
+this optional parameter specifies an input attribute of type `rstring` that contains the shell commands
+or pipelines to be executed by the operator. 
+
+If this parameter is specified, the `command` parameter may not be specified. 
+If neither parameter is specified, 
+shell commands are consumed from the first input attribute of type `rstring`.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Attribute</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>stdoutAttribute</name>
+        <description>
+
+This optional parameter specifies the name of an output attribute of type `rstring` for output port 0. 
+Lines of text written to STDOUT by the shell command will be assigned to this attribute in output tuples.
+
+If this parameter is not specified, 
+the first output attribute of type `rstring` for output port 0 will be used.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Constant</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>stderrAttribute</name>
+        <description>
+
+This optional parameter specifies the name of an output attribute of type `rstring` for output port 1, 
+if there is one. 
+Lines of text written to STDERR by the shell command will be assigned to this attribute.
+
+If this parameter is not specified, the first output attribute of type `rstring` for output port 1 will be used.
+
+        </description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Constant</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+    </parameters>
+    <inputPorts>
+      <inputPortSet>
+        <description>
+
+The ShellSource operator has one optional input port.
+
+When the ShellSource operator is configured with an input port, shell commands to be executed
+are consumed from input tuples.
+The `commandAttribute` parameter specifies the input attribute containing shell commands,
+or if not specified, the first input attribute of type `rstring` is used.
+
+        </description>
+        <windowingDescription></windowingDescription>
+        <tupleMutationAllowed>false</tupleMutationAllowed>
+        <windowingMode>NonWindowed</windowingMode>
+        <windowPunctuationInputMode>Oblivious</windowPunctuationInputMode>
+        <cardinality>1</cardinality>
+        <optional>true</optional>
+      </inputPortSet>
+    </inputPorts>
+    <outputPorts>
+      <outputPortSet>
+        <description>
+
+The ShellSource operator has one required output port.
+
+Output port 0 produces a tuple for each line of text 
+written to STDOUT by the shell command.
+The `stdoutAttribute` parameter specifies the output attribute STDOUT lines are assigned to,
+or if not specified, the first output attribute of type `rstring` is used.
+Alternatively, the assigment function 'stdoutLine()' can be used in an `output` clause
+for port 0 to assign STDOUT lines to an output attribute.
+
+        </description>
+        <expressionMode>Expression</expressionMode>
+        <autoAssignment>false</autoAssignment>
+        <completeAssignment>false</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+        <outputFunctions>
+          <default>copy</default>
+          <type>STDOUT_functions</type>
+        </outputFunctions>
+        <windowPunctuationOutputMode>Generating</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>-1</windowPunctuationInputPort>
+        <tupleMutationAllowed>false</tupleMutationAllowed>
+        <allowNestedCustomOutputFunctions>true</allowNestedCustomOutputFunctions>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </outputPortSet>
+      <outputPortSet>
+        <description>
+
+The ShellSource operator has two optional output ports.
+
+If output port 1 is configured, it produces a tuple for each line of text 
+written to STDERR by the shell command.
+The `stderrAttribute` parameter specifies the output attribute STDERR lines are assigned to,
+or if not specified, the first output attribute of type `rstring` is used.
+Alternatively, the function 'stderrLine()' can be used in an `output` clause
+for port 1 to assign STDERR lines to an output attribute.
+        
+        </description>
+        <expressionMode>Expression</expressionMode>
+        <autoAssignment>false</autoAssignment>
+        <completeAssignment>false</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+        <outputFunctions>
+          <default>copy</default>
+          <type>STDERR_functions</type>
+        </outputFunctions>
+        <windowPunctuationOutputMode>Generating</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>-1</windowPunctuationInputPort>
+        <tupleMutationAllowed>false</tupleMutationAllowed>
+        <allowNestedCustomOutputFunctions>true</allowNestedCustomOutputFunctions>
+        <cardinality>1</cardinality>
+        <optional>true</optional>
+      </outputPortSet>
+      <outputPortSet>
+        <description>
+
+The ShellSource operator has two optional output ports.
+
+If output port 2 is configured, it produces a tuple after each shell command exits.
+The `exitCode()` and `exitReason()` functions can be used in an `output` clause
+for port 2 to assign the shell command's exit code and reason, respectively.
+
+        </description>
+        <expressionMode>Expression</expressionMode>
+        <autoAssignment>false</autoAssignment>
+        <completeAssignment>false</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+        <outputFunctions>
+          <default>copy</default>
+          <type>STATUS_functions</type>
+        </outputFunctions>
+        <windowPunctuationOutputMode>Generating</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>-1</windowPunctuationInputPort>
+        <tupleMutationAllowed>false</tupleMutationAllowed>
+        <allowNestedCustomOutputFunctions>true</allowNestedCustomOutputFunctions>
+        <cardinality>1</cardinality>
+        <optional>true</optional>
+      </outputPortSet>
+    </outputPorts>
+  </cppOperatorModel>
+</operatorModel>

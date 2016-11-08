@@ -1,0 +1,54 @@
+<% 
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.
+%>
+
+<%SPL::CodeGen::headerPrologue($model);%>
+
+<%my $numInputPorts = $model->getNumberOfInputPorts();%>
+
+class MY_OPERATOR : public MY_BASE_OPERATOR 
+{
+	public:
+		// Constructor
+		MY_OPERATOR();
+
+		// Destructor
+		virtual ~MY_OPERATOR();
+  
+		void process(Tuple & tuple, uint32_t port);
+		void process(Punctuation const & punct, uint32_t port);
+
+	private:
+
+		std::string makeAbsolute(const std::string & path);
+
+		inline void appendText(const SPL::rstring& word, SPL::rstring& text) {
+			if ("" != text) {
+				text.append(" ");
+			}
+			text.append(word);
+		}
+
+		/**
+		 * Reads the dictionary file and fills the map
+		 */
+		void readDictionaryFile(const SPL::rstring& filename);
+
+		/**
+		 * The dictionary
+		 */
+		SPL::map<SPL::rstring, int> _dict;
+
+		<%if ($numInputPorts > 1) {%>
+		/**
+		 * The dictionary cleared and filled on command tuples
+		 */
+		SPL::map<SPL::rstring, int> _dictUpdate;
+		<%}%>
+		
+		static const std::string aspect;
+
+}; 
+
+<%SPL::CodeGen::headerEpilogue($model);%>

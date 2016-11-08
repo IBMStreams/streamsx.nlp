@@ -1,0 +1,143 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite UimaDynamicUpdateSample
+{
+	type
+		AnnoSpan = tuple<rstring building, rstring shortDateString>;
+
+	graph
+
+		stream<rstring documentFile> Filenames as O = Custom() {
+			logic state: {
+				mutable int32 loop_ = 4;
+			}
+			onProcess: {
+				mutable rstring filename = "";
+				for (int32 l in range(loop_)) {
+					println("--"+(rstring)l+"--");
+					for (int32 iter in range(5)) {
+						filename = "input/input" +(rstring)(iter) + ".txt";
+						submit({documentFile=filename}, O);
+					}
+				}
+			}
+		}
+
+		(
+		stream<rstring documentFile> FilenameStream as O;
+		stream<rstring documentFile> DocumentFilenames as D
+		) as FilenameBypass = Custom(Filenames as I) {
+			logic
+				onTuple I: {
+					submit(I, O); // first by pass the filename, since FileSource does not forward the filename
+					submit(I, D);
+				}
+			config placement: partitionColocation("INPUT");
+		}
+
+		stream<rstring oneline> Line = FileSource(DocumentFilenames) {
+			param
+				format : line;
+			config placement: partitionColocation("INPUT");
+		}
+
+		stream<rstring entireDoc, rstring documentFile> Documents as O = Custom(Line as I; FilenameStream as F) {
+			logic state: {
+				mutable rstring soFar = "";
+				mutable rstring filename = "";
+			}
+			onTuple I: {
+				soFar +=(rstring) "\n" + I.oneline;
+			}
+			onTuple F: {
+				filename = F.documentFile;
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.WindowMarker) {
+					submit({entireDoc = soFar, documentFile = filename}, O);
+					soFar =(rstring) "";
+					filename = "";
+					block(0.5); // slow down the processing, in order to have a chance to update the PEAR before all files are processed
+				}
+				else {
+					// it's a final punctuation, so send it on.
+					submit(currentPunct(), O);
+				}
+			}
+			config placement: partitionColocation("INPUT");
+		}
+
+		(stream<rstring filename> ControlStream as C ) as CtrlGen = Custom() {
+			logic
+				onProcess:
+				{
+					block(3.0); // wait some time to process some files with inital PEAR before update
+					submit({filename="RoomNumberAnnotator2_Java17.pear"}, C); // relative to data dir
+					println("---activate new PEAR---");
+					submit(Sys.WindowMarker, C);
+				}
+		}
+		
+		(stream<rstring documentFile, rstring xmi1, list<AnnoSpan> annotations> TextAnnotated) as PEARUpdateTest = UimaText(Documents; ControlStream){
+			param
+				inputDoc: "entireDoc";
+				pearFile: "DateTimeAnnotator_Java17.pear";
+				casOut: "xmi1";
+				outputAttributes: "annotations";
+				outputTypes: "org.apache.uima.tutorial.RoomNumber", "org.apache.uima.tutorial.DateAnnot";
+		}
+
+		() as CustomOut = Custom(TextAnnotated as I){
+			logic
+				onTuple I : {
+					println(I.annotations);
+				}
+		}
+
+		stream<rstring result> ResultStream as O = Custom(TextAnnotated as I){
+			logic
+				state: {
+					mutable rstring result = "failed";
+					mutable boolean dateAnnotations = false;
+					mutable boolean buildingAnnotations = false;
+					mutable boolean resultSent = false;
+				}
+				onTuple I : {
+					if (false == resultSent) {
+						if (spl.collection::size(I.annotations) > 0) {
+							for (AnnoSpan s in I.annotations) {
+								if (s.shortDateString != "") {
+									dateAnnotations = true;
+								}
+								if (s.building != "") {
+									buildingAnnotations = true;
+								}
+							}
+						}
+						if ((dateAnnotations) && (buildingAnnotations)) {
+							result = "passed";
+							submit({result=result}, O);
+							resultSent = true;
+						}
+					}
+				}
+				onPunct I : {
+					if ((currentPunct() == Sys.FinalMarker) && (false == resultSent)) {
+						submit({result=result}, O);
+					}
+					submit(currentPunct(), O);
+				}
+		}
+
+		() as Sink1 = FileSink(ResultStream) {
+ 			param
+				file:  "out.txt";
+				format: txt;
+				flushOnPunctuation: true;
+		}
+
+}

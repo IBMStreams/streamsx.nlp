@@ -1,0 +1,1 @@
+{tfidfList=[{term="I",tfidf=0.0200000002980232},{term="am",tfidf=0.0200000002980232},{term="interested",tfidf=0.0200000002980232},{term="in",tfidf=0.0200000002980232},{term="bees",tfidf=0.277258876355457}],topList=[]}

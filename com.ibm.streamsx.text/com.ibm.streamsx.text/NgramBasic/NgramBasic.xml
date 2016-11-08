@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<!-- Copyright (C)2016, International Business Machines Corporation -->
+<!-- All rights reserved.                                -->
+<operatorModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ibm.com/xmlns/prod/streams/spl/operator" xmlns:cmn="http://www.ibm.com/xmlns/prod/streams/spl/common" xsi:schemaLocation="http://www.ibm.com/xmlns/prod/streams/spl/operator operatorModel.xsd">
+  <cppOperatorModel>
+    <context>
+      <description>This operator generates n-grams of co-occuring words within a given window.</description>
+	<customOutputFunctions>
+		<customOutputFunction>
+			<name>Functions</name>
+			<function>
+				<description>The original argument expression is submitted.</description>
+				<prototype><![CDATA[<any T> T AsIs(T)]]></prototype>
+			</function>
+			<function>
+				<description><![CDATA[
+This function generates a list of n-gram term tuples.
+
+**Example use:**
+
+    stream<rstring text,list<tuple<rstring term>> result> A = NgramBasic() {
+       param ...
+       output A : result = NgramTerms();
+    }
+]]></description>
+				<prototype><![CDATA[public list<tuple<rstring term>> NgramTerms()]]></prototype>
+			</function>
+			<function>
+				<description><![CDATA[
+This function generates a list of n-gram terms.
+
+**Example use:**
+
+    stream<rstring text,list<rstring> terms> A = NgramBasic() {
+       param ...
+       output A : terms = NgramTermsList();
+    }
+]]></description>
+				<prototype><![CDATA[public list<rstring> NgramTermsList()]]></prototype>
+			</function>			
+		</customOutputFunction>
+	</customOutputFunctions>
+      <providesSingleThreadedContext>Always</providesSingleThreadedContext>
+    </context>
+    <parameters>
+      <allowAny>false</allowAny>
+      <parameter>
+        <name>documentAttribute</name>
+        <description>The input stream attribute containing the text for n-gram generation. It must be of type SPL::rstring, SPL:list%ltrstring%gt or SPL:list%lttuple%ltrstring word%gt%gt</description>
+        <optional>false</optional>
+        <rewriteAllowed>false</rewriteAllowed>
+        <expressionMode>Constant</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>wordAttribute</name>
+        <description>The attribute containing the word if documentAttribute is of type SPL:list. If this parameter is not specified, then the SPL:list tuple must contain an attribute with the name word or the first attribute is of type rstring.</description>
+        <optional>true</optional>
+        <rewriteAllowed>false</rewriteAllowed>
+        <expressionMode>Constant</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>size</name>
+        <description>The number of words combined to a new term. When size=1, this is referred to as unigrams and this is essentially the individual words in a sentence. When size=2, this is called bigrams and when size=3 this is called trigrams. When size>3 this is usually referred to as four grams or five grams and so on.</description>
+        <optional>false</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Expression</expressionMode>
+        <type>uint32</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>minSize</name>
+        <description>With this parameter you can define a range of n-grams. This parameter must be smaller or equal to the size parameter, otherwise the parameter has no effect. For example: If the size parameter is 3 and minSize is 1 then unigrams, bigrams and trigrams are generated.</description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Expression</expressionMode>
+        <type>uint32</type>
+        <cardinality>1</cardinality>
+      </parameter>
+    </parameters>
+    <inputPorts>
+      <inputPortSet>
+        <description>Tuples for N-gram generation</description>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <windowingMode>NonWindowed</windowingMode>
+        <windowPunctuationInputMode>Oblivious</windowPunctuationInputMode>
+        <controlPort>false</controlPort>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </inputPortSet>
+    </inputPorts>
+    <outputPorts>
+      <outputPortSet>
+      	<description>This mandatory output port sends the n-gram tuples from the documents received on input port 0.</description>
+        <expressionMode>Expression</expressionMode> 
+        <autoAssignment>false</autoAssignment>
+        <completeAssignment>false</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+          <outputFunctions>
+            <default>AsIs</default>
+            <type>Functions</type>
+          </outputFunctions>
+        <windowPunctuationOutputMode>Preserving</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>0</windowPunctuationInputPort>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </outputPortSet>
+    </outputPorts>
+  </cppOperatorModel>
+</operatorModel>

@@ -1,0 +1,73 @@
+<% 
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.
+%>
+
+/* Additional includes go here */
+
+<%
+	SPL::CodeGen::headerPrologue($model);
+
+	my $outputPort = $model->getOutputPortAt(0);
+	my $tupleType = $outputPort->getCppTupleType();
+%>
+
+class MY_OPERATOR : public MY_BASE_OPERATOR 
+{
+	public:
+		// Constructor
+		MY_OPERATOR();
+
+		// Destructor
+		virtual ~MY_OPERATOR(); 
+		
+		// Notify port readiness
+		void allPortsReady(); 
+		
+		// Notify pending shutdown
+		void prepareToShutdown(); 
+		
+		// Processing for source and threaded operators   
+		void process(uint32_t idx);
+		
+		// Tuple processing for mutating ports 
+		void process(Tuple & tuple, uint32_t port);
+		
+		// Tuple processing for non-mutating ports
+		void process(Tuple const & tuple, uint32_t port);
+		
+		// Punctuation processing
+		void process(Punctuation const & punct, uint32_t port);
+
+		/**
+		 * Get the iteration counter.
+		 */
+		inline SPL::rstring NormalizedText() const { return _normalizedText;}   
+
+private:
+
+		/**
+		 * Tuple to be sent.
+		 */
+		<%=$tupleType%> _tuple;
+		
+		/**
+		 * The normalized text.
+		 */
+		SPL::rstring _normalizedText;
+		
+		/**
+		 * Word string is used if lemma is unknown and normalizedText output is configured
+		 */
+		SPL::rstring _word;
+		
+		/**
+		 * Parameter to tag function of gposttl
+		 * Value 1 enables this feature
+		 */
+		int _enhancePenntag;
+
+}; 
+
+<%SPL::CodeGen::headerEpilogue($model);%>
+

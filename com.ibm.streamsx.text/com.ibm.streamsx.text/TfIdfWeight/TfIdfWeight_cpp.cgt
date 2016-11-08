@@ -1,0 +1,456 @@
+<% 
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.
+%>
+/* Additional includes go here */
+#include <fstream>
+#include <sys/stat.h>
+#include <streams_boost/filesystem/path.hpp>
+#include <streams_boost/filesystem/exception.hpp>
+#include "streams_boost/filesystem/operations.hpp"
+#include "streams_boost/lexical_cast.hpp"
+
+#include <SPL/Runtime/Operator/OperatorMetrics.h>
+<%SPL::CodeGen::implementationPrologue($model);%>
+
+<%
+
+	use Cwd 'abs_path';
+	use Data::Dumper;
+	# -------------------------------------------------------------------------
+	# Use Common Perl Module
+	# -------------------------------------------------------------------------
+	my $CommonINC = abs_path($model->getContext()->getOperatorDirectory() . "/../Common");
+	unshift @INC, $CommonINC;
+	require CommonPerlFunctions;
+
+	my $outputPort = $model->getOutputPortAt(0);
+	my $usesWeightedTerms = 0;
+	my $usesTopWeightedTerms = 0;
+	my $attributeNameWeightedTerms;
+	my $tupleTypeWeightedTerms;
+	my $attributeNameTopWeightedTerms;
+	my $tupleTypeTopWeightedTerms;
+	my $outTupleAssignments = getOutputTupleCppAssignmentsWithSideEffects ("_tuple", $outputPort, 1);
+	my $hasOutTupleAssignments = $outTupleAssignments ne "";
+
+	# -------------------------------------------------------------------------
+	# Parameters
+	# -------------------------------------------------------------------------
+	my $documentAttributeParameter = $model->getParameterByName("documentAttribute");
+	my $corpusFileParam = $model->getParameterByName("corpusFile");
+	my $defaultIDFParam = $model->getParameterByName("defaultIDF");
+	my $nTopWeightedTermsParam = $model->getParameterByName("nTopWeightedTerms");
+	my $termAttributeParam = $model->getParameterByName("termAttribute");
+	my $termAttrName;
+	if (defined $termAttributeParam) { # check if optional parameter is set
+		$termAttrName=$termAttributeParam->getValueAt(0)->getSPLExpression();
+		$termAttrName = substr($termAttrName, 1, length($termAttrName)-2);
+	}
+
+	my $outputPort = $model->getOutputPortAt(0);
+	my $inputPort = $model->getInputPortAt(0);
+	my $iports = $model->getNumberOfInputPorts();
+	my $hasCommandPort = ($iports >= 2);
+
+	my $docAttrInList = "term";
+	my $docParamIsRstring = 0;
+	my $docString=$documentAttributeParameter->getValueAt(0)->getSPLExpression();
+	$docString = substr($docString, 1, length($docString)-2);
+
+	if (defined $inputPort->getAttributeByName($docString)) {
+		if ("SPL::rstring" eq $inputPort->getAttributeByName($docString)->getCppType()) {
+			$docParamIsRstring = 1;
+			if (defined $termAttributeParam) {
+				SPL::CodeGen::warnln("The parameter termAttribute ".$termAttrName." is ignored, because documentAttribute is of type SPL::rstring.");
+			}
+		}
+		elsif ($inputPort->getAttributeByName($docString)->getCppType() =~ /SPL::list/) {
+			$docParamIsRstring = 0;
+			if (defined $termAttributeParam) { # check if optional parameter is set
+				$docAttrInList = $termAttrName;
+			}
+		}
+		else {
+			SPL::CodeGen::exitln("The type of the documentAttribute is not supported: ".$inputPort->getAttributeByName($docString)->getCppType());
+		}
+	}
+	else {
+		SPL::CodeGen::exitln("The documentAttribute is not part of the input stream: ".$docString);
+	}
+
+
+	my $docAttrInListFound = 0;
+	my $alternativeDocAttrInListFound = 0;
+	my $alternativeDocAttrInListName = 0;
+	my $isListRstring = 0;
+	if (0 == $docParamIsRstring) {
+		# Check the input port schema if list type is given as documentAttribute
+		# Supported types:
+		# a) first attribute in the list tuple type is a rstring attribute 
+		# b) term attribute of type rstring is found
+		my $oSchema = {};
+		$oSchema = CommonPerlFunctions::getPortSchemaAsTree($model, $model->getInputPortAt(0));
+
+		foreach my $item (@{$oSchema->{tuple}->{attr}}) {
+			if ($docString eq $item->{name}) {
+				if (exists $item->{list}) {
+					if ($item->{list}->{cppType} eq "SPL::rstring") {
+						$isListRstring = 1;
+					}
+					else {
+						my $isFirstAttribute = 1;
+						foreach my $listitem (@{$item->{list}->{tuple}->{attr}}) {
+							if ($isFirstAttribute) {
+								if ($listitem->{type} eq "rstring") {
+									if ($listitem->{name} eq $docAttrInList) {
+										$docAttrInListFound = 1;
+									} else {
+										$alternativeDocAttrInListName = $listitem->{name};
+										$alternativeDocAttrInListFound = 1;
+									}
+								}
+							} else {
+								if (($listitem->{type} eq "rstring") && ($listitem->{name} eq $docAttrInList)) {
+									$docAttrInListFound = 1;
+								}
+							}
+							$isFirstAttribute = 0;
+						}
+						if (($alternativeDocAttrInListFound) && (0 == $docAttrInListFound)) {
+							if (defined $termAttributeParam) {
+								SPL::CodeGen::warnln("The specified termAttribute ".$docAttrInList." is not in the input stream. The current termAttribute is: ".$alternativeDocAttrInListName);
+							}
+							$docAttrInList = $alternativeDocAttrInListName; # replace the name
+						}
+					}
+				}
+			}
+		}	
+		if ((0 == $alternativeDocAttrInListFound) && (0 == $docAttrInListFound) && (0 == $isListRstring)) {
+			print STDERR Dumper($oSchema);
+			SPL::CodeGen::exitln("No term attribute found of type rstring in the documentAttribute (SPL::list): ".$docString);
+		}
+	}
+
+	my $productVersion=$model->getContext()->getProductVersion();
+	print "//productVersion=$productVersion\n";
+
+	sub isKRelease() {
+		my $productVersion=$model->getContext()->getProductVersion();
+		my @version=split(/\./,$productVersion);
+		my $result = 1;
+		if (scalar(@version)>3) {
+			$result = 0 if ((3 < $version[0]) || ((3 == $version[0]) && (2 == $version[1]) && (2 == $version[2])));
+		}
+		return ($result);
+	}
+	# -------------------------------------------------------------------------
+	# Warnings and error messages
+	# -------------------------------------------------------------------------
+	if (!isKRelease()) {
+		my $crContext = $model->getContext()->getOptionalContext("ConsistentRegion");
+    		if ($crContext) {
+        		my $opName = $model->getContext()->getKind();        		
+        		if($crContext->isStartOfRegion()) {
+            			SPL::CodeGen::exitln("The following operator cannot be the start of a consistent region: ".$opName);
+        		} else {
+				SPL::CodeGen::warnln("The following operator is not supported in a consistent region: ".$opName.". The operator does not checkpoint or reset its internal state. If an application failure occurs, the operator might produce unexpected results even if it is part of a consistent region.");
+			}
+		}
+	}
+%>
+
+std::string MY_OPERATOR::makeAbsolute(const std::string & fileName)
+{
+	namespace bf = streams_boost::filesystem;
+	bf::path file(fileName);
+
+	<% if (isKRelease()) {%>
+	if (!file.is_complete()) {
+	<%} else {%>
+	if (!file.is_absolute()) {
+	<%}%>
+		// getDataDirectory will throw an exception if there is no data directory
+		file = getPE().getDataDirectory();
+		file /= fileName;
+	}
+	return file.string();
+}
+
+// Constructor
+MY_OPERATOR::MY_OPERATOR() :
+	_nDocuments (getContext().getMetrics().getCustomMetricByName("nDocuments")),
+	_nTerms (getContext().getMetrics().getCustomMetricByName("nTerms")) 
+{
+
+	_corpusFile = SPL::rstring(makeAbsolute(<%=$corpusFileParam->getValueAt(0)->getCppExpression()%>));
+	readCorpusFile(_corpusFile);
+
+	_idfDefault = <%=$defaultIDFParam->getValueAt(0)->getCppExpression()%>;
+	SPLAPPTRC(L_INFO, "[default IDF]= " << _idfDefault, "");
+
+	<%if (defined $nTopWeightedTermsParam) {%>
+	_nTopWeightedTerms = <%=$nTopWeightedTermsParam->getValueAt(0)->getCppExpression()%>;
+	<%} else {%>
+	_nTopWeightedTerms = 0; // means no limitation - push all terms to the output list
+	<%}%>
+	SPLAPPTRC(L_INFO, "[nTopWeightedTerms]= " << _nTopWeightedTerms, "");
+
+}
+
+// Destructor
+MY_OPERATOR::~MY_OPERATOR() 
+{
+    // Finalization code goes here
+}
+
+// Notify port readiness
+void MY_OPERATOR::allPortsReady() 
+{
+}
+
+// Notify pending shutdown
+void MY_OPERATOR::prepareToShutdown() 
+{
+}
+
+// Tuple processing for mutating ports 
+void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
+{
+	if (0 == port) {
+		<%my $inTupleName = "iport\$0";%>
+		IPort0Type const & <%=$inTupleName%> = static_cast<IPort0Type const&>(tuple);
+		_tuple.clear();
+
+		<% # forward input attributes if existing in output schema
+		my $iPort = 0;
+		my $outputPort = $model->getOutputPortAt(0);
+		my $inputPort = $model->getInputPortAt($iPort);
+		for my $attr (@{$outputPort->getAttributes()}) {
+			if (defined ($inputPort->getAttributeByName($attr->getName())) && $inputPort->getAttributeByName($attr->getName())->getCppType() eq $attr->getCppType()) {
+		print "_tuple.set_".$attr->getName()."(".$inTupleName.".get_".$attr->getName()."());\n";
+			}
+		}
+		%>
+
+		<%if ($usesWeightedTerms) {%>
+		<%=$tupleTypeWeightedTerms%> tfidfTuple;
+		<%}%>
+		<%if ($usesTopWeightedTerms) {%>
+		<%=$tupleTypeTopWeightedTerms%> tfidfTopTuple;
+		<%}%>
+
+		float64 tf = 0.0;
+		float64 idf = 0.0;
+		float64 tfidf = 0.0;
+		<%if ($docParamIsRstring) {%>
+		SPL::list<SPL::rstring> tokens = SPL::Functions::String::tokenize(<%=$inTupleName%>.get_<%=$docString%>(), " ", false);
+		uint32 nTermsInDoc = SPL::Functions::Collections::size(tokens);
+		<%} else {%>
+		uint32 nTermsInDoc = SPL::Functions::Collections::size(<%=$inTupleName%>.get_<%=$docString%>());
+		<%}%>
+		SPLAPPTRC(L_DEBUG, "[total number of terms in document]=" << nTermsInDoc, "");
+		for (int i = 0; i < nTermsInDoc; i++) {
+			// count the number of times a term appears in this document
+			<%if ($docParamIsRstring) {%>
+			const rstring term = tokens[i];
+			<%} else {%>
+				<% if ($isListRstring) {%>
+			const rstring term = <%=$inTupleName%>.get_<%=$docString%>()[i];
+				<%} else {%>
+			const rstring term = <%=$inTupleName%>.get_<%=$docString%>()[i].get_<%=$docAttrInList%>();
+				<%}%>
+			<%}%>
+			SPLAPPTRC(L_DEBUG, "[term]=" << term, "");
+			if (SPL::Functions::Collections::has(_termsInCurrentDocument, term))
+			{
+				_termsInCurrentDocument[term]++;
+			}
+			else 
+			{
+				SPL::Functions::Collections::insertM(_termsInCurrentDocument, term, 1ul);
+			}
+			tf = getTF(term, nTermsInDoc);
+			SPLAPPTRC(L_DEBUG, "[tf]=" << tf, "");
+			idf = getIDF(term);
+			SPLAPPTRC(L_DEBUG, "[idf]=" << idf, "");
+			tfidf = tf*idf;
+			SPLAPPTRC(L_DEBUG, "[tfidf]=" << tfidf, "");
+
+			<%if ($usesWeightedTerms) {%>
+			tfidfTuple.set_term(term);
+			tfidfTuple.set_tfidf(tfidf);
+			_tuple.get_<%=$attributeNameWeightedTerms%>().push_back(tfidfTuple);
+			<%}%>
+			<%if ($usesTopWeightedTerms) {%>
+			if (0 == i) {
+				tfidfTopTuple.set_term(term);
+				tfidfTopTuple.set_tfidf(tfidf);
+				_tuple.get_<%=$attributeNameTopWeightedTerms%>().push_back(tfidfTopTuple);
+			}
+			else {
+				int numListElements = SPL::Functions::Collections::size(_tuple.get_<%=$attributeNameTopWeightedTerms%>());
+				for (int item = 0; item < numListElements; item++) {
+					if (tfidf >= _tuple.get_<%=$attributeNameTopWeightedTerms%>()[item].get_tfidf()) {
+						if ((0 == _nTopWeightedTerms) || (SPL::Functions::Collections::size(_tuple.get_<%=$attributeNameTopWeightedTerms%>()) < _nTopWeightedTerms)) {
+							tfidfTopTuple.set_term(term);
+							tfidfTopTuple.set_tfidf(tfidf);
+							_tuple.get_<%=$attributeNameTopWeightedTerms%>().push_back(tfidfTopTuple);
+						}
+					}
+				}
+			}
+			<%}%>
+
+		}
+
+		submit(_tuple, 0); // submit to output port 0
+		SPL::Functions::Collections::clearM(_termsInCurrentDocument);
+	} // end of port 0 
+	<%if ($hasCommandPort) {%>
+	else if (1 == port) { // control port
+		<%my $inTupleName = "iport\$1";%>
+		IPort1Type const & <%=$inTupleName%> = static_cast<IPort1Type const&>(tuple);
+
+		<%
+		my $inputPort = $model->getInputPortAt(1);
+		my $corpusFile;	
+		my $defaultIDF;
+		for my $attr (@{$inputPort->getAttributes()}) {
+			if ($attr->getName() eq "corpusFile") {
+				$corpusFile = "corpusFile";
+			}
+			if ($attr->getName() eq "defaultIDF") {
+				$defaultIDF = "defaultIDF";
+			}
+		}
+		%>
+		<%if (defined $corpusFile) {%>
+		if (readCorpusFile(<%=$inTupleName%>.get_<%=$corpusFile%>())) {
+			_corpusFile = <%=$inTupleName%>.get_<%=$corpusFile%>();
+		}
+		<%}%>
+		<%if (defined $defaultIDF) {%>
+		_idfDefault = <%=$inTupleName%>.get_<%=$defaultIDF%>();
+		<%}%>
+	}
+	<%}%>
+}
+
+// Tuple processing for non-mutating ports
+void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
+{
+}
+
+// Punctuation processing
+void MY_OPERATOR::process(Punctuation const & punct, uint32_t port)
+{
+	if (0 == port) {
+		forwardWindowPunctuation(punct);
+	}
+}
+
+bool MY_OPERATOR::readCorpusFile(const rstring& filename)
+{
+	SPLAPPTRC(L_INFO, "readCorpusFile " << filename, "");
+	bool result = true;
+	uint64 numTerms = 0ul;
+	SPL::rstring file = filename;
+	std::ifstream ifs(file.c_str());
+	if (!ifs) {
+		SPLAPPTRC(L_ERROR, "Cannot open file: " << filename, "");
+		result = false;
+	}
+	else {
+		std::string line;
+		bool isFirstLine = true;
+		int32 numCharsProcessed;
+		while( getline(ifs, line)) {
+			if (isFirstLine) {
+				// Number of documents is in the first line.				
+				_numDocuments = SPL::Functions::Utility::strtoull (line, 10, numCharsProcessed);
+				isFirstLine = false;
+			}
+			else {
+				// Reads "term:frequency" from each subsequent line in the file.
+				SPL::list<SPL::rstring> tokens = SPL::Functions::String::tokenize(line, ":", false);
+				if (SPL::Functions::Collections::size(tokens) > 0) {
+					if (SPL::Functions::Collections::has(_termsMap, tokens[0])) {
+						SPLAPPTRC(L_WARN, "Corpus file contains the same term more than once: " << tokens[0], "");
+					}
+					else {
+						uint64 f = SPL::Functions::Utility::strtoull (tokens[1], 10, numCharsProcessed);
+						if (f < 1) {
+							SPLAPPTRC(L_WARN, "The term " << tokens[0] << " is ignored since frequency is less than 1: " << f, "");
+						}
+						else {
+							SPL::Functions::Collections::insertM(_termsMap, tokens[0], f);
+						}
+					}
+				}
+			}
+		}
+		ifs.close();
+		numTerms = SPL::Functions::Collections::size(_termsMap);
+		// update the metrics
+		_nDocuments.setValue(_numDocuments);
+		_nTerms.setValue(numTerms);
+	}
+	SPLAPPTRC(L_INFO, "numDocuments = " << _numDocuments << " numTerms = " << numTerms, "");
+	return result;
+}
+
+<%SPL::CodeGen::implementationEpilogue($model);
+
+sub getOutputTupleCppAssignmentsWithSideEffects($$$)
+{
+    my ($tupleName, $outputPort, $sideEffects) = @_;
+    my $numAttrs = $outputPort->getNumberOfAttributes();
+    my $assignments = "";
+    for (my $i = 0; $i < $numAttrs; ++$i) {
+      my $attr = $outputPort->getAttributeAt($i);
+      if($attr->hasAssignmentWithOutputFunction()) {
+        my $of = $attr->getAssignmentOutputFunctionName();
+        if ($of eq 'WeightedTerms') {
+          my $type = $attr->getSPLType();
+          my $listElementType = SPL::CodeGen::Type::getElementType($type);
+          if (SPL::CodeGen::Type::isTuple($listElementType)) {
+            my $listCppType = $attr->getCppType();
+            my $elementCppType = $listCppType;
+            $elementCppType =~ s/^SPL::list<//;
+            $elementCppType =~ s/ >$//;
+            $usesWeightedTerms = 1;
+            $attributeNameWeightedTerms = $attr->getName();
+            $tupleTypeWeightedTerms = $elementCppType;
+          }
+        }
+        elsif ($of eq 'TopWeightedTerms') {
+          my $type = $attr->getSPLType();
+          my $listElementType = SPL::CodeGen::Type::getElementType($type);
+          if (SPL::CodeGen::Type::isTuple($listElementType)) {
+            my $listCppType = $attr->getCppType();
+            my $elementCppType = $listCppType;
+            $elementCppType =~ s/^SPL::list<//;
+            $elementCppType =~ s/ >$//;
+            $usesTopWeightedTerms= 1;
+            $attributeNameTopWeightedTerms = $attr->getName();
+            $tupleTypeTopWeightedTerms = $elementCppType;
+          }
+        } else {
+          # Must be AsIs
+          my $exp = $attr->getAssignmentOutputFunctionParameterValueAt(0);
+          my $cppExpn = $exp->getCppExpression();
+          if ($exp->hasStreamAttributes() || $exp->hasSideEffects()) {
+             $assignments .= "$tupleName.set_" . $attr->getName() . "($cppExpn); " if $sideEffects;
+          } 
+          elsif (!$sideEffects) {
+             $assignments .= "$tupleName.set_" . $attr->getName() . "($cppExpn); ";
+          }
+        }
+      }
+    }
+    return $assignments;
+}
+%>
+

@@ -1,0 +1,57 @@
+<% 
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.
+%>
+/* Additional includes go here */
+<%
+	SPL::CodeGen::headerPrologue($model);
+
+	my $outputPort = $model->getOutputPortAt(0);
+	my $tupleType = $outputPort->getCppTupleType();
+%>
+
+class MY_OPERATOR : public MY_BASE_OPERATOR 
+{
+	public:
+		// Constructor
+		MY_OPERATOR();
+
+		// Destructor
+		virtual ~MY_OPERATOR();
+
+		// Notify port readiness
+		void allPortsReady();
+
+		// Notify pending shutdown
+		void prepareToShutdown();
+
+		// Tuple processing for mutating ports 
+		void process(Tuple & tuple, uint32_t port);
+
+		// Tuple processing for non-mutating ports
+		void process(Tuple const & tuple, uint32_t port);
+
+		// Punctuation processing
+		void process(Punctuation const & punct, uint32_t port);
+
+	private:
+
+		/**
+		 * Tuple to be sent.
+		 */
+		<%=$tupleType%> _tuple;
+
+		/**
+		 * The number of words combined to a new term
+		 */
+		SPL::uint32 _size;
+
+		/**
+		 * The smallest n-gram size to be generated
+		 */
+		SPL::uint32 _minSize;
+
+}; 
+
+<%SPL::CodeGen::headerEpilogue($model);%>
+

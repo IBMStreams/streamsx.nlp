@@ -1,0 +1,38 @@
+module getNames;
+-- This AQL is to look for cases of
+-- <Title> <Firstname> <Lastname>
+-- It is here only to demonstrate the use of the operator, and should
+-- not be used in any real data processing task.
+
+create dictionary TitleDict as ('Lady', 'Sir','Colonel','Miss','Mr.','Mrs.');
+
+-- Find all the titles
+create view Titles as 
+extract  dictionary TitleDict on D.text as title
+from Document D
+having MatchesRegex(/[A-Z][a-z]+.?/,title);
+
+-- Find all the cases which have two capitalized words followed by
+-- a non-capitalized word
+create view DoubleCaps as
+extract 
+regex /[A-Z][a-z]+\s[A-Z][a-z]+([,;:]|\s)[^A-Z]/ on D.text as twoCaps
+from Document D;
+
+-- Create a view combining nearby titles with two capitalized words
+create view FullNameWithTitleMessy as 
+select
+T.title as title,
+caps.twoCaps as fullName
+from DoubleCaps caps, Titles T
+where Follows(T.title,caps.twoCaps,0, 3);
+
+-- Take off the extra stuff used to make sure we weren't capturing another
+-- captured word.
+create view FullNameWithTitle as 
+extract
+F.title as title,
+regex /[A-Z][a-z]+\s[A-Z][a-z]+/ on F.fullName  as fullName
+from FullNameWithTitleMessy F;
+
+output view FullNameWithTitle;

@@ -1,0 +1,76 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite RutaDocumentAnnotationsSample
+{
+	type
+		/**
+		 * uima.ruta.sample1.Main.TroubleDocumentAnnotation
+		 * ---> boolean trouble, int32 potentialTroubleCount
+		 * 
+		 * uima.ruta.sample1.Main.potentialTrouble
+		 * ---> rstring text, int32 begin, int32 end
+		 */
+		AnnoSpan = tuple<rstring typeDescription, rstring text, int32 begin, int32 end, boolean trouble, int32 potentialTroubleCount>;
+
+	graph
+
+ 		stream<rstring text> TextStream = FileSource() {
+			param
+				file : "test.txt";
+				format : line;
+		}
+
+		(stream<rstring text, rstring xmi, list<AnnoSpan> annotations> RutaStream) as UIMA_RUTA_TEXT = RutaText(TextStream){
+			param
+				pearFile: "RutaSampleAnnotator2.pear"; // relative to etc dir
+				inputDoc: "text"; // text to analyze (input stream attribute name)
+				outputTypes: "uima.ruta.sample1.Main.potentialTrouble", "uima.ruta.sample1.Main.TroubleDocumentAnnotation"; // filter type descriptions
+				outputAttributes: "annotations";
+				casOut:   "xmi"; // serialized CAS (output stream attribute name)
+		}
+
+		() as AnnoDump = Custom(RutaStream as I){
+			logic
+				state: {
+					mutable int32 docNum = 0;
+				}
+				onTuple I: {
+					docNum++;
+					if (spl.collection::size(I.annotations) > 0) {
+						mutable rstring troubleDocAnnotation = "";
+						mutable rstring potentialTroubleAnnotation = "";
+						for (AnnoSpan s in I.annotations) {
+							if (s.typeDescription == "uima.ruta.sample1.Main.TroubleDocumentAnnotation") {
+								troubleDocAnnotation = "trouble=" + (rstring)s.trouble + ", potentialTroubleCount=" + (rstring)s.potentialTroubleCount + " ";
+							}
+							else if (s.typeDescription == "uima.ruta.sample1.Main.potentialTrouble") {
+								potentialTroubleAnnotation += "[text="+s.text+", begin="+(rstring)s.begin+", end="+ (rstring)s.end + "]";
+							}
+						}
+						printStringLn("[" + (rstring)docNum + "] " + troubleDocAnnotation + potentialTroubleAnnotation);
+					}
+				}
+		}
+
+		() as SinkRuta = FileSink(RutaStream) {
+ 			param
+				file:  "out.txt";
+				format: csv;
+				suppress: xmi;
+				flushOnPunctuation: true;
+		}
+
+		() as SinkXMI = FileSink(RutaStream) {
+ 			param
+				file:  "out{id}.xmi";
+				format: csv;
+				suppress: text, annotations;
+				quoteStrings: false;
+				tuplesPerFile: 1u;
+				closeMode: count;
+		}
+}

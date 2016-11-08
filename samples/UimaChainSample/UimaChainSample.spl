@@ -1,0 +1,91 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite UimaChainSample
+{
+	graph 		
+		
+		stream<rstring oneline> Line = FileSource() {
+			param
+				format : line;
+				file : "input.txt";
+		}
+
+		stream<rstring entireDoc> Documents as O = Custom(Line as I) {
+			logic state: {
+				mutable rstring soFar = "";
+			}
+			onTuple I: soFar +=(rstring) "\n" + I.oneline;
+			onPunct I: {
+				if(currentPunct() == Sys.WindowMarker) {
+					submit({entireDoc = soFar}, O);
+					soFar =(rstring) "";
+				}
+				else {
+					// it's a final punctuation, so send it on.
+					submit(currentPunct(), O);
+				}
+			}
+
+		}
+
+		// -------------------------------------------------------------------------------------
+
+		() as UimaSingle = SinglePearAnnotatorChain(Documents) {}
+		
+		// -------------------------------------------------------------------------------------
+
+		() as UimaChain = AnnotatorChain(Documents) {}
+}
+
+composite SinglePearAnnotatorChain (input Documents) {
+
+	graph
+
+		(stream<rstring xmi> UimaAnnotated1 as O) as UimaAnnotator = UimaText(Documents) {
+			param
+				inputDoc: "entireDoc"; // text to analyze
+			      	pearFile: "AggregateAnnotator3_Java17.pear"; // relative to etc dir
+			      	casOut: "xmi"; // serialized CAS
+		}
+
+		() as Sink1 = FileSink(UimaAnnotated1) {
+ 			param
+				file:  "output_aggregate.txt";
+				format: csv;
+				flushOnPunctuation: true;
+				quoteStrings: false;
+		}
+
+}
+
+composite AnnotatorChain (input Documents) {
+
+	graph
+
+		(stream<rstring xmi1> CasStream) as UIMA_Text = UimaText(Documents) {
+			param
+				inputDoc: "entireDoc"; // text to analyze
+				pearFile: "DateTimeAnnotator_Java17.pear"; // relative to etc dir
+				casOut: "xmi1"; // serialized CAS
+		}
+
+		(stream<rstring xmi2> UimaAnnotated2) as UIMA_CAS = UimaCas(CasStream) {
+			param
+				pearFile: "RoomNumberAnnotator2_Java17.pear"; // relative to etc dir
+				casIn: "xmi1";
+				casOut: "xmi2";
+		}
+
+		() as Sink2 = FileSink(UimaAnnotated2) {
+ 			param
+				file:  "output_2_operators.txt";
+				format: csv;
+				flushOnPunctuation: true;
+				quoteStrings: false;
+		}
+
+}

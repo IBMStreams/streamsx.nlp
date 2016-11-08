@@ -1,0 +1,252 @@
+<%
+
+# Copyright (C) 2016  International Business Machines Corporation
+# All Rights Reserved
+
+use strict;
+use warnings;
+
+unshift @INC, dirname($model->getContext()->getOperatorDirectory()) . "/../../impl/bin/shell";
+require CodeGenX;
+
+# get Perl objects for the operator's input and output ports
+
+my $inputPort = $model->getInputPortAt(0)        ;
+my $outputPort0 = $model->getOutputPortAt(0);
+my $outputPort1 = $model->getNumberOfOutputPorts()>1 ? $model->getOutputPortAt(1) : undef;
+
+# get C++ expressions to get the values of the operator's parameters
+
+my $command = $model->getParameterByName("command")->getValueAt(0)->getCppExpression();
+my $stdinAttributeGetter = $model->getParameterByName("stdinAttribute") ? $model->getParameterByName("stdinAttribute")->getValueAt(0)->getCppExpression() : undef;
+my $stdoutAttributeName = $model->getParameterByName("stdoutAttribute") ? $model->getParameterByName("stdoutAttribute")->getValueAt(0)->getSPLExpression() : undef;
+my $stderrAttributeName = $model->getParameterByName("stderrAttribute") ? $model->getParameterByName("stderrAttribute")->getValueAt(0)->getSPLExpression() : undef;
+
+# who would put quotes around a literal constant?
+
+$stdoutAttributeName =~ s/^\"|\"$//g if $stdoutAttributeName;
+$stderrAttributeName =~ s/^\"|\"$//g if $stderrAttributeName;
+
+# basic safety checks
+
+SPL::CodeGen::exitln("sorry, 'stderrAttributeName' parameter cannot be specified without second output port") if $stderrAttributeName && !$outputPort1;
+
+# get attributes for input and output lines
+
+if (!$stdinAttributeGetter) {
+   foreach my $attribute ( @{ $inputPort->getAttributes() } ) {
+       $stdinAttributeGetter = "iport\$0.get_" . $attribute->getName() . "()", last if $attribute->getSPLType() eq "rstring"; }
+   SPL::CodeGen::exitln("sorry, no attribute of type 'rstring' found for input port") unless $stdinAttributeGetter;
+}
+
+my $stdoutAttribute;
+foreach my $attribute ( @{ $outputPort0->getAttributes() } ) {
+    $stdoutAttribute = $attribute if $stdoutAttributeName && $attribute->getName() eq $stdoutAttributeName;
+    $stdoutAttribute = $attribute if !$stdoutAttributeName && $attribute->getSPLType() eq "rstring";
+    last if $stdoutAttribute; }
+if (!$stdoutAttribute) {
+   SPL::CodeGen::exitln("sorry, no attribute of " . ($stdoutAttributeName ? "name '$stdoutAttributeName'" : "type 'rstring'") . " found for output port 0"); }
+
+my $stderrAttribute;
+if ($outputPort1) {
+    foreach my $attribute ( @{ $outputPort1->getAttributes() } ) {
+        $stderrAttribute = $attribute if $stderrAttributeName && $attribute->getName() eq $stderrAttributeName;
+        $stderrAttribute = $attribute if !$stderrAttributeName && $attribute->getSPLType() eq "rstring";
+        last if $stderrAttribute; }
+    if (!$stderrAttribute) {
+        SPL::CodeGen::exitln("sorry, no attribute of " . ($stderrAttributeName ? "name '$stderrAttributeName'" : "type 'rstring'") . " found for output port 1"); }
+}
+
+%>
+
+
+#include <sys/time.h>
+#include <time.h>
+#include <float.h>
+#include <string>
+
+<%SPL::CodeGen::implementationPrologue($model);%>
+
+
+
+// calls to SPL functions within expressions are generated with this
+// namespace, which must be mapped to the operator's namespace so they
+// will invoke the assignment functions defined in the ShellPipe_h.cgt file
+
+#define ShellPipe MY_OPERATOR
+
+// Constructor
+MY_OPERATOR::MY_OPERATOR()
+{
+    SPLAPPTRC(L_TRACE, "entering ShellPipe constructor ...", "ShellPipe");
+
+    // initialize operator state variables
+    drained_ = false;
+    linecounters.resize(3);
+    for (int i=0; i<linecounters.size(); i++) linecounters[i] = 0;
+
+    // clear tuples
+    inputTuple.clear();
+    outputTuple0.clear();
+    <% if ($outputPort1) { %> outputTuple1.clear(); <% } %>
+
+    // store operator parameters
+    commandline = <%=$command%>;
+
+    // start the command in a shell
+    SPLAPPTRC(L_INFO, "starting shell command '" << commandline << "'", "ShellPipe");
+    try { shell_.setup(commandline); }
+    catch(com::ibm::streamsx::linuxshell::LinuxShellException const & e) {
+        SPLAPPTRC(L_ERROR, "sorry, could not execute shell command '" << commandline << "', reason='" << shell_.getTermInfoExplanation() << "', exitcode=" << shell_.getTermInfoExitCode(), "ShellPipe");
+        throw;
+    }
+
+    SPLAPPTRC(L_TRACE, "leaving ShellPipe constructor ...", "ShellPipe");
+}
+
+
+// Destructor
+MY_OPERATOR::~MY_OPERATOR()
+{
+    SPLAPPTRC(L_TRACE, "entering ShellPipe destructor ...", "ShellPipe");
+    SPLAPPTRC(L_TRACE, "leaving ShellPipe destructor ...", "ShellPipe");
+}
+
+
+// Notify port readiness
+void MY_OPERATOR::allPortsReady()
+{
+    SPLAPPTRC(L_TRACE, "entering ShellPipe allPortsReady() ...", "ShellPipe");
+
+    // start a thread for the STDOUT&STDERR read loop below
+    createThreads(1);
+
+    SPLAPPTRC(L_TRACE, "leaving ShellPipe allPortsReady() ...", "ShellPipe");
+}
+
+
+// Notify pending shutdown
+void MY_OPERATOR::prepareToShutdown()
+{
+    SPLAPPTRC(L_TRACE, "entering ShellPipe prepareToShutdown() ...", "ShellPipe");
+
+    shell_.shutdown(false);
+
+    SPLAPPTRC(L_TRACE, "leaving ShellPipe prepareToShutdown() ...", "ShellPipe");
+}
+
+
+// Processing for thread that reads STDOUT&STDERR from shell
+void MY_OPERATOR::process(uint32_t idx)
+{
+    SPLAPPTRC(L_TRACE, "entering ShellPipe process(" << idx << ") ...", "ShellPipe");
+
+    // read lines written by the shell to STDOUT and STDIN, and write them to output ports 0 and 1
+    try {
+        while (!getPE().getShutdownRequested()) {
+
+            // wait for the next STDOUT and/or STDERR line from the shell
+            int rc = shell_.readLine(stdoutline, stderrline);
+            if (rc<0) break;
+
+            // address the most recently received input tuple
+            IPort0Type const & iport$0 = (IPort0Type const &)inputTuple;
+
+            // emit a tuple on output port 0 when the shell writes a line to STDOUT
+            if (rc&1) {
+                <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple0", $outputPort0, $inputPort); %> ;
+                <% CodeGenX::assignOutputAttributeValues("outputTuple0", $outputPort0); %> ;
+                <% print "outputTuple0.set_" . $stdoutAttribute->getName() . "(stdoutline); // assign STDOUT line" if $stdoutAttribute && !$stdoutAttribute->hasAssignment(); %>
+                SPLLOG(L_TRACE, "submitting outputTuple0 " << outputTuple0, "ShellPipe");
+                submit(outputTuple0, 0);
+                linecounters[1]++;
+            }
+
+            // emit a tuple on output port 1, if there is one, when the shell writes a line to STDERR
+            if (rc&2) {
+                <% if ($outputPort1) { %>
+                <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple1", $outputPort1, $inputPort); %> ;
+                <% CodeGenX::assignOutputAttributeValues("outputTuple1", $outputPort1); %> ;
+                <% print "outputTuple1.set_" . $stderrAttribute->getName() . "(stderrline); // assign STDERR line" if $stderrAttribute && !$stderrAttribute->hasAssignment(); %>
+                SPLLOG(L_TRACE, "submitting outputTuple1 " << outputTuple1, "ShellPipe");
+                submit(outputTuple1, 1);
+                <% } %>
+                linecounters[2]++;
+            }
+        } }
+    catch(com::ibm::streamsx::linuxshell::LinuxShellException const & e) {
+        if (getPE().getShutdownRequested())
+            SPLAPPTRC(L_INFO, "shell terminated, reason='" << shell_.getTermInfoExplanation() << "', exitcode=" << shell_.getTermInfoExitCode() << ", commandline '" << commandline << "'", "ShellPipe");
+        else {
+            SPLAPPTRC(L_ERROR, "shell terminated, reason='" << shell_.getTermInfoExplanation() << "', exitcode=" << shell_.getTermInfoExitCode() << ", commandline '" << commandline << "'", "ShellPipe");
+            SPL::Functions::Utility::abort(__FILE__, __LINE__); //we must activ abort the pe
+        }
+    }
+
+    {
+        AutoMutex am(drainMutex_);
+        drainCV_.signal();
+        drained_ = true;
+    }
+
+    // wait for shell to exit, and get its exit code
+    shell_.terminate();
+    exitcode = shell_.getTermInfoExitCode();
+    exitreason = shell_.getTermInfoExplanation();
+
+    SPLAPPTRC(L_INFO, "finished shell command '" << commandline <<  "', reason='" << exitreason << "', exitcode=" << exitcode, "ShellPipe");
+    SPLAPPTRC(L_TRACE, "leaving ShellPipe process(" << idx << ") ...", "ShellPipe");
+}
+
+
+// Tuple processing for mutating ports
+void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
+{
+}
+
+
+// process(tuple) method for operator with an input port,
+// executes on upstream operator's thread
+void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
+{
+    SPLAPPTRC(L_TRACE, "entering ShellPipe process(" << tuple << "," << port << ") ...", "ShellPipe");
+
+    AutoPortMutex apm(mutex_, *this);
+
+    // save a copy of the input tuple for copying input attributes to output tuples
+    inputTuple = (IPort0Type)tuple;
+    SPLAPPTRC(L_TRACE, "received input tuple " << inputTuple, "LinuxPipe");
+
+    IPort0Type const & iport$0 = static_cast<IPort0Type const &>(tuple);
+    stdinline = <%=$stdinAttributeGetter%>;
+    try { shell_.writeLine(stdinline); }
+    catch(com::ibm::streamsx::linuxshell::LinuxShellException const & e) {
+        SPLAPPTRC(L_ERROR, "sorry, could not write to stdin: " << e.what(), "ShellPipe");
+        throw; //let the runtime decide how to handle the exception
+    }
+    linecounters[0]++;
+
+    SPLAPPTRC(L_TRACE, "leaving ShellPipe process(" << tuple << "," << port << ") ...", "ShellPipe");
+}
+
+
+// Punctuation processing
+void MY_OPERATOR::process(Punctuation const & punct, uint32_t port)
+{
+    SPLAPPTRC(L_TRACE, "entering ShellPipe process(" << punct << "," << port << ") ...", "ShellPipe");
+
+    AutoPortMutex apm(mutex_, *this);
+    if (punct==Punctuation::FinalMarker) {
+        shell_.shutdown(false);
+        AutoMutex am(drainMutex_);
+        while(!drained_) drainCV_.wait(drainMutex_);
+        forwardWindowPunctuation(Punctuation::WindowMarker);
+        forwardWindowPunctuation(Punctuation::FinalMarker);
+    }
+
+    SPLAPPTRC(L_TRACE, "leaving ShellPipe process(" << punct << "," << port << ") ...", "ShellPipe");
+}
+
+
+
+<%SPL::CodeGen::implementationEpilogue($model);%>

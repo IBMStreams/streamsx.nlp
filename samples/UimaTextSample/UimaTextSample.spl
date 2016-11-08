@@ -1,0 +1,45 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite UimaTextSample
+{
+	type
+		AnnoSpan = tuple<rstring text, int32 begin, int32 end, rstring typeDescription>;
+
+	graph 
+
+		stream<rstring text> TextStream = FileSource() {
+			param
+				format : line;
+				file : "input.txt";
+		}
+
+		(stream<rstring text, rstring xmi1, list<AnnoSpan> annotations> TextAnnotated1 as O) as UIMA_Text = UimaText(TextStream as I){
+			param
+				inputDoc: "text"; // text to analyze
+				pearFile: "getNamesUima.pear"; // relative to etc dir
+				casOut: "xmi1"; // serialized CAS
+				outputAttributes: "annotations"; // this attribute must be of type list<tuple>
+				outputTypes: "com.ibm.getNamesUima.fullNameWithTitle"; // filter the types, only this type is part of the annotations output
+		}
+
+		() as Sink1 = FileSink(TextAnnotated1) {
+ 			param
+				file:  "out.txt";
+				format: txt;
+				suppress: xmi1;
+				flushOnPunctuation: true;
+		}
+
+		() as SinkXmi = FileSink(TextAnnotated1) {
+ 			param
+				file:  "out.xmi";
+				format: csv;
+				suppress: text, annotations;
+				flushOnPunctuation: true;
+				quoteStrings: false;
+		}
+}

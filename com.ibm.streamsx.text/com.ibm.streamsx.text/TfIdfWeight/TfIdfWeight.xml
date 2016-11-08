@@ -1,0 +1,144 @@
+<?xml version="1.0" ?>
+<!-- Copyright (C)2016, International Business Machines Corporation -->
+<!-- All rights reserved.                                -->
+<operatorModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ibm.com/xmlns/prod/streams/spl/operator" xmlns:cmn="http://www.ibm.com/xmlns/prod/streams/spl/common" xsi:schemaLocation="http://www.ibm.com/xmlns/prod/streams/spl/operator operatorModel.xsd">
+  <cppOperatorModel>
+    <context>
+      <description>This operator determines how meaningful a term/word in a text is related to a previously trained model (corpus).</description>
+      <metrics>
+         <metric>
+            <name>nDocuments</name>
+            <description>The number of documents used to train the corpus</description>
+            <kind>Counter</kind>
+         </metric>
+         <metric>
+            <name>nTerms</name>
+            <description>The number of terms used to train the corpus</description>
+            <kind>Counter</kind>
+         </metric>
+      </metrics>
+	<customOutputFunctions>
+		<customOutputFunction>
+			<name>Functions</name>
+			<function>
+				<description>The original argument expression is submitted.</description>
+				<prototype><![CDATA[<any T> T AsIs(T)]]></prototype>
+			</function>
+			<function>
+				<description><![CDATA[
+This function generates a list of terms and corresponding TF-IDF value.
+
+**Example use:**
+
+    stream<rstring text,list<tuple<rstring term, float tfidf>> result> A = TfIdfWeight() {
+       param ...
+       output A : result = WeightedTerms();
+    }
+]]></description>
+				<prototype><![CDATA[public list<tuple<rstring term, float64 tfidf>> WeightedTerms()]]></prototype>
+			</function>
+			<function>
+				<description><![CDATA[
+This function generates a list of terms and corresponding TF-IDF value limited to the number of term specified by the parameter nTopWeightedTerms.
+
+**Example use:**
+
+    stream<rstring text,list<tuple<rstring term, float tfidf>> result> A = TfIdfWeight() {
+       param ...
+       output A : result = TopWeightedTerms();
+    }
+]]></description>
+				<prototype><![CDATA[public list<tuple<rstring term, float64 tfidf>> TopWeightedTerms()]]></prototype>
+			</function>				
+		</customOutputFunction>
+	</customOutputFunctions>
+      <providesSingleThreadedContext>Always</providesSingleThreadedContext>
+    </context>
+    <parameters>
+      <allowAny>false</allowAny>
+      <parameter>
+        <name>corpusFile</name>
+        <description>Filename of the corpus file read at operator initialization</description>
+        <optional>false</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Expression</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>documentAttribute</name>
+        <description>The input stream attribute containing the document. It must be of type SPL::rstring, SPL:list%ltrstring%gt or SPL:list%lttuple%ltrstring term%gt%gt</description>
+        <optional>false</optional>
+        <rewriteAllowed>false</rewriteAllowed>
+        <expressionMode>Constant</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>termAttribute</name>
+        <description>The attribute containing the term if documentAttribute is of type SPL:list. If this parameter is not specified, then the SPL:list tuple must contain an attribute with the name term or the first attribute is of type rstring.</description>
+        <optional>true</optional>
+        <rewriteAllowed>false</rewriteAllowed>
+        <expressionMode>Constant</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>defaultIDF</name>
+        <description>The IDF value if term is not in the corpus.</description>
+        <optional>false</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Expression</expressionMode>
+        <type>float64</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>nTopWeightedTerms</name>
+        <description>Limits the number of terms in the output list. If this parameter is not specified, then all terms are in the output list. This parameter is relevant for the custom output function TopWeightedTerms() only.</description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>Expression</expressionMode>
+        <type>uint32</type>
+        <cardinality>1</cardinality>
+      </parameter>
+    </parameters>
+    <inputPorts>
+      <inputPortSet>
+        <description>Tuples for TF-IDF calculation</description>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <windowingMode>NonWindowed</windowingMode>
+        <windowPunctuationInputMode>Oblivious</windowPunctuationInputMode>
+        <controlPort>false</controlPort>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </inputPortSet>
+      <inputPortSet>
+        <description>This input port tuple contains the filename of the corpus file to load. You can also change the defaultIDF value with this control port tuple. Supported tuple attributes are rstring corpusFile and/or float64 defaultIDF.</description>
+        <tupleMutationAllowed>false</tupleMutationAllowed>
+        <windowingMode>NonWindowed</windowingMode>
+        <windowPunctuationInputMode>Oblivious</windowPunctuationInputMode>
+        <controlPort>true</controlPort>
+        <cardinality>1</cardinality>
+        <optional>true</optional>
+      </inputPortSet>
+    </inputPorts>
+    <outputPorts>
+      <outputPortSet>
+      	<description>This mandatory output port sends the tf-idf tuples from the documents received on input port 0.</description>
+        <expressionMode>Expression</expressionMode> 
+        <autoAssignment>false</autoAssignment>
+        <completeAssignment>false</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+          <outputFunctions>
+            <default>AsIs</default>
+            <type>Functions</type>
+          </outputFunctions>
+        <windowPunctuationOutputMode>Preserving</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>0</windowPunctuationInputPort>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </outputPortSet>
+    </outputPorts>
+  </cppOperatorModel>
+</operatorModel>

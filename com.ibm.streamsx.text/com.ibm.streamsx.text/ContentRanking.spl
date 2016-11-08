@@ -1,0 +1,159 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.text;
+
+use com.ibm.streamsx.text.internal::*;
+use com.ibm.streamsx.text.utils::*;
+
+/**
+ * This operator uses a previously trained model in order to find out the most likely intend of a text.
+ *
+ * @input InStream
+ * One tuple is one document.
+ *
+ * @output OutStream
+ * The result tuple with a single attribute (list of article IDs)
+ * This stream must contain the schema defined by the resultType.
+ *
+ * @param pythonCommand
+ * The name of the python binary. The default name is `python`.
+ * With this parameter you can change the version and the location of the python command according to your environment.
+ * Content ranking scripts need python 2.7 or later!
+ *
+ * @param pythonScript
+ * The name of the python script. The default is `<toolkit_dir>/etc/python/ContentRanking.py`.
+ *
+ * @param modelFile
+ * The trained model dumped as pklz file.
+ * 
+ * @param kbIndexFile
+ * The knowledge base dictionary as json file.
+ * 
+ * @param dictLemmasFile
+ * The lemmas dictionary as json file.
+ * 
+ * @param kbNamesFile
+ * The knowledge base Article IDs as text file. Article names (IDs) are separated by space character.
+ * 
+ * @param documentAttribute
+ * The attribute used for the content ranking.
+ * 
+ * @param outStreamType
+ * The OutStream (output port 0) schema of this operator. The schema must contain the schema defined by the resultType.
+ */
+public composite ContentRanking (
+	input InStream;
+	output OutStream // must contain resultType
+) {
+	param
+		expression<rstring> $pythonCommand: "python"; // Content ranking scripts need python 2.7 or above!
+		expression<rstring> $pythonScript: getToolkitPath()+"/etc/python/ContentRanking.py";
+		expression<rstring> $modelFile;
+		expression<rstring> $kbIndexFile;
+		expression<rstring> $dictLemmasFile;
+		expression<rstring> $kbNamesFile;
+		attribute $documentAttribute;
+		type $outStreamType;
+
+	/**
+	 * OutStream must contain the resultType schema
+	 */
+	type static resultType = tuple<
+		list<rstring> articleIDs
+	>;
+
+	graph
+	
+		stream<I> GatedInput = Gate(InStream as I; Ack) {
+			param
+				maxUnackedTupleCount: 1u;
+		}
+
+		// The stdout stream from the command is sent on the operator's first output port.
+		stream<tuple<rstring crPythonScriptOutput>, I> PredictionsShell= ShellPipe(GatedInput as I) { 
+			param
+				command: $pythonCommand + " -u " + $pythonScript + " " + $modelFile + " " + $kbIndexFile + " " +  $dictLemmasFile;
+				stdinAttribute: $documentAttribute;
+				stdoutAttribute: "crPythonScriptOutput";
+		}
+
+		(
+		stream<I> Predictions as O;
+		stream<boolean ack> Ack
+		) = Custom(PredictionsShell as I) {
+			logic
+				state :{
+					mutable Ack ackTuple = {};
+				}
+				onTuple I : {
+					submit (ackTuple, Ack);
+					submit (I, O);
+				}
+		}
+
+		stream<tuple<list<int64> predictionIndexes>, I> IndexStream as O = Custom(Predictions as I) {
+			logic
+				onTuple I : {
+					int32 s = length(I.crPythonScriptOutput);
+					// output of python script is a list of indexes (integers), separated by semicolon, starting with R char
+					if ((s > 1) && (I.crPythonScriptOutput[0] == "R")) {
+						rstring idxStr = spl.string::ltrim(I.crPythonScriptOutput, "R;");
+						mutable O otuple = {};
+						assignFrom(otuple, I);
+						mutable list<rstring> indexList = tokenize(idxStr, ";", true); // ignore empty
+						for (rstring idx in indexList) {
+							mutable int32 numchars = 0;
+							int64 r = strtoll(idx, 10, numchars);
+							int32 stringLen = spl.string::length(idx);
+							if ((stringLen == 0) || (stringLen != numchars)) {
+								appTrc(Trace.error, "Invalid number conversation:" + idx);
+							} else {
+								spl.collection::appendM(otuple.predictionIndexes, r);
+							}
+						}
+						submit(otuple, O);
+					}
+				}
+		}
+
+		(stream<$outStreamType> OutStream as O) as LookupKBArticle = Custom(IndexStream as I; NamesStream as N) {
+			logic
+				state: {
+					mutable list<rstring> namesList;
+					mutable int64 numArticles = 0l;
+				}
+				onTuple I: {
+					mutable O otuple = {};
+					assignFrom(otuple, I);
+					for (int64 index in I.predictionIndexes) {
+						if ((index >= 0l) && (index < numArticles)) {
+							spl.collection::appendM(otuple.articleIDs, namesList[index]);
+						} else {
+							appTrc(Trace.error, "Invalid index received from ContentRanking: " + (rstring)index, "texttoolkit");
+						}
+					}
+					submit(otuple, O);
+				}
+				onTuple N: {
+					createCustomMetric("nArticles", "The number of articles in the knowledge base", Sys.Counter, 0l);
+					// file has one line, names are separated by space 
+					namesList = tokenize(N.names," ",false);
+					numArticles = (int64)spl.collection::size(namesList);
+					// update the metric value
+					setCustomMetricValue("nArticles", numArticles);
+				}
+				onPunct I: {
+					if (currentPunct() == Sys.WindowMarker) {
+						submit(Sys.WindowMarker, O);
+					}
+				}
+		}
+		
+		stream<rstring names> NamesStream = FileSource() {
+			param
+				file : $kbNamesFile;
+				format: line;
+		}
+}

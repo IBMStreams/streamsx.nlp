@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<!-- Copyright (C)2016, International Business Machines Corporation -->
+<!-- All rights reserved.                                -->
+<operatorModel
+  xmlns="http://www.ibm.com/xmlns/prod/streams/spl/operator" 
+  xmlns:cmn="http://www.ibm.com/xmlns/prod/streams/spl/common" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.ibm.com/xmlns/prod/streams/spl/operator operatorModel.xsd">
+  <cppOperatorModel>
+    <context>
+      <description>This operator derives dictionary form of words in a text (aka lemma), (e.g. box for boxes), and determines their part-of-speech tags (e.g. NNS for noun, plural).</description>
+	<customOutputFunctions>
+		<customOutputFunction>
+			<name>Functions</name>
+			<function>
+				<description>The original argument expression is submitted.</description>
+				<prototype><![CDATA[<any T> T AsIs(T)]]></prototype>
+			</function>
+			<function>
+				<description><![CDATA[
+This function generates a list of words and corresponding part-of-speech tags and lemmas.
+
+**Example use:**
+
+    stream<rstring text,list<tuple<rstring word, rstring pos, rstring lemma>> result> A = Lemmatizer() {
+       param ...
+       output A : result = TagWords();
+    }
+]]></description>
+				<prototype><![CDATA[public list<tuple<rstring word, rstring pos, rstring lemma>> TagWords()]]></prototype>
+			</function>
+			<function>
+				<description><![CDATA[
+The converted input text. This function generates normalized text (words are replaced by lemmas).
+
+**Example use:**
+
+    stream<rstring text,rstring normalizedtext> A = Lemmatizer() {
+       param ...
+       output A : normalizedtext = (rstring) (NormalizedText());
+    }
+]]></description>
+					<prototype><![CDATA[public rstring NormalizedText()]]></prototype>
+			</function>				
+			<function>
+				<description><![CDATA[
+The converted input text. This function generates a list of lemmas.
+
+**Example use:**
+
+    stream<rstring text, list<rstring> lemmas> A = Lemmatizer() {
+       param ...
+       output A : lemmas = list<rstring> (Lemmas());
+    }
+]]></description>
+					<prototype><![CDATA[public list<rstring> Lemmas()]]></prototype>
+			</function>				
+
+		</customOutputFunction>
+	</customOutputFunctions>
+     <libraryDependencies>
+         <library>
+          <cmn:description>GPoSTTL</cmn:description>
+          <cmn:managedLibrary>
+            <cmn:lib>GPoSTTL</cmn:lib>
+            <cmn:libPath>../../impl/lib</cmn:libPath>
+            <cmn:includePath>../../impl/include</cmn:includePath>
+          </cmn:managedLibrary>
+        </library>
+      </libraryDependencies>
+      <providesSingleThreadedContext>Always</providesSingleThreadedContext>
+      <allowCustomLogic>false</allowCustomLogic>
+    </context>  
+    <parameters>
+      <allowAny>false</allowAny>
+      <parameter>
+        <name>textAttribute</name>
+        <description>
+<![CDATA[
+Specifies the `rstring` attribute of the input port that
+holds the text, which needs to be lemmatized.
+]]></description>
+        <optional>false</optional>
+        <rewriteAllowed>false</rewriteAllowed>
+        <expressionMode>Attribute</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>initializationDirectory</name>
+        <description>
+<![CDATA[
+This optional parameter specifies the path to lexicon files that is read during the initialization of the operator. 
+The recommended location for storing this file is in the `etc` directory in the toolkit.
+If a relative path is specified, the path is relative to the application directory.
+]]></description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>AttributeFree</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+    </parameters>
+    <inputPorts>
+      <inputPortOpenSet>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <windowingMode>NonWindowed</windowingMode>
+        <windowPunctuationInputMode>Oblivious</windowPunctuationInputMode>
+      </inputPortOpenSet>
+    </inputPorts>
+    <outputPorts>
+      <outputPortSet>
+      	<description>This mandatory output port sends the tuples.</description>
+        <expressionMode>Expression</expressionMode> 
+        <autoAssignment>false</autoAssignment>
+        <completeAssignment>false</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+          <outputFunctions>
+            <default>AsIs</default>
+            <type>Functions</type>
+          </outputFunctions>        
+        <windowPunctuationOutputMode>Preserving</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>0</windowPunctuationInputPort>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </outputPortSet>
+    </outputPorts>
+  </cppOperatorModel>
+</operatorModel>

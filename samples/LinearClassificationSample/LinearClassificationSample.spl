@@ -1,0 +1,51 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite LinearClassificationSample
+{
+	param
+		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+
+	type outputSchema = tuple<
+		com.ibm.streamsx.text::LinearClassification.resultType, // required by the LinearClassification operator
+		tuple <rstring ln> // optional attributes, forwarded by the LinearClassification operator
+	>;
+
+	graph
+
+		// An spl.adapter::FileSource operator reads some sample text from a file and sends it as a stream of rstring tuples, one tuple
+		// for each line in the input file.
+		stream<rstring ln> Src = FileSource() { 
+			param
+				file: "in.txt"; 
+				format: line;
+		}
+
+		// The stdout stream from the grep command is sent on the operator's first output port; the stderr stream is sent on the 
+		// second output port.
+		stream<outputSchema> OutStream = LinearClassification(Src) {
+			param 
+				modelFilesDirectory: dataDirectory();
+				documentAttribute: ln;
+				outStreamType: outputSchema;
+				pythonCommand: $pythonCommand;
+		}
+
+		// An FileSink operator that writes the complete output to out.txt.
+		() as WriterO = FileSink(OutStream) {
+			param
+				file: "out.txt";
+				quoteStrings : false;
+		}
+
+		// An second FileSink operator that writes only the reduced output to out2.txt.
+		() as Writer1 = FileSink(OutStream) {
+			param
+				file: "out2.txt";
+				quoteStrings : false;
+				suppress : decisions;
+		}
+}

@@ -1,0 +1,20 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.text;
+
+/**
+ * The Lemmatizer operator custom output function TagWords() expects a type SPL:list<WordPosLemmaType>.
+ */
+type WordPosLemmaType = tuple<rstring word, rstring pos, rstring lemma>;
+
+/**
+ * The TfIdfWeight operator custom output functions WeightedTerms() and TopWeightedTerms() expects a type SPL:list<TfIdfType>.
+ */
+type TfIdfType = tuple<rstring term, float64 tfidf>;
+
+/**
+ * The Ngram operator custom output functions NgramTerms() expects a type SPL:list<NgramType>.
+ */
+type NgramType = tuple<rstring term>;

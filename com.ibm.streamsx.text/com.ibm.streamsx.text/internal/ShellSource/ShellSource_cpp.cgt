@@ -1,0 +1,340 @@
+<%
+
+# Copyright (C) 2016  International Business Machines Corporation
+# All Rights Reserved
+
+use strict;
+use warnings;
+
+unshift @INC, dirname($model->getContext()->getOperatorDirectory()) . "/../../impl/bin/shell";
+require CodeGenX;
+
+# get Perl objects for the operator's input and output ports
+
+my $inputPort = $model->getNumberOfInputPorts()>0 ? $model->getInputPortAt(0) : undef;
+my $outputPort0 = $model->getOutputPortAt(0);
+my $outputPort1 = $model->getNumberOfOutputPorts()>1 ? $model->getOutputPortAt(1) : undef;
+my $outputPort2 = $model->getNumberOfOutputPorts()>2 ? $model->getOutputPortAt(2) : undef;
+
+# get C++ expressions to get the values of the operator's parameters
+
+my $initDelay = $model->getParameterByName("initDelay") ? $model->getParameterByName("initDelay")->getValueAt(0)->getCppExpression() : undef;
+my $iterationCount = $model->getParameterByName("iterationCount") ? $model->getParameterByName("iterationCount")->getValueAt(0)->getCppExpression() : undef;
+my $iterationInterval = $model->getParameterByName("iterationInterval") ? $model->getParameterByName("iterationInterval")->getValueAt(0)->getCppExpression() : undef;
+my $command = $model->getParameterByName("command") ? $model->getParameterByName("command")->getValueAt(0)->getCppExpression() : undef;
+my $commandAttributeGetter = $model->getParameterByName("commandAttribute") ? $model->getParameterByName("commandAttribute")->getValueAt(0)->getCppExpression() : undef;
+my $stdoutAttributeName = $model->getParameterByName("stdoutAttribute") ? $model->getParameterByName("stdoutAttribute")->getValueAt(0)->getSPLExpression() : undef;
+my $stderrAttributeName = $model->getParameterByName("stderrAttribute") ? $model->getParameterByName("stderrAttribute")->getValueAt(0)->getSPLExpression() : undef;
+
+# who would put quotes around a literal constant?
+
+$stdoutAttributeName =~ s/^\"|\"$//g if $stdoutAttributeName;
+$stderrAttributeName =~ s/^\"|\"$//g if $stderrAttributeName;
+
+# basic safety checks
+
+SPL::CodeGen::exitln("sorry, 'initDelay' parameter and input port cannot both be specified") if $initDelay && $inputPort;
+SPL::CodeGen::exitln("sorry, 'iterationCount' parameter and input port cannot both be specified") if $iterationCount && $inputPort;
+SPL::CodeGen::exitln("sorry, 'iterationInterval' parameter and input port cannot both be specified") if $iterationInterval && $inputPort;
+
+SPL::CodeGen::exitln("sorry, 'command' parameter and 'commandAttribute' cannot both be specified") if $command && $commandAttributeGetter;
+SPL::CodeGen::exitln("sorry, 'command' parameter and input port cannot both be specified") if $command && $inputPort;
+SPL::CodeGen::exitln("sorry, 'commandAttribute' parameter cannot be specified without input port") if $commandAttributeGetter && !$inputPort;
+
+SPL::CodeGen::exitln("sorry, 'stderrAttributeName' parameter cannot be specified without second output port") if $stderrAttributeName && !$outputPort1;
+
+# set parameter defaults, if needed
+
+$initDelay = 0 unless $initDelay;
+$iterationCount = 1 unless $iterationCount;
+$iterationInterval = 1.0 unless $iterationInterval;
+$command = "\"\"" unless $command;
+
+# get attributes for input and output lines
+
+if ($inputPort && !$commandAttributeGetter) {
+   foreach my $attribute ( @{ $inputPort->getAttributes() } ) {
+       $commandAttributeGetter = "iport\$0.get_" . $attribute->getName() . "()", last if $attribute->getSPLType() eq "rstring"; }
+   SPL::CodeGen::exitln("sorry, no attribute of type 'rstring' found for input port") unless $commandAttributeGetter;
+}
+
+my $stdoutAttribute;
+foreach my $attribute ( @{ $outputPort0->getAttributes() } ) {
+    $stdoutAttribute = $attribute if $stdoutAttributeName && $attribute->getName() eq $stdoutAttributeName;
+    $stdoutAttribute = $attribute if !$stdoutAttributeName && $attribute->getSPLType() eq "rstring";
+    last if $stdoutAttribute; }
+if (!$stdoutAttribute) {
+   SPL::CodeGen::exitln("sorry, no attribute of " . ($stdoutAttributeName ? "name '$stdoutAttributeName'" : "type 'rstring'") . " found for output port 0"); }
+
+my $stderrAttribute;
+if ($outputPort1) {
+    foreach my $attribute ( @{ $outputPort1->getAttributes() } ) {
+        $stderrAttribute = $attribute if $stderrAttributeName && $attribute->getName() eq $stderrAttributeName;
+        $stderrAttribute = $attribute if !$stderrAttributeName && $attribute->getSPLType() eq "rstring";
+        last if $stderrAttribute; }
+    if (!$stderrAttribute) {
+        SPL::CodeGen::exitln("sorry, no attribute of " . ($stderrAttributeName ? "name '$stderrAttributeName'" : "type 'rstring'") . " found for output port 1"); }
+}
+
+%>
+
+
+#include <sys/time.h>
+#include <time.h>
+#include <float.h>
+#include <string>
+
+<%SPL::CodeGen::implementationPrologue($model);%>
+
+
+
+// calls to SPL functions within expressions are generated with this
+// namespace, which must be mapped to the operator's namespace so they
+// will invoke the assignment functions defined in the ShellSource_h.cgt file
+
+#define ShellSource MY_OPERATOR
+
+// Constructor
+MY_OPERATOR::MY_OPERATOR()
+{
+    SPLAPPTRC(L_TRACE, "entering ShellSource constructor ...", "ShellSource");
+
+    // store operator parameters
+    initDelay = <%=$initDelay%>;
+    iterationCount = <%=$iterationCount%>;
+    iterationInterval = <%=$iterationInterval%>;
+    commandline = <%=$command%>;
+
+    // initialize operator state variables
+    drained_ = false;
+    linecounters.resize(3);
+
+    // clear tuples
+    <% if ($inputPort) { %> commandTuple.clear(); <% } %>
+    outputTuple0.clear();
+    <% if ($outputPort1) { %> outputTuple1.clear(); <% } %>
+
+    <% if (!$inputPort) { %>
+    SPLAPPTRC(L_INFO, "shell iteration count: " << iterationCount, "ShellSource");
+    if (iterationCount>1) { SPLAPPTRC(L_INFO, "shell iteration interval: " << iterationInterval, "ShellSource"); }
+    <% } %>
+
+    SPLAPPTRC(L_TRACE, "leaving ShellSource constructor ...", "ShellSource");
+}
+
+
+// Destructor
+MY_OPERATOR::~MY_OPERATOR()
+{
+    SPLAPPTRC(L_TRACE, "entering ShellSource destructor ...", "ShellSource");
+    SPLAPPTRC(L_TRACE, "leaving ShellSource destructor ...", "ShellSource");
+}
+
+
+// Notify port readiness
+void MY_OPERATOR::allPortsReady()
+{
+    SPLAPPTRC(L_TRACE, "entering ShellSource allPortsReady() ...", "ShellSource");
+    <% if (!$inputPort) { %> createThreads(1); <% } %>
+    SPLAPPTRC(L_TRACE, "leaving ShellSource allPortsReady() ...", "ShellSource");
+}
+
+
+// Notify pending shutdown
+void MY_OPERATOR::prepareToShutdown()
+{
+    SPLAPPTRC(L_TRACE, "entering ShellSource prepareToShutdown() ...", "ShellSource");
+    shell_.shutdown(false);
+    SPLAPPTRC(L_TRACE, "leaving ShellSource prepareToShutdown() ...", "ShellSource");
+}
+
+
+// get the current time, as a 'double', in seconds since the Unix epoch, with microsecond accuracy
+static double theTimeRightNow()
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
+}
+
+
+// Processing for source operator
+void MY_OPERATOR::process(uint32_t idx)
+{
+    SPLAPPTRC(L_TRACE, "entering ShellSource process(" << idx << ") ...", "ShellSource");
+
+    <% if (!$inputPort) { %>
+
+    // wait for a while before starting, if necessary
+    if (initDelay) {
+        SPLLOG(L_INFO, "waiting " << initDelay << " seconds before executing shell command", "ShellSource");
+        getPE().blockUntilShutdownRequest(initDelay); }
+
+    // execute the shell command, and then wait and repeat, if necessary
+    for (int i=0; !getPE().getShutdownRequested() && i<iterationCount; i++) {
+
+        // execute shell command
+        double startTime = theTimeRightNow();
+        executeShell(commandline);
+
+        // wait for next iteration interval, if necessary
+        double iterationDelay = iterationInterval - ( theTimeRightNow() - startTime );
+        if (!getPE().getShutdownRequested() && iterationDelay>0 && i<iterationCount-1) {
+           SPLLOG(L_INFO, "waiting " << iterationDelay << " seconds before re-executing shell command", "ShellSource");
+           getPE().blockUntilShutdownRequest(iterationDelay); }
+    }
+
+    <% } %>
+
+    // emit punctuation on all output ports
+    forwardWindowPunctuation(Punctuation::FinalMarker);
+
+    SPLAPPTRC(L_TRACE, "leaving ShellSource process(" << idx << ") ...", "ShellSource");
+}
+
+
+// Tuple processing for mutating ports
+void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
+{
+}
+
+
+// process(tuple) method for operator with an input port,
+// executes on upstream operator's thread
+void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
+{
+    SPLAPPTRC(L_TRACE, "entering ShellSource process(" << tuple << "," << port << ") ...", "ShellSource");
+
+    <% if ($inputPort) { %>
+    // get the command from the input tuple and execute it
+    AutoPortMutex apm(mutex_, *this);
+    commandTuple = (IPort0Type)tuple;
+    IPort0Type const & iport$0 = static_cast<IPort0Type const &>(tuple);
+    commandline = <%=$commandAttributeGetter%>;
+    executeShell(commandline);
+    <% } %>
+
+    SPLAPPTRC(L_TRACE, "leaving ShellSource process(" << tuple << "," << port << ") ...", "ShellSource");
+}
+
+
+// Punctuation processing
+void MY_OPERATOR::process(Punctuation const & punct, uint32_t port)
+{
+    SPLAPPTRC(L_TRACE, "entering ShellSource process(" << punct << "," << port << ") ...", "ShellSource");
+
+    <% if ($inputPort) { %>
+    AutoPortMutex apm(mutex_, *this);
+    if (punct==Punctuation::FinalMarker) {
+        shell_.shutdown(false);
+        AutoMutex am(drainMutex_);
+        while(!drained_) drainCV_.wait(drainMutex_);
+    }
+    <% } %>
+
+    // emit punctuation on all output ports
+    forwardWindowPunctuation(punct);
+
+    SPLAPPTRC(L_TRACE, "leaving ShellSource process(" << punct << "," << port << ") ...", "ShellSource");
+}
+
+
+
+
+
+
+void MY_OPERATOR::executeShell(std::string command) {
+
+    // reset the input and output tuple counters
+    for (int i=0; i<linecounters.size(); i++) linecounters[i] = 0;
+
+    // start the command in a shell
+    SPLAPPTRC(L_INFO, "starting shell command '" << command << "'", "ShellSource");
+    try { shell_.setup(command); }
+    catch(com::ibm::streamsx::linuxshell::LinuxShellException const & e) {
+        SPLAPPTRC(L_ERROR, "sorry, could not execute shell command '" << command << "', reason='" << shell_.getTermInfoExplanation() << "', exitcode=" << shell_.getTermInfoExitCode(), "ShellSource");
+        throw;
+    }
+
+    // read lines written by the shell to STDOUT and STDIN, and write them to output ports 0 and 1
+    try {
+        while (!getPE().getShutdownRequested()) {
+
+            // wait for the next STDOUT and/or STDERR line from the shell
+            int rc = shell_.readLine(stdoutline, stderrline);
+            if (rc<0) break;
+
+            // address the input tuple containing the shell command, if there is one
+            <% if ($inputPort) { %>
+            IPort0Type const & iport$0 = (IPort0Type const &)commandTuple;
+            <% } %>
+
+            // emit a tuple on output port 0 when the shell writes a line to STDOUT
+            if (rc&1) {
+                <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple0", $outputPort0, $inputPort); %> ;
+                <% CodeGenX::assignOutputAttributeValues("outputTuple0", $outputPort0); %> ;
+                <% print "outputTuple0.set_" . $stdoutAttribute->getName() . "(stdoutline); // assign STDOUT line" if $stdoutAttribute && !$stdoutAttribute->hasAssignment(); %>
+                SPLLOG(L_TRACE, "submitting outputTuple0" << outputTuple0, "ShellSource");
+                submit(outputTuple0, 0);
+                linecounters[1]++;
+            }
+
+            // emit a tuple on output port 1, if there is one, when the shell writes a line to STDERR
+            if (rc&2) {
+                <% if ($outputPort1) { %>
+                <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple1", $outputPort1, $inputPort); %> ;
+                <% CodeGenX::assignOutputAttributeValues("outputTuple1", $outputPort1); %> ;
+                <% print "outputTuple1.set_" . $stderrAttribute->getName() . "(stderrline); // assign STDERR line" if $stderrAttribute && !$stderrAttribute->hasAssignment(); %>
+                SPLLOG(L_TRACE, "submitting outputTuple1" << outputTuple1, "ShellSource");
+                submit(outputTuple1, 1);
+                <% } %>
+                linecounters[2]++;
+            }
+        } }
+    catch(com::ibm::streamsx::linuxshell::LinuxShellException const & e) {
+        if ( shell_.getTermInfoExitCode() ) {
+            SPLAPPTRC(L_ERROR, "shell terminated, reason='" << shell_.getTermInfoExplanation() << "', exitcode=" << shell_.getTermInfoExitCode(), "ShellSource");
+            SPL::Functions::Utility::abort(__FILE__, __LINE__); //we must activ abort the pe
+        } else {
+            SPLAPPTRC(L_TRACE, "shell terminated, reason='" << shell_.getTermInfoExplanation() << "', exitcode=" << shell_.getTermInfoExitCode(), "ShellSource");
+        }
+    }
+
+    {
+        AutoMutex am(drainMutex_);
+        drainCV_.signal();
+        drained_ = true;
+    }
+
+    // wait for shell to exit, and get its exit code
+    shell_.terminate();
+    exitcode = shell_.getTermInfoExitCode();
+    exitreason = shell_.getTermInfoExplanation();
+
+    SPLAPPTRC(L_INFO, "finished shell command '" << command <<  "', reason='" << exitreason << "', exitcode=" << exitcode, "ShellSource");
+
+    // emit a tuple on output port 2, if there is one, when the shell exits
+    {
+        // address the input tuple containing the shell command, if there is one
+        <% if ($inputPort) { %>
+        IPort0Type const & iport$0 = (IPort0Type const &)commandTuple;
+        <% } %>
+
+        <% if ($outputPort2) { %>
+        OPort2Type outputTuple2;
+        <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple2", $outputPort2, $inputPort); %> ;
+        <% CodeGenX::assignOutputAttributeValues("outputTuple2", $outputPort2); %> ;
+        SPLLOG(L_TRACE, "submitting outputTuple2" << outputTuple2, "ShellSource");
+        submit(outputTuple2, 2);
+        <% } %>
+    }
+
+    // emit punctuation on all output ports
+    forwardWindowPunctuation(Punctuation::WindowMarker);
+}
+
+
+
+
+
+<%SPL::CodeGen::implementationEpilogue($model);%>

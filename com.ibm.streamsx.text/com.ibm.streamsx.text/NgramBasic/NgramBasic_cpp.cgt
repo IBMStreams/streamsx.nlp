@@ -1,0 +1,305 @@
+<% 
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.
+%>
+/* Additional includes go here */
+
+#include <SPL/Runtime/Operator/OperatorMetrics.h>
+<%SPL::CodeGen::implementationPrologue($model);%>
+
+<%
+
+	use Cwd 'abs_path';
+	use Data::Dumper;
+	# -------------------------------------------------------------------------
+	# Use Common Perl Module
+	# -------------------------------------------------------------------------
+	my $CommonINC = abs_path($model->getContext()->getOperatorDirectory() . "/../Common");
+	unshift @INC, $CommonINC;
+	require CommonPerlFunctions;
+
+	my $outputPort = $model->getOutputPortAt(0);
+	my $usesNgramTerms = 0;
+	my $attributeNameNgramTerms;
+	my $tupleTypeNgramTerms;
+	my $attributeNameNgramTermsList;
+	my $usesNgramTermsList = 0;
+	my $outTupleAssignments = getOutputTupleCppAssignmentsWithSideEffects ("_tuple", $outputPort, 1);
+	my $hasOutTupleAssignments = $outTupleAssignments ne "";
+
+	# -------------------------------------------------------------------------
+	# Parameters
+	# -------------------------------------------------------------------------
+	my $documentAttributeParameter = $model->getParameterByName("documentAttribute");
+	my $sizeAttributeParameter = $model->getParameterByName("size");
+	my $minSizeAttributeParameter = $model->getParameterByName("minSize");
+	my $wordAttributeParam = $model->getParameterByName("wordAttribute");
+	my $wordAttrName;
+	if (defined $wordAttributeParam) { # check if optional parameter is set
+		$wordAttrName=$wordAttributeParam->getValueAt(0)->getSPLExpression();
+		$wordAttrName = substr($wordAttrName, 1, length($wordAttrName)-2);
+	}
+
+	my $outputPort = $model->getOutputPortAt(0);
+	my $inputPort = $model->getInputPortAt(0);
+
+	my $docAttrInList = "word";
+	my $docParamIsRstring = 0;
+	my $docString=$documentAttributeParameter->getValueAt(0)->getSPLExpression();
+	$docString = substr($docString, 1, length($docString)-2);
+
+	if (defined $inputPort->getAttributeByName($docString)) {
+		if ("SPL::rstring" eq $inputPort->getAttributeByName($docString)->getCppType()) {
+			$docParamIsRstring = 1;
+			if (defined $wordAttributeParam) {
+				SPL::CodeGen::warnln("The parameter wordAttribute ".$wordAttrName." is ignored, because documentAttribute is of type SPL::rstring.");
+			}
+		}
+		elsif ($inputPort->getAttributeByName($docString)->getCppType() =~ /SPL::list/) {
+			$docParamIsRstring = 0;
+			if (defined $wordAttributeParam) { # check if optional parameter is set
+				$docAttrInList = $wordAttrName;
+			}
+		}
+		else {
+			SPL::CodeGen::exitln("The type of the documentAttribute is not supported: ".$inputPort->getAttributeByName($docString)->getCppType());
+		}
+	}
+	else {
+		SPL::CodeGen::exitln("The documentAttribute is not part of the input stream: ".$docString);
+	}
+
+	my $docAttrInListFound = 0;
+	my $alternativeDocAttrInListFound = 0;
+	my $alternativeDocAttrInListName = 0;
+	my $isListRstring = 0;
+	if (0 == $docParamIsRstring) {
+		# Check the input port schema if list type is given as documentAttribute
+		# Supported types:
+		# a) first attribute in the list tuple type is a rstring attribute 
+		# b) term attribute of type rstring is found
+		my $oSchema = {};
+		$oSchema = CommonPerlFunctions::getPortSchemaAsTree($model, $model->getInputPortAt(0));
+
+		foreach my $item (@{$oSchema->{tuple}->{attr}}) {
+			if ($docString eq $item->{name}) {
+				if (exists $item->{list}) {
+					if ($item->{list}->{cppType} eq "SPL::rstring") {
+						$isListRstring = 1;
+					}
+					else {
+						my $isFirstAttribute = 1;
+						foreach my $listitem (@{$item->{list}->{tuple}->{attr}}) {
+							if ($isFirstAttribute) {
+								if ($listitem->{type} eq "rstring") {
+									if ($listitem->{name} eq $docAttrInList) {
+										$docAttrInListFound = 1;
+									} else {
+										$alternativeDocAttrInListName = $listitem->{name};
+										$alternativeDocAttrInListFound = 1;
+									}
+								}
+							} else {
+								if (($listitem->{type} eq "rstring") && ($listitem->{name} eq $docAttrInList)) {
+									$docAttrInListFound = 1;
+								}
+							}
+							$isFirstAttribute = 0;
+						}
+						if (($alternativeDocAttrInListFound) && (0 == $docAttrInListFound)) {
+							if (defined $wordAttributeParam) {
+								SPL::CodeGen::warnln("The specified wordAttribute ".$docAttrInList." is not in the input stream. The current wordAttribute is: ".$alternativeDocAttrInListName);
+							}
+							$docAttrInList = $alternativeDocAttrInListName; # replace the name
+						}
+					}
+				}
+			}
+		}	
+		if ((0 == $alternativeDocAttrInListFound) && (0 == $docAttrInListFound) && (0 == $isListRstring)) {
+			print STDERR Dumper($oSchema);
+			SPL::CodeGen::exitln("No word attribute found of type rstring in the documentAttribute (SPL::list): ".$docString);
+		}
+	}
+
+	my $productVersion=$model->getContext()->getProductVersion();
+	print "//productVersion=$productVersion\n";
+	sub isKRelease() {
+		my $productVersion=$model->getContext()->getProductVersion();
+		my @version=split(/\./,$productVersion);
+		my $result = 1;
+		if (scalar(@version)>3) {
+			$result = 0 if ((3 < $version[0]) || ((3 == $version[0]) && (2 == $version[1]) && (2 == $version[2])));
+		}
+		return ($result);
+	}
+
+	# -------------------------------------------------------------------------
+	# Warnings and error messages
+	# -------------------------------------------------------------------------
+	if (!isKRelease()) {
+		my $crContext = $model->getContext()->getOptionalContext("ConsistentRegion");
+    		if ($crContext) {
+        		my $opName = $model->getContext()->getKind();        		
+        		if($crContext->isStartOfRegion()) {
+            			SPL::CodeGen::exitln("The following operator cannot be the start of a consistent region: ".$opName);
+        		}
+		}
+	}
+%>
+
+// Constructor
+MY_OPERATOR::MY_OPERATOR()
+{
+	_size = <%=$sizeAttributeParameter->getValueAt(0)->getCppExpression()%>;
+	SPLAPPTRC(L_INFO, "[size]= " << _size, "");
+
+	<%if (defined $minSizeAttributeParameter) {%>
+	_minSize = <%=$minSizeAttributeParameter->getValueAt(0)->getCppExpression()%>;
+	if (_minSize > _size) {
+		SPLAPPTRC(L_ERROR, "Configuration parameter minSize has the wrong value [" << _minSize << "]", "");
+		_minSize = _size;
+	}
+	SPLAPPTRC(L_INFO, "[minSize]= " << _minSize, "");
+	<%} else {%>
+	_minSize = _size;
+	<%}%>
+}
+
+// Destructor
+MY_OPERATOR::~MY_OPERATOR() 
+{
+    // Finalization code goes here
+}
+
+// Notify port readiness
+void MY_OPERATOR::allPortsReady() 
+{
+}
+
+// Notify pending shutdown
+void MY_OPERATOR::prepareToShutdown() 
+{
+}
+
+// Tuple processing for mutating ports 
+void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
+{
+	<%my $inTupleName = "iport\$0";%>
+	IPort0Type const & <%=$inTupleName%> = static_cast<IPort0Type const&>(tuple);
+	_tuple.clear();
+
+	<% # forward input attributes if existing in output schema
+	my $iPort = 0;
+	my $outputPort = $model->getOutputPortAt(0);
+	my $inputPort = $model->getInputPortAt($iPort);
+	for my $attr (@{$outputPort->getAttributes()}) {
+		if (defined ($inputPort->getAttributeByName($attr->getName())) && $inputPort->getAttributeByName($attr->getName())->getCppType() eq $attr->getCppType()) {
+	print "_tuple.set_".$attr->getName()."(".$inTupleName.".get_".$attr->getName()."());\n";
+		}
+	}
+	%>
+
+	<%if ($usesNgramTerms) {%>
+	<%=$tupleTypeNgramTerms%> ngramTuple;
+	<%}%>
+
+	<%if ($docParamIsRstring) {%>
+	SPL::list<SPL::rstring> tokens = SPL::Functions::String::tokenize(<%=$inTupleName%>.get_<%=$docString%>(), " ", false);
+	uint32 nWordsInDoc = SPL::Functions::Collections::size(tokens);
+	<%} else {%>
+	uint32 nWordsInDoc = SPL::Functions::Collections::size(<%=$inTupleName%>.get_<%=$docString%>());
+	<%}%>
+	SPLAPPTRC(L_DEBUG, "[total number of words in document]=" << nWordsInDoc, "");
+	for (int ngramSize = _minSize; ngramSize <= _size; ngramSize++) {
+		SPLAPPTRC(L_DEBUG, "[ngramSize]=" << ngramSize, "");
+		for (int i = 0; i < (nWordsInDoc-ngramSize+1); i++) {
+			rstring term = "";
+	    		int start = i;
+	    		int end = i + ngramSize;
+	    		for (int w = start; w < end; w++){
+				<%if ($docParamIsRstring) {%>
+				const rstring word = tokens[w];
+				<%} else {%>
+					<% if ($isListRstring) {%>
+				const rstring word = <%=$inTupleName%>.get_<%=$docString%>()[w];
+					<%} else {%>
+				const rstring word = <%=$inTupleName%>.get_<%=$docString%>()[w].get_<%=$docAttrInList%>();
+					<%}%>
+				<%}%>
+				if ("" == term) {
+					term = word; // first word
+				}
+				else {
+					term = term + " " + word; // append words
+				}
+	    		}
+
+			<%if ($usesNgramTerms) {%>
+			// Add n-gram to output tuple list
+			ngramTuple.set_term(term);
+			_tuple.get_<%=$attributeNameNgramTerms%>().push_back(ngramTuple);
+			<%}%>
+			<%if ($usesNgramTermsList) {%>
+			_tuple.get_<%=$attributeNameNgramTermsList%>().push_back(term);
+			<%}%>
+		}
+	}
+	submit(_tuple, 0); // submit to output port 0
+
+}
+
+// Tuple processing for non-mutating ports
+void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
+{
+}
+
+// Punctuation processing
+void MY_OPERATOR::process(Punctuation const & punct, uint32_t port)
+{
+	forwardWindowPunctuation(punct);
+}
+
+<%SPL::CodeGen::implementationEpilogue($model);
+
+sub getOutputTupleCppAssignmentsWithSideEffects($$$)
+{
+    my ($tupleName, $outputPort, $sideEffects) = @_;
+    my $numAttrs = $outputPort->getNumberOfAttributes();
+    my $assignments = "";
+    for (my $i = 0; $i < $numAttrs; ++$i) {
+      my $attr = $outputPort->getAttributeAt($i);
+      if($attr->hasAssignmentWithOutputFunction()) {
+        my $of = $attr->getAssignmentOutputFunctionName();
+        if ($of eq 'NgramTerms') {
+          my $type = $attr->getSPLType();
+          my $listElementType = SPL::CodeGen::Type::getElementType($type);
+          if (SPL::CodeGen::Type::isTuple($listElementType)) {
+            my $listCppType = $attr->getCppType();
+            my $elementCppType = $listCppType;
+            $elementCppType =~ s/^SPL::list<//;
+            $elementCppType =~ s/ >$//;
+            $usesNgramTerms = 1;
+            $attributeNameNgramTerms = $attr->getName();
+            $tupleTypeNgramTerms = $elementCppType;
+          }
+	} elsif ($of eq 'NgramTermsList') {
+	  $attributeNameNgramTermsList = $attr->getName();
+          $usesNgramTermsList = 1;
+        } else {
+          # Must be AsIs
+          my $exp = $attr->getAssignmentOutputFunctionParameterValueAt(0);
+          my $cppExpn = $exp->getCppExpression();
+          if ($exp->hasStreamAttributes() || $exp->hasSideEffects()) {
+             $assignments .= "$tupleName.set_" . $attr->getName() . "($cppExpn); " if $sideEffects;
+          } 
+          elsif (!$sideEffects) {
+             $assignments .= "$tupleName.set_" . $attr->getName() . "($cppExpn); ";
+          }
+        }
+      }
+    }
+    return $assignments;
+}
+%>
+

@@ -1,0 +1,164 @@
+<?xml version="1.0" ?>
+<!-- Copyright (C)2016, International Business Machines Corporation -->
+<!-- All rights reserved.                                -->
+<operatorModel
+  xmlns="http://www.ibm.com/xmlns/prod/streams/spl/operator" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.ibm.com/xmlns/prod/streams/spl/operator operatorModel.xsd">
+  <cppOperatorModel>
+    <context> 
+      <description>This operator checks the words of a text against a dictionary. Words are removed from the text if they are found in the dictionary and the filterMode `remove` is selected. The text will contain words of the dictionary only if filterMode `keep` is selected.</description>
+      <customLiterals>
+        <enumeration>
+          <name>FilterMode</name>
+          <value>remove</value>
+          <value>keep</value>
+        </enumeration>
+      </customLiterals>
+      <providesSingleThreadedContext>Always</providesSingleThreadedContext>
+      <codeTemplates>
+        <codeTemplate name="DictionaryFilter">
+          <description>Basic DictionaryFilter template</description>
+          <template>stream&lt;${schema}&gt; ${outputStream} = DictionaryFilter(${inputStream}) {
+            param
+                filterMode : DictionaryFilter.remove;
+		textAttribute : text;
+		dictionaryFile : "stopwords.csv";
+            output
+                ${outputStream} : ${outputAttribute} = ${value};
+        }</template>
+        </codeTemplate>
+      </codeTemplates>      
+    </context>  
+    <parameters>
+      <allowAny>false</allowAny>
+      <parameter>
+        <name>filterMode</name>
+        <description>
+<![CDATA[
+Mode that determines which parts of text is forwarded.
+If filterMode `remove` is selected, then all words of the input stream textAttribute are removed in case they exist in the dictionary.
+This is the default value if filterMode parameter is not specified.
+In case the filterMode `keep` is selected, then those words of the textAttribute are forwarded that are stored in the dictionary only.
+]]></description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>CustomLiteral</expressionMode>
+        <type>FilterMode</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>textAttribute</name>
+        <description>
+<![CDATA[
+Specifies the dictionary file loaded on startup.
+]]></description>
+        <optional>false</optional>
+        <rewriteAllowed>false</rewriteAllowed>
+        <expressionMode>Attribute</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>dictionaryFile</name>
+        <description>
+<![CDATA[
+Specifies the dictionary file loaded on startup.
+]]></description>
+        <optional>false</optional>
+        <rewriteAllowed>false</rewriteAllowed>
+        <expressionMode>Expression</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+      </parameter>
+      <parameter>
+        <name>commandAttribute</name>
+        <description>
+<![CDATA[
+Specifies the `rstring` attribute of the optional command input port that
+holds the command that is described in “Input Ports.”
+
+If you specify a value for this parameter, the optional command input and
+status output ports are mandatory. If the optional command input port exists,
+this parameter is mandatory.
+]]></description>
+        <optional>true</optional>
+        <rewriteAllowed>false</rewriteAllowed>
+        <expressionMode>Attribute</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+        <portScope>
+          <port>1</port>
+        </portScope>
+      </parameter>
+      <parameter>
+        <name>wordAttribute</name>
+        <description>
+<![CDATA[
+Specifies the `rstring` attribute of the optional command input port that
+holds the word as described in "Input Ports.”
+
+If this parameter is specified, the optional command input and status output
+ports are mandatory. If this parameter is omitted and the command input port
+exists, the `read` and `write` commands are not supported.
+]]></description>
+        <optional>true</optional>
+        <rewriteAllowed>false</rewriteAllowed>
+        <expressionMode>Attribute</expressionMode>
+        <type>rstring</type>
+        <cardinality>1</cardinality>
+        <portScope>
+          <port>1</port>
+        </portScope>
+      </parameter>
+    </parameters>
+    <inputPorts>
+      <inputPortSet>
+        <description>Port that ingests tuples to be manipulated</description>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <windowingMode>NonWindowed</windowingMode>
+        <windowPunctuationInputMode>Oblivious</windowPunctuationInputMode>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </inputPortSet>
+      <inputPortSet>
+        <description>
+<![CDATA[
+The second input port is the command input port to clear and update the dictionary.
+
+If the command input port exists, the **commandAttribute** parameter is mandatory.
+The command input port must have an `rstring` attribute with a value, also
+known as the command string, (see the **commandAttribute** parameter) and
+a `rstring` attribute that specifies the word (see the
+**wordAttribute** parameter).
+
+Supported commands are
+
+* `clear` - Resets the dictionary.
+* `add` - Add the word that is part of **wordAttribute** to the dictionary.
+A window punctuation marks the end of the dictionary update and must follow the `add` command.
+]]></description>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <windowingMode>NonWindowed</windowingMode>
+        <windowPunctuationInputMode>Oblivious</windowPunctuationInputMode>
+        <controlPort>true</controlPort>
+        <cardinality>1</cardinality>
+        <optional>true</optional>
+      </inputPortSet>
+    </inputPorts>
+    <outputPorts>
+      <outputPortSet>
+        <description>Port that outputs the modified tuples.</description>
+        <expressionMode>Expression</expressionMode> 
+        <autoAssignment>false</autoAssignment>
+        <completeAssignment>false</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+        <windowPunctuationOutputMode>Preserving</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>0</windowPunctuationInputPort>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </outputPortSet>    
+    </outputPorts>
+  </cppOperatorModel>
+</operatorModel>

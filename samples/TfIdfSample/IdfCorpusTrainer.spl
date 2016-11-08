@@ -1,0 +1,40 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite IdfCorpusTrainer
+{
+	graph
+
+ 		stream<rstring document> DocumentStream = FileSource() {
+			param file : "SourceData.txt";
+			parsing : permissive;
+		}		
+
+		// Creates a list of terms per document
+		(stream<IdfCorpusBuilder.IdfCorpusType> TrainingStream as O) as PrepareTerms = Custom(DocumentStream as I) {
+			logic
+				onTuple I:
+				{
+					mutable list<rstring> terms = [];
+					com.ibm.streamsx.text.utils::generateNgram(tokenize(document," ",false), 1u, 1u, terms);
+
+					submit({terms=terms}, O);
+				}
+				onPunct I: {
+					if (currentPunct() == Sys.WindowMarker) {
+						submit(Sys.WindowMarker, O);
+					}
+				}
+		}
+
+		// The corpus builder from the toolkit
+ 		() as SinkCorpus = IdfCorpusBuilder(TrainingStream) {
+ 			param                        
+				corpusFile:  "out_tfidf_corpus.txt";
+			config placement: partitionColocation("CORPUS_BUILDER");
+		}
+
+}

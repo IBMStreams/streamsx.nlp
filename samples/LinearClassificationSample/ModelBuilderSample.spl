@@ -1,0 +1,21 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite ModelBuilderSample
+{
+	param
+		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+
+	graph
+
+		() as MB = LinearClassificationModelBuilder() {
+			param 
+				trainingFile: dataDirectory()+"/training.csv";
+				modelFilesDirectory: dataDirectory();
+				pythonCommand: $pythonCommand;
+		}
+
+}

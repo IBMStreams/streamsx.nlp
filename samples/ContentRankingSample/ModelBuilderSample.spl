@@ -1,0 +1,24 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite ModelBuilderSample
+{
+	param
+		expression<rstring> $nEpoch: getSubmissionTimeValue("nEpoch", "100");
+		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+
+	graph
+
+		() as MB = ContentRankingModelBuilder() {
+			param 
+				xRegFile: dataDirectory()+"/training_input/X_reg.txt";
+				yRegFile: dataDirectory()+"/training_input/y_reg_text.txt";
+				modelFilesDirectory: dataDirectory()+"/model_KB";
+				nEpoch: $nEpoch;
+				pythonCommand: $pythonCommand;
+		}
+
+}

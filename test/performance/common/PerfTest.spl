@@ -1,0 +1,122 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace common;
+                          
+type AnnoSpan = tuple<rstring text, int32 begin, int32 end>;
+
+public composite PerfTest
+{
+	param
+		operator $textExtract;
+		expression<int32> $loop;
+		expression<rstring> $outputFilename;
+		expression<rstring> $resultFilename;
+
+	graph
+
+		(
+		stream<rstring documentFile> FilenameStream as O;
+		stream<rstring file> DocumentFilenames as D;
+		stream<boolean start> BeginStream as B
+		) as FilenameBypass = Custom() {
+			logic state: {
+				mutable int32 loop_ = $loop;
+			}
+			onProcess: {
+				mutable rstring filename = "";
+				for (int32 l in range(loop_)) {
+					for (int32 iter in range(51)) {
+						filename = "SenseAndSensibility/chapter" +(rstring)(iter) + ".txt";
+						submit({documentFile=filename}, O); // first by pass the filename, since FileSource does not forward the filename
+						submit({file=filename}, D);
+						if ((l==0) && (iter==0)) { 
+							submit({start=true}, B); // start the measurement after the first file
+						}
+					}
+				}
+			}
+		}
+
+		stream<rstring oneline> Line = FileSource(DocumentFilenames) {
+			param
+				format : line;
+		}
+
+		stream<rstring entireDoc, rstring documentFile> Documents as O = Custom(Line as I; FilenameStream as F) {
+			logic state: {
+				mutable rstring soFar = "";
+				mutable rstring filename = "";
+			}
+			onTuple I: {
+				soFar +=(rstring) "\n" + I.oneline;
+			}
+			onTuple F: {
+				filename = F.documentFile;
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.WindowMarker) {
+					submit({entireDoc = soFar, documentFile = filename}, O);
+					soFar =(rstring) "";
+					filename = "";
+					submit(currentPunct(), O);
+				}
+				else {
+					// it's a final punctuation, so send it on.
+					submit(currentPunct(), O);
+				}
+			}
+		}
+
+		stream<rstring documentFile, list<AnnoSpan> annotations, rstring entireDoc> NamesList = $textExtract(Documents){
+		}
+
+		stream<I> NamesSpanWithTextPrint = Filter(NamesList as I) {
+			param
+				filter: (1 == $loop);
+		}
+
+		() as TitleNamesSpanWithText = FileSink(NamesSpanWithTextPrint) {
+			param
+				file : $outputFilename;
+				format : csv;
+				flush : 1u;
+		}
+
+		stream<timestamp duration, int32 numFiles, int32 numAnnotations> TestResult = Custom(BeginStream as B; NamesList as I) {
+			logic state: {
+				mutable timestamp startTimestamp;
+				mutable int32 numDocs = 0;
+				mutable int32 numAnnotations = 0;
+				mutable int32 numFiles = 0;
+			}
+			onTuple B: {
+				startTimestamp = getTimestamp();
+			}
+			onTuple I: {
+				numAnnotations += spl.collection::size(I.annotations);
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.WindowMarker) {
+					numFiles++;
+				}
+				if(currentPunct() == Sys.FinalMarker) {
+					mutable timestamp duration = diffAsSecs(getTimestamp(),startTimestamp);
+					submit({duration = duration, numFiles = numFiles, numAnnotations = numAnnotations}, TestResult);
+					printStringLn ("duration="+(rstring)duration);
+					printStringLn ("numAnnotations="+(rstring)numAnnotations);
+					printStringLn ("numFiles="+(rstring)numFiles);
+				}
+			}
+		}
+
+		() as ResultSink = FileSink(TestResult) {
+			param
+				file : $resultFilename;
+				format : txt;
+				flush : 1u;
+		}
+
+}
+

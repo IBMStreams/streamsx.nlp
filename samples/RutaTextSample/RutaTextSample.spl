@@ -1,0 +1,56 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite RutaTextSample
+{
+
+	type
+		AnnoSpan = tuple<rstring text, int32 begin, int32 end>;
+
+	graph
+
+		stream<rstring oneline> Lines = FileSource() {
+			param
+				file:   "input.txt";
+				format: line;
+		}
+		
+		stream<rstring entireDoc> Documents as O = Custom(Lines as I) {
+			logic state: {
+				mutable rstring soFar = "";
+			}
+			onTuple I: {
+				soFar +=(rstring) "\n" + I.oneline;
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.WindowMarker) {
+					submit({entireDoc = soFar}, O);
+					soFar =(rstring) "";
+					submit(currentPunct(), O);
+				}
+				else {
+					// it's a final punctuation, so send it on.
+					submit(currentPunct(), O);
+				}
+			}
+		}
+
+		stream<rstring entireDoc, list<AnnoSpan> annotations> TextAnnotated = RutaText(Documents as I) {
+			param
+				inputDoc: "entireDoc"; // text to analyze
+				pearFile: "getNames.pear"; // relative to etc dir
+				outputAttributes: "annotations";
+				outputTypes: "uima.ruta.getNames.Main.Name"; // filter type descriptions
+		}
+
+		() as SinkRuta = FileSink(TextAnnotated) {
+ 			param
+				file:  "out.txt";
+				format: csv;
+				flushOnPunctuation: true;
+		}
+
+}

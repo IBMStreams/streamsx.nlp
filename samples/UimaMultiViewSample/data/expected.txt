@@ -1,0 +1,2 @@
+"The beer is good",[{sofaString="gut bier ist gut"}],[{text="The beer is good",typeDescription="uima.tcas.DocumentAnnotation",begin=0,end=16}]
+"beer",[{sofaString="bier"}],[{text="beer",typeDescription="uima.tcas.DocumentAnnotation",begin=0,end=4}]

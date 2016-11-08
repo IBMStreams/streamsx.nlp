@@ -1,0 +1,212 @@
+<% 
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.
+%>
+
+#include <fstream>
+#include <sys/stat.h>
+#include <streams_boost/filesystem/path.hpp>
+#include <streams_boost/filesystem/operations.hpp>
+#include <streams_boost/filesystem/exception.hpp>
+#include <SPL/Runtime/Function/SPLFunctions.h>
+
+<%SPL::CodeGen::implementationPrologue($model);%>
+
+<%    
+   my $inputPort = $model->getInputPortAt(0); 
+   my $numInputPorts = $model->getNumberOfInputPorts();
+   my $numOutputPorts = $model->getNumberOfOutputPorts();
+   my $outputPort0 = $model->getOutputPortAt(0); 
+   my $inTupleName = $inputPort->getCppTupleName();
+   my $textAttributeParam = $model->getParameterByName("textAttribute");
+   my $dictionaryFileParam = $model->getParameterByName("dictionaryFile");
+   my $filterModeParam = $model->getParameterByName("filterMode");
+   my $filterMode = "remove"; # default value if parameter is not present
+   if (defined $filterModeParam) {
+      if ($filterModeParam->getValueAt(0)->getSPLExpression() eq "keep") {
+         $filterMode = "keep";
+      }
+   }
+
+   my $commandAttributeParam = $model->getParameterByName("commandAttribute");
+   my $wordAttributeParam = $model->getParameterByName("wordAttribute");
+   my $commandAttribute;
+   my $wordAttribute;
+   if (defined $commandAttributeParam) {
+      if ($numInputPorts > 1) {
+         $commandAttribute = $commandAttributeParam->getValueAt(0)->getCppExpression();
+      }
+      else {
+         SPL::CodeGen::exitln("The second input port is missing since the commandAttribute is set.");
+      }
+   }
+   elsif ($numInputPorts > 1) {
+      SPL::CodeGen::exitln("The commandAttribute is not specified.");
+   }
+   if (defined $wordAttributeParam) {
+      if ($numInputPorts > 1) {
+         $wordAttribute = $wordAttributeParam->getValueAt(0)->getCppExpression();
+      }
+      else {
+         SPL::CodeGen::exitln("The second input port is missing since the wordAttribute is set.");
+      }
+   }
+   elsif ($numInputPorts > 1) {
+      SPL::CodeGen::exitln("The wordAttribute is not specified.");
+   }
+
+   my $productVersion=$model->getContext()->getProductVersion();
+   print "//productVersion=$productVersion\n";
+
+   sub isKRelease() {
+      my $productVersion=$model->getContext()->getProductVersion();
+      my @version=split(/\./,$productVersion);
+      my $result = 1;
+      if (scalar(@version)>3) {
+         $result = 0 if ((3 < $version[0]) || ((3 == $version[0]) && (2 == $version[1]) && (2 == $version[2])));
+      }
+      return ($result);
+   }
+
+   # -------------------------------------------------------------------------
+   # Warnings and error messages
+   # -------------------------------------------------------------------------
+   if (!isKRelease()) {
+      my $crContext = $model->getContext()->getOptionalContext("ConsistentRegion");
+      if ($crContext) {
+         my $opName = $model->getContext()->getKind();        		
+         if($crContext->isStartOfRegion()) {
+            SPL::CodeGen::exitln("The following operator cannot be the start of a consistent region: ".$opName);
+         } else {
+            SPL::CodeGen::warnln("The following operator is not supported in a consistent region: ".$opName.". The operator does not checkpoint or reset its internal state. If an application failure occurs, the operator might produce unexpected results even if it is part of a consistent region.");
+         }
+      }
+   }
+
+%>
+
+std::string MY_OPERATOR::makeAbsolute(const std::string & fileName)
+{
+	namespace bf = streams_boost::filesystem;
+	bf::path file(fileName);
+
+	<% if (isKRelease()) {%>
+	if (!file.is_complete()) {
+	<%} else {%>
+	if (!file.is_absolute()) {
+	<%}%>
+		// getDataDirectory will throw an exception if there is no data directory
+		file = getPE().getDataDirectory();
+		file /= fileName;
+	}
+	return file.string();
+}
+
+// Constructor
+MY_OPERATOR::MY_OPERATOR()
+{
+	rstring dictFile = SPL::rstring(makeAbsolute(<%=$dictionaryFileParam->getValueAt(0)->getCppExpression()%>));
+	readDictionaryFile(dictFile);
+}
+
+// Destructor
+MY_OPERATOR::~MY_OPERATOR() 
+{
+}
+
+void MY_OPERATOR::process(Tuple & tuple, uint32_t port) 
+{
+	if (0 == port) {
+		IPort0Type & <%=$inTupleName%> = static_cast<IPort0Type &>(tuple);
+		SPLAPPTRC(L_TRACE, "DictionaryFilter process tuple: " << <%=$inTupleName%>, aspect);
+		SPL::rstring newText;
+		SPL::list<SPL::rstring> tokens = SPL::Functions::String::tokenize(<%=$textAttributeParam->getValueAt(0)->getCppExpression()%>, " ", false);
+		for (int i = 0; i < SPL::Functions::Collections::size(tokens); i++) {
+			<%my $existsValue = (($filterMode eq "keep") ? "true" : "false");%>
+			if (<%=$existsValue%> == SPL::Functions::Collections::has(_dict, tokens[i])) {
+				appendText(tokens[i], newText);
+			}
+		}
+
+		<%=$textAttributeParam->getValueAt(0)->getCppExpression()%> = newText;
+		<%=SPL::CodeGen::getOutputTupleCppAssignments($inTupleName,$outputPort0)%>
+		SPLAPPTRC(L_TRACE, "DictionaryFilter result tuple: " << <%=$inTupleName%>, aspect);
+		submit(<%=$inTupleName%>,0);
+	}
+	<%if ($numInputPorts > 1) {%>
+	else { // command port
+		<%my $inTupleName = "iport\$1";%>
+		IPort1Type & <%=$inTupleName%> = static_cast<IPort1Type &>(tuple);
+
+		<%if ((defined $commandAttribute) && (defined $wordAttribute)) {%>
+		const rstring command = <%=$commandAttribute%>;
+		SPLAPPTRC(L_INFO, "command=" << command, aspect);
+		if ("clear" == command) {
+			SPL::Functions::Collections::clearM(_dictUpdate);
+		}
+		else if ("add" == command) {
+			const rstring word = <%=$wordAttribute%>;
+			SPLAPPTRC(L_TRACE, "insert from command tuple: " << word, aspect);
+			SPL::Functions::Collections::insertM(_dictUpdate, word, 0);
+		}
+		else {
+			SPLAPPTRC(L_ERROR, "Command not supported: " << command, aspect);
+		}
+		<%}%>
+	}
+	<%}%>
+}
+
+void MY_OPERATOR::process(Punctuation const & punct, uint32_t port) 
+{
+	if (0 == port) {
+		forwardWindowPunctuation(punct);
+	}
+	<%if ($numInputPorts > 1) {%>
+	else { // command port end of training
+		if (punct == Punctuation::WindowMarker) {
+			SPLAPPTRC(L_INFO, "DictionaryFilter clean dictionary", aspect);
+			SPL::Functions::Collections::clearM(_dict);
+			_dict = _dictUpdate;
+		}
+	}
+	<%}%>
+}
+
+void MY_OPERATOR::readDictionaryFile(const rstring& filename)
+{
+	SPLAPPTRC(L_INFO, "readDictionaryFile " << filename, aspect);
+	std::ifstream ifs(filename.c_str());
+	if (!ifs) {
+		SPLAPPTRC(L_ERROR, "Cannot open file: " << filename, aspect);
+		SPL::Functions::Utility::abort(__FILE__, __LINE__);
+	}
+	else {
+		std::string line;
+		while( getline(ifs, line)) {
+			if ((line.size() > 0) && (line.at(0) != '#')) {
+				SPL::rstring word = SPL::Functions::String::trim(line, " ");
+				if (SPL::Functions::Collections::has(_dict, word)) {
+					SPLAPPTRC(L_WARN, "dictionary file contains the same word more than once: " << word, aspect);
+				}
+				else {
+					SPLAPPTRC(L_TRACE, "insert from dictionary file: " << word, aspect);
+					SPL::Functions::Collections::insertM(_dict, word, 0);
+				}
+			}
+			else {
+				SPLAPPTRC(L_DEBUG, "skipped = " << line, aspect);
+			}
+		}
+		ifs.close();
+		<%if ($numInputPorts > 1) {%>
+		_dictUpdate = _dict;
+		<%}%>
+	}
+	SPLAPPTRC(L_INFO, "numWords = " << SPL::Functions::Collections::size(_dict), aspect);
+}
+
+const std::string MY_OPERATOR::aspect = "texttoolkit";
+
+<%SPL::CodeGen::implementationEpilogue($model);%>
+

@@ -1,0 +1,284 @@
+<% 
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.
+%>
+
+/* Additional includes go here */
+
+#include <iostream>
+#include <sstream>
+#include <iterator>
+#include <algorithm>
+#include <fstream>
+#include <ctype.h>
+#include <math.h>
+#include <string>
+#include <map>
+#include <stdint.h>
+
+#include "gposttl/gposttl.h"
+#include "gposttl/tagger_controller.h"
+#include "gposttl/tokenizer.h"
+
+#include <streams_boost/tokenizer.hpp>
+
+<%
+	SPL::CodeGen::implementationPrologue($model);
+	
+	use Cwd 'abs_path';
+
+	my $outputPort = $model->getOutputPortAt(0); 
+	my $usesNormalizedText = 0;
+	my $usesTagWords = 0;
+	my $attributeNameTagWords;
+	my $tupleTypeTagWords;
+	my $attributeNameLemmaList;
+	my $usesLemmaList = 0;
+	my $outTupleAssignments = getOutputTupleCppAssignmentsWithSideEffects ("_tuple", $outputPort, 1);
+	my $hasOutTupleAssignments = $outTupleAssignments ne "";
+	
+	# -------------------------------------------------------------------------
+	# Parameters
+	# -------------------------------------------------------------------------
+	my $textAttributeParameter = $model->getParameterByName("textAttribute");
+
+	# optional initializationScriptFileName parameter
+	my $initDir = $model->getParameterByName("initializationDirectory");
+	my $initDirValue;
+	if (defined($initDir)) {
+		$initDirValue = $initDir->getValueAt(0)->getCppExpression();
+		print "//initDirValue =$initDirValue \n";
+	}
+
+	# -------------------------------------------------------------------------
+	# Version handling
+	# -------------------------------------------------------------------------
+	my $productVersion=$model->getContext()->getProductVersion();
+	print "//productVersion=$productVersion\n";	
+	sub isKRelease() {
+		my $productVersion=$model->getContext()->getProductVersion();
+		my @version=split(/\./,$productVersion);
+		my $result = 1;
+		if (scalar(@version)>3) {
+			$result = 0 if ((3 < $version[0]) || ((3 == $version[0]) && (2 == $version[1]) && (2 == $version[2])));
+		}
+		return ($result);
+	}
+	my $tkdir = abs_path($model->getContext()->getOperatorDirectory() . "/../..");
+
+	# -------------------------------------------------------------------------
+	# Warnings and error messages
+	# -------------------------------------------------------------------------
+	if (!isKRelease()) {
+		my $crContext = $model->getContext()->getOptionalContext("ConsistentRegion");
+    		if ($crContext) {
+        		my $opName = $model->getContext()->getKind();        		
+        		if($crContext->isStartOfRegion()) {
+            			SPL::CodeGen::exitln("The following operator cannot be the start of a consistent region: ".$opName);
+        		} else {
+				SPL::CodeGen::warnln("The following operator is not supported in a consistent region: ".$opName.". The operator does not checkpoint or reset its internal state. If an application failure occurs, the operator might produce unexpected results even if it is part of a consistent region.");
+			}
+		}
+	}
+
+%>
+
+using namespace std;
+
+
+// Constructor
+MY_OPERATOR::MY_OPERATOR()
+{
+    // initialize the PoS tagger
+    <% if (defined($initDirValue)) {%>
+    rstring base = <%=$initDirValue%>; // dir given as operator parameter
+    <%} else {%>
+        <% if (isKRelease()) {%>
+    rstring base = "<%=$tkdir%>/etc/gposttl";
+        <%} else {%>
+    rstring base = getPE().getToolkitDirectory() + "/etc/gposttl";
+        <%}%>
+    <%}%>
+    SPLAPPTRC(L_INFO, "base directory="<< base, "");
+    initialize_tagger((char*)base.c_str());
+    
+    _enhancePenntag = 1;
+}
+
+// Destructor
+MY_OPERATOR::~MY_OPERATOR() 
+{
+    // delete the PoS tagger
+    DestroyPosTagger();
+}
+
+// Notify port readiness
+void MY_OPERATOR::allPortsReady() 
+{
+    // Notifies that all ports are ready. No tuples should be submitted before
+    // this. Source operators can use this method to spawn threads.
+}
+ 
+// Notify pending shutdown
+void MY_OPERATOR::prepareToShutdown() 
+{
+    // This is an asynchronous call
+}
+
+// Processing for source and threaded operators   
+void MY_OPERATOR::process(uint32_t idx)
+{
+}
+
+// Tuple processing for mutating ports 
+void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
+{
+    <%my $inTupleName = "iport\$0";%>
+    IPort0Type const & <%=$inTupleName%> = static_cast<IPort0Type const&>(tuple);
+    _tuple.clear();
+
+    <% # forward input attributes if existing in output schema
+    my $iPort = 0;
+    my $outputPort = $model->getOutputPortAt(0);
+    my $inputPort = $model->getInputPortAt($iPort);
+    for my $attr (@{$outputPort->getAttributes()})
+    {
+        if (defined ($inputPort->getAttributeByName($attr->getName())) && $inputPort->getAttributeByName($attr->getName())->getCppType() eq $attr->getCppType())
+        {
+            print "_tuple.set_".$attr->getName()."(".$inTupleName.".get_".$attr->getName()."());\n";
+        }
+    }
+    %>
+    
+    <%if ($usesNormalizedText) {%>
+    // reset the text
+    _normalizedText = "";
+    <%}%>
+    <%if ($usesTagWords) {%>
+    <%=$tupleTypeTagWords%> wplTuple;
+    <%}%>
+
+    std::string out = tag(Tokenizer((char*)<%=$textAttributeParameter->getValueAt(0)->getCppExpression()%>.c_str()), _enhancePenntag);
+
+    // this is a nice format if you want to see what happens to each word .. 
+    SPLAPPTRC(L_DEBUG, out, ""); 
+
+    streams_boost::char_separator<char> sep("\n");
+    streams_boost::tokenizer<streams_boost::char_separator<char> > tokens(out, sep);
+    for ( streams_boost::tokenizer<streams_boost::char_separator<char> >::iterator it = tokens.begin();
+            it != tokens.end();
+            ++it)
+    {
+        streams_boost::char_separator<char> sep2("\x09");
+        streams_boost::tokenizer<streams_boost::char_separator<char> > tokens2(*it,sep2);
+        int xx = 0;
+        for ( streams_boost::tokenizer<streams_boost::char_separator<char> >::iterator it2 = tokens2.begin();
+                it2 != tokens2.end();
+                ++it2)
+        {
+            xx++;
+            if ( xx == 1 )
+            {<%if ($usesTagWords) {%>
+                wplTuple.set_word(*it2);
+             <%}%>
+             <%if ($usesNormalizedText) {%>
+             _word = *it2;
+             <%}%>
+            }
+            else if ( xx == 2 )
+            {<%if ($usesTagWords) {%>
+                wplTuple.set_pos(*it2);<%}%>
+            }
+            else if ( xx == 3 )
+            {
+                <%if ($usesTagWords) {%>
+                wplTuple.set_lemma(*it2);<%}%>
+                <%if ($usesNormalizedText) {%>
+                if ("<unknown>" == *it2)
+                {
+                    _normalizedText.append(_word);
+                }
+                else
+                {
+                    _normalizedText.append(*it2);
+                }
+                _normalizedText.append(" ");
+                <%}%>
+                <%if ($usesLemmaList) {%>
+                _tuple.get_<%=$attributeNameLemmaList%>().push_back(*it2);
+                <%}%>
+            }
+        }
+        <%if ($usesTagWords) {%>
+        _tuple.get_<%=$attributeNameTagWords%>().push_back(wplTuple);
+        <%}%>
+    }
+
+    <%print $outTupleAssignments if $hasOutTupleAssignments;%>
+    submit(_tuple, 0); // submit to output port 0
+}
+
+// Tuple processing for non-mutating ports
+void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
+{
+}
+
+void MY_OPERATOR::process(Punctuation const & punct, uint32_t port) 
+{
+    forwardWindowPunctuation(punct);
+}
+
+<%SPL::CodeGen::implementationEpilogue($model);
+
+sub getOutputTupleCppAssignmentsWithSideEffects($$$)
+{
+    my ($tupleName, $outputPort, $sideEffects) = @_;
+    my $numAttrs = $outputPort->getNumberOfAttributes();
+    my $assignments = "";
+    for (my $i = 0; $i < $numAttrs; ++$i) {
+      my $attr = $outputPort->getAttributeAt($i);
+      if($attr->hasAssignmentWithOutputFunction()) {
+        my $of = $attr->getAssignmentOutputFunctionName();
+        if ($of eq 'NormalizedText') {
+          next if !$sideEffects;
+          $assignments .= "$tupleName.set_" . $attr->getName() . "(NormalizedText()); ";
+          $usesNormalizedText = 1;
+        }
+        elsif ($of eq 'TagWords') {
+          my $type = $attr->getSPLType();
+          my $listElementType = SPL::CodeGen::Type::getElementType($type);
+          if (SPL::CodeGen::Type::isTuple($listElementType)) {
+            my $listCppType = $attr->getCppType();
+            my $elementCppType = $listCppType;
+            $elementCppType =~ s/^SPL::list<//;
+            $elementCppType =~ s/ >$//;
+            $usesTagWords = 1;
+            $attributeNameTagWords = $attr->getName();
+            $tupleTypeTagWords = $elementCppType;
+          }
+	}
+	elsif ($of eq 'Lemmas') {
+	  $attributeNameLemmaList = $attr->getName();
+          $usesLemmaList = 1;
+        } else {
+          # Must be AsIs
+          my $exp = $attr->getAssignmentOutputFunctionParameterValueAt(0);
+          my $cppExpn = $exp->getCppExpression();
+          my $hasNormalizedText = 0;
+          if ($cppExpn =~ m/::Lemmatizer::/) {
+            $cppExpn =~ s/::Lemmatizer:://g;
+            $hasNormalizedText = 1;
+            $usesNormalizedText = 1;
+          }
+          if ($hasNormalizedText || $exp->hasStreamAttributes() || $exp->hasSideEffects()) {
+             $assignments .= "$tupleName.set_" . $attr->getName() . "($cppExpn); " if $sideEffects;
+          } 
+          elsif (!$sideEffects) {
+             $assignments .= "$tupleName.set_" . $attr->getName() . "($cppExpn); ";
+          }
+        }
+      }
+    }
+    return $assignments;
+}
+%>

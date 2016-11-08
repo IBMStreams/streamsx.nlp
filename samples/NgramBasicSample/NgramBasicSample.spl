@@ -1,0 +1,39 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite NgramBasicSample
+{
+	graph
+
+		// Simple data generator sending one small document for N-gram processing
+		(stream<rstring document> DocumentStream as O) as DataGen = Custom() {
+			logic
+				onProcess: {
+					mutable DocumentStream otuple = {};
+					otuple.document = "The cow jumps over the moon";
+					submit (otuple, O);
+					
+					// end of demo
+					submit(Sys.WindowMarker, O);
+				}
+		}
+		
+		(stream<list<rstring> terms> NgramStream as O) as NgramBuilder = NgramBasic(DocumentStream as I) {
+			param
+				documentAttribute: "document";
+				size: 3u;
+				minSize: 1u;
+			output O: terms = NgramTermsList();
+		}
+
+		() as SinkNgram = FileSink(NgramStream) {
+			param                        
+				file:  "out.txt";
+				format: txt;
+				flushOnPunctuation: true;
+		}
+
+}

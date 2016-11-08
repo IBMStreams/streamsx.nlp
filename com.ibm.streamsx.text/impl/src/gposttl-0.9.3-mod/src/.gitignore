@@ -1,0 +1,16 @@
+/..nfs000000002007a1b4000000c3
+/.libGPoSTTL.so
+/.nfs000000002007a1b4000000c3
+/darray.o
+/enhance_penntag.o
+/final-state-tagger.o
+/gposttl.o
+/lex.o
+/libGPoSTTL.so
+/memory.o
+/registry.o
+/start-state-tagger.o
+/tagger.o
+/tagger_controller.o
+/tokenizer.o
+/useful.o

@@ -1,0 +1,51 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.text::*;
+
+composite ContentRankingSample {
+	param
+		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+
+	type outputSchema = tuple<
+		com.ibm.streamsx.text::ContentRanking.resultType, // required by the LinearClassification operator
+		tuple <rstring ln> // optional attributes, forwarded by the LinearClassification operator
+	>;
+
+	graph
+
+		stream<rstring ln> Src0 = FileSource() { 
+			param
+				file: "in.txt"; 
+				format: line;
+		}
+
+		stream<rstring ln> Src as O = Custom(Src0 as I) {
+			logic
+				onTuple I : {
+					mutable O otuple = {};
+					assignFrom(otuple, I);
+					submit(otuple, O);
+				}
+				onPunct I : if (currentPunct() == Sys.WindowMarker) submit(Sys.WindowMarker, O);
+		}
+
+		stream<outputSchema> OutStream = ContentRanking(Src as I) {
+			param 
+				modelFile: dataDirectory() +"/model_KB/kb_lstm_model.pklz";
+				kbIndexFile: dataDirectory() +"/model_KB/KB_dic.json";
+				dictLemmasFile: dataDirectory() +"/model_KB/d_lemms.json";
+				kbNamesFile: dataDirectory() + "/model_KB/ID_name.txt";
+				documentAttribute: ln;
+				outStreamType: outputSchema;
+				pythonCommand: $pythonCommand;
+		}
+
+		() as WriterO = FileSink(OutStream) {
+			param
+				file: "out.txt";
+				quoteStrings : false;
+		}
+
+}

@@ -1,0 +1,12 @@
+numpy==1.11.1
+pandas==0.18.1
+scipy==0.18.1
+PyYAML==3.12
+h5py==2.6.0
+python-dateutil==2.5.3
+pytz==2016.4
+scikit-image==0.12.3
+scikit-learn==0.17.1
+Theano==0.8.2
+Keras==1.0.7
+
