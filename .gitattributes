@@ -1,4 +1,4 @@
-*/*cpp.cgt linguist-language=C++
-*/*h.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/*/*cpp.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/*/*h.cgt linguist-language=C++
 com.ibm.streamsx.text/impl/src/gposttl-0.9.3-mod/src/* linguist-vendored
 com.ibm.streamsx.text/doc/* linguist-documentation
