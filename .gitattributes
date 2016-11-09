@@ -1,4 +1,11 @@
-com.ibm.streamsx.text/com.ibm.streamsx.text/*/*cpp.cgt linguist-language=C++
-com.ibm.streamsx.text/com.ibm.streamsx.text/*/*h.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/DictionaryFilter/*.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/Lemmatizer/*.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/NgramBasic/*.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/RutaCas/*.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/RutaText/*.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/TfIdfWeight/*.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/UimaCas/*.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/UimaText/*.cgt linguist-language=C++
+com.ibm.streamsx.text/com.ibm.streamsx.text/*.spl linguist-language=SPL
 com.ibm.streamsx.text/impl/src/gposttl-0.9.3-mod/src/* linguist-vendored
 com.ibm.streamsx.text/doc/* linguist-documentation
