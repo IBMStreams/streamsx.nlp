@@ -32,17 +32,7 @@ Please enter an issue on GitHub for defects and other problems.
 
 # Releases
 
-The toolkit version 1.0.0 has been tested and released with
-* IBM Streams
-    + 3.2
-    + 4.0
-    + 4.1
-    + 4.2
-* Apache UIMA
-    + Core 2.8.1.
-    + Ruta 2.4.0,
-    + uimaFIT 2.1.0
-* Python 2.7
+https://github.com/IBMStreams/streamsx.text/releases
 
 We will make releases after major features have been added. If you wish to request a release, please open an issue.
 
