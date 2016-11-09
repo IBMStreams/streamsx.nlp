@@ -1,16 +1,5 @@
-# begin_generated_IBM_copyright_prolog                            
-#                                                                 
-# This is an automatically generated copyright prolog.            
-# After initializing,  DO NOT MODIFY OR MOVE                      
-# ****************************************************************
-# Licensed Materials - Property of IBM                            
-# 5724-Y95                                                        
-# (C) Copyright IBM Corp.  2011, 2016    All Rights Reserved.     
-# US Government Users Restricted Rights - Use, duplication or     
-# disclosure restricted by GSA ADP Schedule Contract with         
-# IBM Corp.                                                       
-#                                                                 
-# end_generated_IBM_copyright_prolog                              
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.                             
 # -----------------------------------------------------------------------------
 # This Perl module provides a set of commonly used functions to support the
 # code generation process of the different operators in this toolkit.

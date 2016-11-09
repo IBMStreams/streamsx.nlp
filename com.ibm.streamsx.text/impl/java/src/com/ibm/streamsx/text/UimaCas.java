@@ -1,4 +1,9 @@
-
+//
+// *******************************************************************************
+// * Copyright (C)2016, International Business Machines Corporation *
+// * All rights reserved. *
+// *******************************************************************************
+//
 package com.ibm.streamsx.text;
 
 import java.io.File;

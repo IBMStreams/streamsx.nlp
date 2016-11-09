@@ -1,3 +1,6 @@
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.
+
 # -----------------------------------------------------------------------------
 # If the application framework (or com.ibm.streams.teda.internal.shm functions)
 # are used with InfoSphere Streams 3.2 on a Power architecture then additional

@@ -1,3 +1,9 @@
+//
+// *******************************************************************************
+// * Copyright (C)2016, International Business Machines Corporation *
+// * All rights reserved. *
+// *******************************************************************************
+//
 #include <sys/stat.h>
 #include <iostream>
 #include <fstream>

@@ -6,7 +6,8 @@
     xmlns:str="http://exslt.org/strings"
     xmlns:exsl="http://exslt.org/common"
     extension-element-prefixes="str">
-
+<!-- Copyright (C)2016, International Business Machines Corporation -->
+<!-- All rights reserved.                                -->
 	<xsl:output method="text" media-type="text/plain" indent="no"/>
 	<xsl:strip-space elements="*"/>
 

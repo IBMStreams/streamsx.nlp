@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C)2016, International Business Machines Corporation -->
+<!-- All rights reserved.                                -->
 <functionModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ibm.com/xmlns/prod/streams/spl/function" xmlns:cmn="http://www.ibm.com/xmlns/prod/streams/spl/common" xsi:schemaLocation="http://www.ibm.com/xmlns/prod/streams/spl/function functionModel.xsd">
 	<functionSet>
 		<headerFileName>TextUtilsFunctions.h</headerFileName>

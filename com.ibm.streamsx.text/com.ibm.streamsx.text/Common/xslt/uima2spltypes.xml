@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C)2016, International Business Machines Corporation -->
+<!-- All rights reserved.                                -->
 <uimatypes>
 	<uimatype name="uima.cas.String">rstring</uimatype>
 	<uimatype name="uima.cas.Integer">int32</uimatype>

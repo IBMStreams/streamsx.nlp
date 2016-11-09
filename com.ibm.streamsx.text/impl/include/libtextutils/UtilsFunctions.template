@@ -1,6 +1,11 @@
 #ifndef UTILS_FUNCTIONS_H_
 #define UTILS_FUNCTIONS_H_
-
+//
+// *******************************************************************************
+// * Copyright (C)2016, International Business Machines Corporation *
+// * All rights reserved. *
+// *******************************************************************************
+//
 #include <SPL/Runtime/Function/SPLFunctions.h>
 
 namespace com { namespace ibm { namespace streamsx { namespace text { namespace utils {
