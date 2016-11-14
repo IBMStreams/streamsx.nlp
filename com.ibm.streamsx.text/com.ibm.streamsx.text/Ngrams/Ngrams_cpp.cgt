@@ -1,0 +1,62 @@
+<%SPL::CodeGen::implementationPrologue($model);%>
+
+<%
+	my $inputPort = $model->getInputPortAt(0);
+	my $inTuple = $inputPort->getCppTupleName();
+	my $outputPort = $model->getOutputPortAt(0);
+%>
+
+vector<uint32_t> MY_OPERATOR::CountNgrams(const string & data, uint32_t n) {
+	return ngrams::countNgrams(data, n, _m);
+}
+
+unordered_map<rstring,unsigned> MY_OPERATOR::GetNgrams(rstring const& data, unsigned n) {
+	return ngrams::getNgrams(data, n);
+}
+
+MY_OPERATOR::MY_OPERATOR() : _m(19) {}
+
+MY_OPERATOR::~MY_OPERATOR() {}
+
+void MY_OPERATOR::process(Tuple const & tuple, uint32_t port) {
+	IPort0Type const & <%=$inTuple%> = static_cast<IPort0Type const&>(tuple);
+	OPort0Type * otuplePtr = getOutputTuple();
+
+	<% foreach my $attribute (@{$outputPort->getAttributes()}) {
+	  my $name = $attribute->getName();
+	  if ($attribute->hasAssignmentWithOutputFunction()) {
+		  my $operation = $attribute->getAssignmentOutputFunctionName();
+		  if ($operation eq "AsIs") {
+			my $init = $attribute->getAssignmentOutputFunctionParameterValueAt(0)->getCppExpression();%>
+			otuplePtr->set_<%=$name%>(<%=$init%>);
+		  <%}
+		  else {
+			my $paramValues = $attribute->getAssignmentOutputFunctionParameterValues();%>
+			otuplePtr->set_<%=$name%>(<%=$operation%>(<%=join(",", map{$_->getCppExpression()} @$paramValues)%>));
+		  <%}
+	  }
+	  elsif ($attribute->getAssignmentValue()) {
+		  my $assign = $attribute->getAssignmentValue()->getCppExpression();%>
+		  otuplePtr->set_<%=$name%>(<%=$assign%>);
+	  <%}
+	}%>
+	submit(*otuplePtr, 0);
+
+}
+
+void MY_OPERATOR::process(Punctuation const & punct, uint32_t port) {
+   forwardWindowPunctuation(punct);
+}
+
+thread_specific_ptr<MY_OPERATOR::OPort0Type> MY_OPERATOR::otuplePtr_;
+
+MY_OPERATOR::OPort0Type * MY_OPERATOR::getOutputTuple() {
+	OPort0Type * otuplePtr = otuplePtr_.get();
+	if(!otuplePtr) {
+		otuplePtr_.reset(new OPort0Type());
+		otuplePtr = otuplePtr_.get();
+	}
+	return otuplePtr;
+}
+
+<%SPL::CodeGen::implementationEpilogue($model);%>
