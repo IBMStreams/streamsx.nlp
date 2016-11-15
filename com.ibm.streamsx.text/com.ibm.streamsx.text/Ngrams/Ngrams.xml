@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<operatorModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ibm.com/xmlns/prod/streams/spl/operator" xmlns:cmn="http://www.ibm.com/xmlns/prod/streams/spl/common" xsi:schemaLocation="http://www.ibm.com/xmlns/prod/streams/spl/operator operatorModel.xsd">
+  <cppOperatorModel>
+    <context>
+      <description>
+Ngrams operator has two custom output functions: 
+* CountNgrams returns as result a list of n-gram counts.
+* GetNgrams returns as result a map of n-grams and their counts.
+</description>
+      <customOutputFunctions>
+        <customOutputFunction>
+          <name>NgramsFS</name>
+          <function pseudoFunction="true">
+            <description></description>
+            <prototype>&lt;any T> T AsIs(T v)</prototype>
+          </function>
+          <function>
+            <description>Counts each n-gram in the string and places the counter in the result list at the same index as located in the string.</description>
+            <prototype>list&lt;uint32> CountNgrams(rstring data, uint32 n)</prototype>
+          </function>
+          <function>
+            <description>Counts each n-gram in the string and places the n-gram and the counter in the result map as a key/value pair.</description>
+            <prototype>map&lt;rstring,uint32> GetNgrams(rstring data, uint32 n)</prototype>
+          </function>
+        </customOutputFunction>
+      </customOutputFunctions>
+      <libraryDependencies>
+        <library>
+          <cmn:description></cmn:description>
+          <cmn:managedLibrary>
+            <cmn:includePath>../../impl/include</cmn:includePath>
+          </cmn:managedLibrary>
+        </library>
+      </libraryDependencies>
+      <providesSingleThreadedContext>Always</providesSingleThreadedContext>
+      <allowCustomLogic>false</allowCustomLogic>
+    </context>
+    <parameters>
+      <allowAny>false</allowAny>
+    </parameters>
+    <inputPorts>
+      <inputPortSet>
+        <description>The Ngrams operator is configurable with a single input port. The input port is non-mutating and its punctuation mode is Oblivious.</description>
+        <windowingDescription></windowingDescription>
+        <tupleMutationAllowed>false</tupleMutationAllowed>
+        <windowingMode>NonWindowed</windowingMode>
+        <windowPunctuationInputMode>Oblivious</windowPunctuationInputMode>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </inputPortSet>
+    </inputPorts>
+    <outputPorts>
+      <outputPortSet>
+        <description>The Ngrams operator is configurable with one output port. The output port is mutating and its punctuation mode is Preserving.</description>
+        <expressionMode>Expression</expressionMode>
+        <autoAssignment>true</autoAssignment>
+        <completeAssignment>true</completeAssignment>
+        <rewriteAllowed>true</rewriteAllowed>
+        <outputFunctions>
+          <default>AsIs</default>
+          <type>NgramsFS</type>
+        </outputFunctions>
+        <windowPunctuationOutputMode>Preserving</windowPunctuationOutputMode>
+        <windowPunctuationInputPort>0</windowPunctuationInputPort>
+        <tupleMutationAllowed>true</tupleMutationAllowed>
+        <cardinality>1</cardinality>
+        <optional>false</optional>
+      </outputPortSet>
+    </outputPorts>
+  </cppOperatorModel>
+</operatorModel>

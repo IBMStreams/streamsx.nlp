@@ -1,0 +1,28 @@
+#include <Ngrams.h>
+#include <streams_boost/thread/tss.hpp>
+
+using std::string;
+using streams_boost::thread_specific_ptr;
+
+<%SPL::CodeGen::headerPrologue($model);%>
+
+class MY_OPERATOR : public MY_BASE_OPERATOR 
+{
+public:
+  MY_OPERATOR();
+  virtual ~MY_OPERATOR(); 
+
+  void process(Tuple const & tuple, uint32_t port);
+  void process(Punctuation const & punct, uint32_t port);
+
+private:
+  const uint32_t _m;
+  static thread_specific_ptr<OPort0Type> otuplePtr_;
+
+  OPort0Type * getOutputTuple();
+  vector<uint32_t> CountNgrams(const string & data, uint32_t n);
+  unordered_map<rstring,unsigned> GetNgrams(rstring const& data, unsigned n);
+}; 
+
+<%SPL::CodeGen::headerEpilogue($model);%>
+
