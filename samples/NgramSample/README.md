@@ -1,6 +1,6 @@
-## NgramBasicSample
+## NgramSample
 
-This sample demonstrates how you can use the NgramBasic operator from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the Ngrams operator and the countNgrams, getNgrams functions from the com.ibm.streamsx.text toolkit.
 In this sample a document is converted to unigrams, bigrams and trigrams.
 
 ## Use
@@ -20,6 +20,10 @@ Compare output with expected data:
 `diff ./data/expected.txt ./data/out.txt`
 
 There should be no difference between the files.
+
+`./output/NgramFuncSample/bin/standalone`
+
+You can examine the output `./data/out2.txt`.
 
 Clean:
 
