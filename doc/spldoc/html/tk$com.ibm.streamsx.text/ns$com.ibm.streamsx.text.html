@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.text.html">com.ibm.streamsx.text 1.0.0</a> &gt; com.ibm.streamsx.text</p>
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.text.html">com.ibm.streamsx.text 1.1.0</a> &gt; com.ibm.streamsx.text</p>
 
 </div>
 
@@ -53,6 +53,9 @@
 <li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.text$NgramBasic.html">NgramBasic</a></strong>: This operator generates n-grams of co-occuring words within a given window.
 </li>
 
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.text$Ngrams.html">Ngrams</a></strong>: Ngrams operator has two custom output functions:  
+</li>
+
 <li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.text$RutaCas.html">RutaCas</a></strong>: The Java Operator RutaCas uses the Apache UIMA Ruta rules to annotate incoming tuple with serialized UIMA CAS xmi of type rstring.
 </li>
 
@@ -66,6 +69,19 @@
 </li>
 
 <li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.text$UimaText.html">UimaText</a></strong>: The Java Operator UimaText uses a Apache UIMA Analysis Engine to annotate incoming tuple with text of type rstring.
+</li>
+
+</ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Functions</h2>
+  
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="fc$com.ibm.streamsx.text.html#spldoc_functions__countNgrams.rstring.uint32">countNgrams(rstring, uint32)</a></strong>: This function counts each n-gram in the string and places the counter in the result list at the same index as located in the string.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="fc$com.ibm.streamsx.text.html#spldoc_functions__getNgrams.rstring.uint32">getNgrams(rstring, uint32)</a></strong>: This function counts each n-gram in the string and places the n-gram and the counter in the result map as a key/value pair.
 </li>
 
 </ul>
