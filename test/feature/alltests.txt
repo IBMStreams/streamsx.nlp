@@ -12,6 +12,7 @@
 #the following line is a test of a not existing directory
 #../../samples/DictionaryFilterSamplexx
 ../../samples/NgramBasicSample
+../../samples/NgramSample
 ../../samples/RutaChainSample
 ../../samples/RutaDocumentAnnotationsSample
 ../../samples/RutaTextSample
