@@ -60,7 +60,11 @@ SPL::boolean initializeLemmatizer(SPL::rstring const & directory)
 void lemmatize(SPL::rstring const text, SPL::list<SPL::rstring>& words, SPL::list<SPL::rstring>& pos, SPL::list<SPL::rstring>& lemmas)
 {
 	SPL::rstring res = "";
-	res = tag(Tokenizer((char*)text.c_str()),1);
+	char* tokenizerBuf = Tokenizer((char*)text.c_str());
+	char* tagBuf = tag(tokenizerBuf, 1);
+	res.append(tagBuf);
+    free(tokenizerBuf);
+    free(tagBuf);
 
 	streams_boost::char_separator<char> sep("\n");
 	streams_boost::tokenizer<streams_boost::char_separator<char> > tokens(res, sep);
@@ -89,7 +93,11 @@ void lemmatize(SPL::rstring const text, SPL::list<SPL::rstring>& words, SPL::lis
 void lemmatize(SPL::rstring const text, SPL::list<SPL::rstring>& lemmas)
 {
 	SPL::rstring res = "";
-	res = tag(Tokenizer((char*)text.c_str()),1);
+	char* tokenizerBuf = Tokenizer((char*)text.c_str());
+	char* tagBuf = tag(tokenizerBuf, 1);
+	res.append(tagBuf);
+    free(tokenizerBuf);
+    free(tagBuf);
 
 	streams_boost::char_separator<char> sep("\n");
 	streams_boost::tokenizer<streams_boost::char_separator<char> > tokens(res, sep);

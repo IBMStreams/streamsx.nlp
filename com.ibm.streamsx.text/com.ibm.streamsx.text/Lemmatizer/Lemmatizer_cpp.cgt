@@ -158,13 +158,21 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
     <%=$tupleTypeTagWords%> wplTuple;
     <%}%>
 
-    std::string out = tag(Tokenizer((char*)<%=$textAttributeParameter->getValueAt(0)->getCppExpression()%>.c_str()), _enhancePenntag);
+    std::string taggerOutput;
+    
+    char* tokenizerBuf = Tokenizer((char*)<%=$textAttributeParameter->getValueAt(0)->getCppExpression()%>.c_str());
 
+    char* tagBuf = tag(tokenizerBuf, _enhancePenntag);
+    taggerOutput.append(tagBuf);
+    
+    free(tokenizerBuf);
+    free(tagBuf);
+    
     // this is a nice format if you want to see what happens to each word .. 
-    SPLAPPTRC(L_DEBUG, out, ""); 
+    SPLAPPTRC(L_DEBUG, taggerOutput, ""); 
 
     streams_boost::char_separator<char> sep("\n");
-    streams_boost::tokenizer<streams_boost::char_separator<char> > tokens(out, sep);
+    streams_boost::tokenizer<streams_boost::char_separator<char> > tokens(taggerOutput, sep);
     for ( streams_boost::tokenizer<streams_boost::char_separator<char> >::iterator it = tokens.begin();
             it != tokens.end();
             ++it)
