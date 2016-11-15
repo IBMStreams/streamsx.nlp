@@ -41,6 +41,7 @@ When N=2, this is called bigrams and
 when N=3 this is called trigrams.
 When N>3 this is usually referred to as four grams or five grams and so on. 
 This functionality is covered with operator NgramBasic.
+The Ngrams operator implements rolling hash technique and utilizes ngramhashing.
 
 **Rule-based Text Annotation**
 
