@@ -92,14 +92,14 @@
  		(stream&lt;IdfCorpusBuilder.IdfCorpusType&gt; TrainingStream as O) as PrepareTerms = Custom(TextStream as I){
  			logic
  				state: {
- 					boolean ok = com.ibm.streamsx.text.utils::initializeLemmatizer();
+ 					boolean ok = com.ibm.streamsx.nlp.utils::initializeLemmatizer();
  				}
  				onTuple I: {
  					mutable list&lt;rstring&gt; lemmas = [];
- 					com.ibm.streamsx.text.utils::lemmatize(text, lemmas);
+ 					com.ibm.streamsx.nlp.utils::lemmatize(text, lemmas);
  					
  					mutable list&lt;rstring&gt; terms = [];
- 					com.ibm.streamsx.text.utils::generateNgram(lemmas, 1u, 3u, terms);
+ 					com.ibm.streamsx.nlp.utils::generateNgram(lemmas, 1u, 3u, terms);
  
  					submit({terms=terms}, O);
  				}

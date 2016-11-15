@@ -88,7 +88,7 @@
  				onProcess:
  				{
  					mutable list&lt;rstring&gt; terms = [];
- 					com.ibm.streamsx.text.utils::generateNgram(tokenize("I am interested in bees", " ", false), 1u, terms);
+ 					com.ibm.streamsx.nlp.utils::generateNgram(tokenize("I am interested in bees", " ", false), 1u, terms);
  
  					submit({terms=terms}, O);
  					
@@ -97,7 +97,7 @@
  				}
  		}
  
- 		(stream&lt;list&lt;com.ibm.streamsx.text::TfIdfType&gt; tfidfList, list&lt;com.ibm.streamsx.text::TfIdfType&gt; topList&gt; TfIdfStream as O) as TFIDF = TfIdfWeight(DocumentStream as I) {
+ 		(stream&lt;list&lt;com.ibm.streamsx.nlp::TfIdfType&gt; tfidfList, list&lt;com.ibm.streamsx.nlp::TfIdfType&gt; topList&gt; TfIdfStream as O) as TFIDF = TfIdfWeight(DocumentStream as I) {
  			param corpusFile: "out_tfidf_corpus.txt";
  			      documentAttribute: "terms";
  			      defaultIDF: 0.1;

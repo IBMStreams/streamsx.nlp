@@ -7,32 +7,32 @@
 <meta name="copyright" content="(C) Copyright 2005"/>
 <meta name="DC.rights.owner" content="(C) Copyright 2005"/>
 <meta name="DC.Type" content="reference"/>
-<meta name="DC.Title" content="Operator RutaCas"/>
+<meta name="DC.Title" content="Operator RutaText"/>
 <meta name="DC.Format" content="XHTML"/>
 <meta name="DC.Identifier" content="spldoc_operator"/>
 <link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
 <link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
-<title>Operator RutaCas</title>
+<title>Operator RutaText</title>
 </head>
 <body id="spldoc_operator">
 
 
-<h1 class="title topictitle1">Operator <tt class="ph tt">RutaCas</tt></h1>
+<h1 class="title topictitle1">Operator <tt class="ph tt">RutaText</tt></h1>
 
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.text.html">com.ibm.streamsx.text 1.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.text.html">com.ibm.streamsx.text</a> &gt; RutaCas</p>
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.2.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; RutaText</p>
 
 </div>
 
 <div class="section splprimop">
-  <embed class="image" src="../../image/tk$com.ibm.streamsx.text/op$com.ibm.streamsx.text$RutaCas.svg" width="672" height="112"/>
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.nlp/op$com.ibm.streamsx.nlp$RutaText.svg" width="672" height="112"/>
 </div>
 
 <div class="section">
 
-<p class="p">The Java Operator RutaCas uses the Apache UIMA Ruta rules to annotate incoming tuple with serialized UIMA CAS xmi of type rstring. It deserializes the incoming .xmi to an internal UIMA CAS representation, applies the Ruta script to the CAS, serializes the resulting CAS to .xmi and then submits a tuple of type rstring. The RUTA rules, resources and CAS types are expected in a UIMA .pear file. The CAS types in the .pear need to contain the CAS types of the incoming tuple. The .pear file gets loaded on operator initialization and are reloaded when a window punctuation is received on the second input port. The .pear file is installed in the data directory under 'installedPears&lt;OPERATOR_NAME&gt;'. Please, find in toolkit dir ./doc/UIMA_workbench.pdf a detailed sample description of Ruta .pear creation.
+<p class="p">The Java Operator RutaText uses the Apache UIMA Ruta rules to annotate incoming tuple with text of type rstring. It creates a UIMA CAS from the text, applies the RUTA script to the CAS, serializes the resulting CAS to .xmi and then submits a tuple of type rstring. The RUTA rules, resources and CAS types are expected in a UIMA .pear file. The .pear file gets loaded on operator initialization and reloaded when a window punctuation is received on the second input port. The .pear file is installed in the data directory under 'installedPears&lt;OPERATOR_NAME&gt;'. Please, find in toolkit dir ./doc/UIMA_workbench.pdf a detailed sample description of Ruta .pear creation.
 </p>
 
 </div>
@@ -62,7 +62,7 @@
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__casIn">casIn</a>, <a class="xref" href="#spldoc_operator__parameter__casOut">casOut</a>, <a class="xref" href="#spldoc_operator__parameter__debugMode">debugMode</a>, <a class="xref" href="#spldoc_operator__parameter__languageCode">languageCode</a>, <a class="xref" href="#spldoc_operator__parameter__languageCodeAttribute">languageCodeAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__outputAttributes">outputAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__outputTypes">outputTypes</a>, <a class="xref" href="#spldoc_operator__parameter__outputViews">outputViews</a>, <a class="xref" href="#spldoc_operator__parameter__removeBasics">removeBasics</a>, <a class="xref" href="#spldoc_operator__parameter__view">view</a>
+<a class="xref" href="#spldoc_operator__parameter__casOut">casOut</a>, <a class="xref" href="#spldoc_operator__parameter__debugMode">debugMode</a>, <a class="xref" href="#spldoc_operator__parameter__inputDoc">inputDoc</a>, <a class="xref" href="#spldoc_operator__parameter__languageCode">languageCode</a>, <a class="xref" href="#spldoc_operator__parameter__languageCodeAttribute">languageCodeAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__outputAttributes">outputAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__outputTypes">outputTypes</a>, <a class="xref" href="#spldoc_operator__parameter__outputViews">outputViews</a>, <a class="xref" href="#spldoc_operator__parameter__removeBasics">removeBasics</a>, <a class="xref" href="#spldoc_operator__parameter__view">view</a>
 
 </p>
 </dd>
@@ -230,41 +230,10 @@ This operator supports 11 parameters.
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__casIn">casIn</a>, <a class="xref" href="#spldoc_operator__parameter__casOut">casOut</a>, <a class="xref" href="#spldoc_operator__parameter__debugMode">debugMode</a>, <a class="xref" href="#spldoc_operator__parameter__languageCode">languageCode</a>, <a class="xref" href="#spldoc_operator__parameter__languageCodeAttribute">languageCodeAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__outputAttributes">outputAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__outputTypes">outputTypes</a>, <a class="xref" href="#spldoc_operator__parameter__outputViews">outputViews</a>, <a class="xref" href="#spldoc_operator__parameter__removeBasics">removeBasics</a>, <a class="xref" href="#spldoc_operator__parameter__view">view</a>
+<a class="xref" href="#spldoc_operator__parameter__casOut">casOut</a>, <a class="xref" href="#spldoc_operator__parameter__debugMode">debugMode</a>, <a class="xref" href="#spldoc_operator__parameter__inputDoc">inputDoc</a>, <a class="xref" href="#spldoc_operator__parameter__languageCode">languageCode</a>, <a class="xref" href="#spldoc_operator__parameter__languageCodeAttribute">languageCodeAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__outputAttributes">outputAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__outputTypes">outputTypes</a>, <a class="xref" href="#spldoc_operator__parameter__outputViews">outputViews</a>, <a class="xref" href="#spldoc_operator__parameter__removeBasics">removeBasics</a>, <a class="xref" href="#spldoc_operator__parameter__view">view</a>
 
 </p>
 <dl class="dl">
-
-<dt class="dt dlterm"><a name="spldoc_operator__parameter__casIn"><!-- --></a><tt class="ph tt">casIn</tt></dt>
-
-<dd class="dd">
-<p class="p">This optional parameter specifies the attribute of the input tuples that contains the UIMA CAS as serialized XMI string. If there is only one attribute on the input tuple, this parameter is not required.
-</p>
-<dl class="dl">
-
- <dt class="dt dlterm">Properties </dt>
-
- <dd class="dd">
-  <ul class="sl simple">
-  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
-  </li>
-
-     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
-     </li>
-
-     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
-     </li>
-
-  </ul>
-
- </dd>
-
-
-</dl>
-
-</dd>
-
-
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__casOut"><!-- --></a><tt class="ph tt">casOut</tt></dt>
 
@@ -309,6 +278,37 @@ This operator supports 11 parameters.
  <dd class="dd">
   <ul class="sl simple">
   <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__inputDoc"><!-- --></a><tt class="ph tt">inputDoc</tt></dt>
+
+<dd class="dd">
+<p class="p">This optional parameter specifies the attribute of the input tuples that is passed to the Analytics Engine of UIMA. If there is only one attribute on the input tuple, this parameter is not required.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
   </li>
 
      <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1

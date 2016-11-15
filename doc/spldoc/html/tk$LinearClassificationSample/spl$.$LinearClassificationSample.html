@@ -91,7 +91,7 @@
  		expression&lt;rstring&gt; $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
  
  	type outputSchema = tuple&lt;
- 		com.ibm.streamsx.text::LinearClassification.resultType, // required by the LinearClassification operator
+ 		com.ibm.streamsx.nlp::LinearClassification.resultType, // required by the LinearClassification operator
  		tuple &lt;rstring ln&gt; // optional attributes, forwarded by the LinearClassification operator
  	&gt;;
  

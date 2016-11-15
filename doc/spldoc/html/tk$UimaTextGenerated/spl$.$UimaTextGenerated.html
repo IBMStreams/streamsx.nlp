@@ -88,9 +88,9 @@
  				file : "input.txt";
  		}
  
- 		stream&lt;rstring text, list&lt;com_ibm_example_KeyPhrase_type&gt; annotations&gt; TextAnnotated = com.ibm.streamsx.text::UimaText(TextStream as I) {
+ 		stream&lt;rstring text, list&lt;com_ibm_example_KeyPhrase_type&gt; annotations&gt; TextAnnotated = com.ibm.streamsx.nlp::UimaText(TextStream as I) {
  			param
- 				pearFile: "/mnt/hgfs/share/git-public/streamsx.text/samples/UimaTextGenerated/etc/troubleful9.pear"; // relative to etc dir
+ 				pearFile: "/mnt/hgfs/share/git-public/streamsx.nlp/samples/UimaTextGenerated/etc/troubleful9.pear"; // relative to etc dir
  				outputAttributes: "annotations"; // this attribute must be of type list&lt;tuple&gt;
  		}
  
