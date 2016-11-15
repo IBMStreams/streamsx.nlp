@@ -18,7 +18,7 @@ step() { echo ; echo -e "\e[1;34m$*\e[0m" ; }
 ################################################################################
 
 step "generate toolkit files"
-cd com.ibm.streamsx.text; make toolkit.xml; cd ..
+cd com.ibm.streamsx.nlp; make toolkit.xml; cd ..
 cd samples/UimaTextGenerated; make gentypes; cd ..
 
 step "generating individual SPLDOCs for each Streams directory in toolkit ..."

@@ -2,7 +2,7 @@
 ** Copyright (C) 2016  International Business Machines Corporation
 ** All Rights Reserved
 */
-use com.ibm.streamsx.text::*;
+use com.ibm.streamsx.nlp::*;
 
 composite TfIdfSample
 {
@@ -14,7 +14,7 @@ composite TfIdfSample
 				onProcess:
 				{
 					mutable list<rstring> terms = [];
-					com.ibm.streamsx.text.utils::generateNgram(tokenize("I am interested in bees", " ", false), 1u, terms);
+					com.ibm.streamsx.nlp.utils::generateNgram(tokenize("I am interested in bees", " ", false), 1u, terms);
 
 					submit({terms=terms}, O);
 					
@@ -23,7 +23,7 @@ composite TfIdfSample
 				}
 		}
 
-		(stream<list<com.ibm.streamsx.text::TfIdfType> tfidfList, list<com.ibm.streamsx.text::TfIdfType> topList> TfIdfStream as O) as TFIDF = TfIdfWeight(DocumentStream as I) {
+		(stream<list<com.ibm.streamsx.nlp::TfIdfType> tfidfList, list<com.ibm.streamsx.nlp::TfIdfType> topList> TfIdfStream as O) as TFIDF = TfIdfWeight(DocumentStream as I) {
 			param corpusFile: "out_tfidf_corpus.txt";
 			      documentAttribute: "terms";
 			      defaultIDF: 0.1;

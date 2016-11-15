@@ -4,7 +4,7 @@ namespace sample;
 ** Copyright (C) 2016  International Business Machines Corporation
 ** All Rights Reserved
 */
-use com.ibm.streamsx.text::*;
+use com.ibm.streamsx.nlp::*;
 
 composite NgramFuncSample {
 	graph

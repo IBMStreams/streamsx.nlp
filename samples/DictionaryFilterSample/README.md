@@ -1,6 +1,6 @@
 ## DictionaryFilterSample
 
-This sample demonstrates how you can use the DictionaryFilter operator from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the DictionaryFilter operator from the com.ibm.streamsx.nlp toolkit.
 The operator reads the list of stopwords from the `./data/stopwords.txt` file on start-up to build up the dictionary.
 Each line of the input file represents a document. Each term of the document that matches a word in the dictionary is removed in the output.
 

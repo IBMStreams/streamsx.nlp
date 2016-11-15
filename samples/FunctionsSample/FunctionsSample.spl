@@ -2,7 +2,7 @@
 ** Copyright (C) 2016  International Business Machines Corporation
 ** All Rights Reserved
 */
-use com.ibm.streamsx.text::*;
+use com.ibm.streamsx.nlp::*;
 
 composite FunctionsSample
 {
@@ -18,14 +18,14 @@ composite FunctionsSample
 		(stream<IdfCorpusBuilder.IdfCorpusType> TrainingStream as O) as PrepareTerms = Custom(TextStream as I){
 			logic
 				state: {
-					boolean ok = com.ibm.streamsx.text.utils::initializeLemmatizer();
+					boolean ok = com.ibm.streamsx.nlp.utils::initializeLemmatizer();
 				}
 				onTuple I: {
 					mutable list<rstring> lemmas = [];
-					com.ibm.streamsx.text.utils::lemmatize(text, lemmas);
+					com.ibm.streamsx.nlp.utils::lemmatize(text, lemmas);
 					
 					mutable list<rstring> terms = [];
-					com.ibm.streamsx.text.utils::generateNgram(lemmas, 1u, 3u, terms);
+					com.ibm.streamsx.nlp.utils::generateNgram(lemmas, 1u, 3u, terms);
 
 					submit({terms=terms}, O);
 				}

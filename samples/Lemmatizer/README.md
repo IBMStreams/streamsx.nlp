@@ -1,7 +1,7 @@
 ## LemmatizerSample
 
-This sample demonstrates how you can use the Lemmatizer operator from the com.ibm.streamsx.text toolkit.
-It also shows the use of the com.ibm.streamsx.text.utils::lemmatize() function in a Custom operator.
+This sample demonstrates how you can use the Lemmatizer operator from the com.ibm.streamsx.nlp toolkit.
+It also shows the use of the com.ibm.streamsx.nlp.utils::lemmatize() function in a Custom operator.
 
 ## Use
 

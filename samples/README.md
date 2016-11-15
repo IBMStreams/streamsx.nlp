@@ -1,4 +1,4 @@
-# com.ibm.streamsx.text Toolkit Samples
+# com.ibm.streamsx.nlp Toolkit Samples
 
 ## Building the sample projects
 

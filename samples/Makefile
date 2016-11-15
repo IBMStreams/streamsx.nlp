@@ -1,5 +1,5 @@
 # Licensed Materials - Property of IBM
-# Text Toolkit for IBM Streams
+# NLP Toolkit for IBM Streams
 # (c) Copyright IBM Corp. 2016
 # All rights reserved.                               
 

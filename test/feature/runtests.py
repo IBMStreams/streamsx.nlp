@@ -90,7 +90,7 @@ The program returns:
     group.add_argument('--test', '-t', dest='test', metavar='PATH', nargs="+", help='test to run (path to the test case directory)')
     group.add_argument('--file', '-f', dest='file', help='file of test PATH')
     parser.add_argument('--directory', '-d', dest='dir', metavar='SCENARIO_DIR', default='testcases', help='directory which contains the test scenario scripts: "NAME_scenario.py"')
-    parser.add_argument('--noToolkitMake', '-n', dest='no_Toolkit_make', action='store_true', help='Suppress toolkit build or clean. Per default the streamsx.text toolkit is build before the test execution starts. If this option is set, no toolkit make is done.')
+    parser.add_argument('--noToolkitMake', '-n', dest='no_Toolkit_make', action='store_true', help='Suppress toolkit build or clean. Per default the streamsx.nlp toolkit is build before the test execution starts. If this option is set, no toolkit make is done.')
     parser.add_argument('--clean', '-c', dest='clean', action='store_true', help='Execute only the clean up functions. If this option is active, the script does not perform any test. This function cleans code and cleans generated data files')
     parser.add_argument('--python', '-p', dest='python_command', default='python', help='Python command to be used in test samples using python')
     args = parser.parse_args()
@@ -117,7 +117,7 @@ The program returns:
     if not args.no_Toolkit_make:
         print '******** Make toolkit:                                               ********\n'
         topdir = os.getcwd()
-        os.chdir('../../com.ibm.streamsx.text')
+        os.chdir('../../com.ibm.streamsx.nlp')
         su.check_call(['make', 'clean'])
         if not args.clean:
             su.check_call(['make', 'all'])

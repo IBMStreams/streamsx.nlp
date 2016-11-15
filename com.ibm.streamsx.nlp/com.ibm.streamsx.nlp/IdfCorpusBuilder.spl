@@ -1,0 +1,76 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.nlp;
+
+
+/**
+ * This operator trains the model (aka corpus) for TfIdfWight based on training data.
+ * This composite can be used to prepare the corpus in a training application.
+ * The **corpusFile** is read by the TfIdfWeight to build the internal data structures.
+ *
+ * @input TermsStream
+ * Tuples containing list of terms. One tuple is one document.
+ *
+ * @param corpusFile
+ * The output file as input for the TfIdfWeight operator.
+ */
+public composite IdfCorpusBuilder
+(
+	input
+		stream<IdfCorpusType> TermsStream
+) {
+	param
+		expression<rstring> $corpusFile;
+
+	type
+		/**
+		 * list of terms of one document to build the corpus
+		 */
+		static IdfCorpusType = tuple<
+			list<rstring> terms
+		>;
+
+	graph 
+	
+		(stream<rstring data> CorpusData as O) as CorpusBuilder = Custom(TermsStream as I) {
+			logic
+				state: {
+					mutable map<rstring, uint64> termsMap;
+					mutable uint64 numDocs = 0ul;
+				}
+				onTuple I: {
+					numDocs++;
+
+					for (rstring term in I.terms) {
+						if (term in termsMap) {
+							termsMap[term]++;
+						}
+						else {
+							termsMap[term] = 1ul;
+						}
+					}
+				}
+				onPunct I: {
+					if (currentPunct() == Sys.WindowMarker) {
+						// end of training
+						submit ({data=(rstring)numDocs}, O);
+						for (rstring term in termsMap) {
+							submit ({data=term+":"+(rstring) termsMap[term]}, O);
+						}
+						submit(Sys.WindowMarker, O);
+					}
+				}
+		}
+		
+
+ 		() as CorpusFileWriter = FileSink(CorpusData) {
+ 			param                        
+				file:  $corpusFile;
+				format: csv;
+				flushOnPunctuation: true;
+				quoteStrings: false;
+		}
+
+}

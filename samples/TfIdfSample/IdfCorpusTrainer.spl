@@ -2,7 +2,7 @@
 ** Copyright (C) 2016  International Business Machines Corporation
 ** All Rights Reserved
 */
-use com.ibm.streamsx.text::*;
+use com.ibm.streamsx.nlp::*;
 
 composite IdfCorpusTrainer
 {
@@ -19,7 +19,7 @@ composite IdfCorpusTrainer
 				onTuple I:
 				{
 					mutable list<rstring> terms = [];
-					com.ibm.streamsx.text.utils::generateNgram(tokenize(document," ",false), 1u, 1u, terms);
+					com.ibm.streamsx.nlp.utils::generateNgram(tokenize(document," ",false), 1u, 1u, terms);
 
 					submit({terms=terms}, O);
 				}

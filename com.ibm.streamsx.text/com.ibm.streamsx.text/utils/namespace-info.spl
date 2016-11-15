@@ -1,5 +1,0 @@
-/**
-The C++ native functions under this namespace enable you to tag and lemmatize words.
- */
-
-namespace com.ibm.streamsx.text.utils;

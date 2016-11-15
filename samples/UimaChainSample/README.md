@@ -1,6 +1,6 @@
 ## UimaChainSample
 
-This sample demonstrates how you can use the UimaText operator and the UimaCas from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the UimaText operator and the UimaCas from the com.ibm.streamsx.nlp toolkit.
 The UimaCas operator has as input the output of the UimaText operator. Both operators annotate the document with its own UIMA analyis engines.
 
 ## Use

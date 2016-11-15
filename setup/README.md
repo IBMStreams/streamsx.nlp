@@ -1,4 +1,4 @@
-# com.ibm.streamsx.text Toolkit Setup
+# com.ibm.streamsx.nlp Toolkit Setup
 
 To install the required and verified extra modules for python 2.7, run the command:
 

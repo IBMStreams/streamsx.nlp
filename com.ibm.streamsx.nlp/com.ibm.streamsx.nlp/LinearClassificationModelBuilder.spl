@@ -1,0 +1,73 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.nlp;
+
+use com.ibm.streamsx.nlp.internal::*;
+use com.ibm.streamsx.nlp.utils::*;
+
+/**
+ * This operator builds a model on the basis of a training set of data whose category membership is known.
+ *
+ * @param pythonCommand
+ * The name of the python binary. The default name is `python`.
+ * With this parameter you can change the version and the location of the python command according to your environment.
+ * Linear classification scripts need python 2.7 or later!
+ *
+ * @param pythonScript
+ * The name of the python script. The default is `<toolkit_dir>/etc/python/LinearClassificationModelBuilder.py`.
+ *
+ * @param trainingFile
+ * The name of the input file containing the training data.
+ * 
+ * @param modelFilesDirectory
+ * The name of the output directory where the model pkl files are created.
+ */
+public composite LinearClassificationModelBuilder
+(
+) {
+	param
+		expression<rstring> $pythonCommand: "python";
+		expression<rstring> $pythonScript: getToolkitPath()+"/etc/python/LinearClassificationModelBuilder.py";
+		expression<rstring> $trainingFile;
+		expression<rstring> $modelFilesDirectory;
+
+	graph 
+
+		// The stdout stream from the grep command is sent on the operator's first output port; the stderr stream is sent on the 
+		// second output port.
+		(
+			stream<rstring ln> OutStream;
+			stream<rstring ln> ErrStream;
+			stream<int32 exitCode, rstring exitReason> StatStream as ST
+		) = ShellSource() { 
+			param
+				command: $pythonCommand+" "+$pythonScript+" "+$trainingFile+" "+$modelFilesDirectory;
+			output
+				ST: exitCode = exitCode(), exitReason = exitReason();
+		}
+
+		() as WriterO = FileSink(OutStream) {
+			param
+				file: "/dev/stdout";
+				format: line;
+				flush: 1u;
+		}
+
+		() as WriterE = FileSink(ErrStream) {
+			param
+				file: "/dev/stderr";
+				format: line;
+				flush: 1u;
+		}
+
+		() as WriterStat = Custom(StatStream as I) {
+			logic onTuple I: {
+				if (exitCode != 0) 
+					appTrc(Trace.error, "Model Builder exit code: " + (rstring)exitCode + " reason: " + exitReason);
+				printStringLn("Model Builder exit code: " + (rstring)exitCode + " reason: " + exitReason);
+			}
+		}
+
+}

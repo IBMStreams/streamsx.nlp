@@ -1,6 +1,6 @@
 ## ContentRankingSample
 
-This sample demonstrates how you can use the ContentRankingModelBuilder operator and the ContentRanking operator from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the ContentRankingModelBuilder operator and the ContentRanking operator from the com.ibm.streamsx.nlp toolkit.
 
 ## Use
 

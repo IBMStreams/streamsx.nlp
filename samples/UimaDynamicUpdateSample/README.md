@@ -1,6 +1,6 @@
 ## UimaDynamicUpdateSample
 
-This sample demonstrates how you can use the UimaText operator from the com.ibm.streamsx.text toolkit with dynamic PEAR file update.
+This sample demonstrates how you can use the UimaText operator from the com.ibm.streamsx.nlp toolkit with dynamic PEAR file update.
 
 ## Use
 

@@ -1,0 +1,81 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.nlp;
+
+use com.ibm.streamsx.nlp.internal::*;
+use com.ibm.streamsx.nlp.utils::*;
+
+/**
+ * This operator trains a model for ContentRanking based on training documents.
+ *
+ * @param pythonCommand
+ * The name of the python binary. The default name is `python`.
+ * With this parameter you can change the version and the location of the python command according to your environment.
+ * Content ranking scripts need python 2.7 or later!
+ *
+ * @param pythonScript
+ * The name of the python script. The default is `<toolkit_dir>/etc/python/ContentRankingModelBuilder.py`.
+ *
+ * @param xRegFile
+ * The name of the input file containing the X-register training data.
+ *
+ * @param yRegFile
+ * The name of the input file containing the Y-register training data.
+ * 
+ * @param modelFilesDirectory
+ * The name of the output directory where the model pkl files are created.
+ * 
+ * @param nEpoch
+ * The number of epochs used for neural network training. 
+ */
+public composite ContentRankingModelBuilder
+(
+) {
+	param
+		expression<rstring> $pythonCommand: "python"; // Content ranking scripts need python 2.7 or above!
+		expression<rstring> $pythonScript: getToolkitPath()+"/etc/python/ContentRankingModelBuilder.py";
+		expression<rstring> $xRegFile;
+		expression<rstring> $yRegFile;
+		expression<rstring> $modelFilesDirectory;
+		expression<rstring> $nEpoch: "5";
+
+	graph 
+
+		// The stdout stream from the grep command is sent on the operator's first output port; the stderr stream is sent on the 
+		// second output port.
+		(
+			stream<rstring ln> OutStream;
+			stream<rstring ln> ErrStream;
+			stream<int32 exitCode, rstring exitReason> StatStream as ST
+		) = ShellSource() { 
+			param
+				command: $pythonCommand+" "+$pythonScript+" "+$xRegFile+" "+$yRegFile+" "+$modelFilesDirectory+" "+$nEpoch;
+			output
+				ST: exitCode = exitCode(), exitReason = exitReason();
+		}
+
+		() as WriterO = FileSink(OutStream) {
+			param
+				file: "/dev/stdout";
+				format: line;
+				flush: 1u;
+		}
+
+		() as WriterE = FileSink(ErrStream) {
+			param
+				file: "/dev/stderr";
+				format: line;
+				flush: 1u;
+		}
+		
+		() as WriterStat = Custom(StatStream as I) {
+			logic onTuple I: {
+				if (exitCode != 0) 
+					appTrc(Trace.error, "Model Builder exit code: " + (rstring)exitCode + " reason: " + exitReason);
+				printStringLn("Model Builder exit code: " + (rstring)exitCode + " reason: " + exitReason);
+			}
+		}
+
+}

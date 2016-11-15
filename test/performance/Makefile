@@ -31,8 +31,8 @@ AQL_SPL_MAIN_COMPOSITE=aql::Main
 RUTA_SPL_MAIN_COMPOSITE=ruta::Main
 UIMA_SPL_MAIN_COMPOSITE=uima::Main
 
-# Fill in streamsx.text toolkit location here.
-STREAMSX_TEXT_TOOLKIT ?= ../../com.ibm.streamsx.text
+# Fill in streamsx.nlp toolkit location here.
+STREAMSX_NLP_TOOLKIT ?= ../../com.ibm.streamsx.nlp
 
 ## modify below to point the installation of the text toolkit
 TEXT_TOOLKIT_INSTALL ?= $(STREAMS_INSTALL)/toolkits/com.ibm.streams.text
@@ -64,11 +64,11 @@ aql:
 	$(STANDALONE_BUILD_AQL)
 
 ruta:
-	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(RUTA_SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) -t $(STREAMSX_TEXT_TOOLKIT) --output-directory $(RUTA_OUTPUT_DIR)
+	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(RUTA_SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) -t $(STREAMSX_NLP_TOOLKIT) --output-directory $(RUTA_OUTPUT_DIR)
 	$(STANDALONE_BUILD_RUTA)
 
 uima:
-	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(UIMA_SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) -t $(STREAMSX_TEXT_TOOLKIT) --output-directory $(UIMA_OUTPUT_DIR)
+	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(UIMA_SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) -t $(STREAMSX_NLP_TOOLKIT) --output-directory $(UIMA_OUTPUT_DIR)
 	$(STANDALONE_BUILD_UIMA)
 
 clean: clean-ruta clean-aql clean-uima

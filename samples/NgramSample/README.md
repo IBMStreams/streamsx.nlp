@@ -1,6 +1,6 @@
 ## NgramSample
 
-This sample demonstrates how you can use the Ngrams operator and the countNgrams, getNgrams functions from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the Ngrams operator and the countNgrams, getNgrams functions from the com.ibm.streamsx.nlp toolkit.
 In this sample a document is converted to unigrams, bigrams and trigrams.
 
 ## Use

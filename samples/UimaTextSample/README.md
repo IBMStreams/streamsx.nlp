@@ -1,6 +1,6 @@
 ## UimaTextSample
 
-This sample demonstrates how you can use the UimaText operator from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the UimaText operator from the com.ibm.streamsx.nlp toolkit.
 
 ## Use
 

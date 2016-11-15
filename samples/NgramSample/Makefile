@@ -4,15 +4,15 @@
 # All rights reserved.                                 
 .PHONY: build all clean distributed
 
-# Fill in streamsx.text toolkit location here.
-STREAMSX_TEXT_TOOLKIT ?= ../../com.ibm.streamsx.text
+# Fill in streamsx.nlp toolkit location here.
+STREAMSX_NLP_TOOLKIT ?= ../../com.ibm.streamsx.nlp
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
 SPLC_FLAGS ?= -a  
 SPL_MAIN_COMPOSITE = sample::NgramSample
 SPL_MAIN2_COMPOSITE = sample::NgramFuncSample
 SPL_DATA_DIR = ./data
-SPL_CMD_ARGS ?= -t $(STREAMSX_TEXT_TOOLKIT)
+SPL_CMD_ARGS ?= -t $(STREAMSX_NLP_TOOLKIT)
 
 ### determine 'streamtool'
 ifneq ($(realpath $(STREAMS_INSTALL)),)

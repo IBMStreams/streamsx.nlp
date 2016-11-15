@@ -1,6 +1,6 @@
 ## TfIdfSample
 
-This sample demonstrates how you can use the IdfCorpusBuilder operator and the TfIdfSample operator from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the IdfCorpusBuilder operator and the TfIdfSample operator from the com.ibm.streamsx.nlp toolkit.
 
 ## Use
 

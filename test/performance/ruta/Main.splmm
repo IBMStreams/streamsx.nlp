@@ -4,7 +4,7 @@
 */
 namespace ruta;
 
-use com.ibm.streamsx.text::*;
+use com.ibm.streamsx.nlp::*;
 
 use common::PerfTest;
 use common::AnnoSpan;

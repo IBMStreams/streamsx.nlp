@@ -1,6 +1,6 @@
 ## FunctionsSample
 
-This sample demonstrates how you can use the com.ibm.streamsx.text.utils::lemmatize() function and the com.ibm.streamsx.text.utils::generateNgram function from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the com.ibm.streamsx.nlp.utils::lemmatize() function and the com.ibm.streamsx.nlp.utils::generateNgram function from the com.ibm.streamsx.nlp toolkit.
 These functions are called in a sequence in a Custom operator to create n-grams of lemmas for a document. Each line of the input file represents a document.
 
 ## Use

@@ -1,6 +1,6 @@
 ## UimaTextGenerated
 
-This sample demonstrates how you can use the UimaText operator from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the UimaText operator from the com.ibm.streamsx.nlp toolkit.
 During build process the script `createTypes.pl` generates the SPL types for the given PEAR file and generates the sample SPL application.
 
 ## Use

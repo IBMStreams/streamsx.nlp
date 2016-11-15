@@ -1,6 +1,6 @@
 ## RutaChainSample
 
-This sample demonstrates how you can use the RutaText operator and the RutaCas from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the RutaText operator and the RutaCas from the com.ibm.streamsx.nlp toolkit.
 The RutaCas operator has as input the output of the RutaText operator. Both operators annotate the document with its own Ruta script.
 
 ## Use

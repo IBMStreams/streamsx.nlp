@@ -1,6 +1,6 @@
 ## LinearClassificationSample
 
-This sample demonstrates how you can use the LinearClassificationModelBuilder operator and the LinearClassification operator from the com.ibm.streamsx.text toolkit.
+This sample demonstrates how you can use the LinearClassificationModelBuilder operator and the LinearClassification operator from the com.ibm.streamsx.nlp toolkit.
 
 ## Use
 
