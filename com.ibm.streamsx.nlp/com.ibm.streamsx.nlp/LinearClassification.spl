@@ -84,6 +84,10 @@ public composite LinearClassification
 		}
 
 		//Filter out the relevant result classes
+		//This operator expects an result from ShellPipe operator in the form
+		//[prediction]|*|[[decision0, decision1..]]
+		// or
+		//[prediction]|*|[decision0, decision1..] if number of classes == 2
 		stream<$outStreamType> OutStream as O = Custom(Classifications as I) {
 			logic
 				onTuple I : {
@@ -110,11 +114,16 @@ public composite LinearClassification
 						} else {
 							appTrc(Trace.error, "Ignore invalid prediction result from LinearClassification: '" + I.lcPythonScriptOutput + "'", "texttoolkit");
 						}
-						//extract predictions
+						//extract confidence scores
 						s = length(res[1]);
+						mutable rstring confidenceScore = "";
 						if ((s > 3) && (res[1][0] == "[") && (res[1][1] == "[") && (res[1][s-2] == "]") && (res[1][s-1] == "]")) { //remove [[ ]] from list literal
-							rstring classList = spl.string::substring(res[1], 2, s-4);
-							list<rstring> classes_ = spl.string::tokenize(classList, " \t\n" , false); //extract list members
+							confidenceScore = spl.string::substring(res[1], 2, s-4);
+						} else if ((s > 1) && (res[1][0] == "[") && (res[1][s-1] == "]")) { //remove [ ] from list literal
+							confidenceScore = spl.string::substring(res[1], 1, s-2);
+						}
+						if (length(confidenceScore) > 0) {
+							list<rstring> classes_ = spl.string::tokenize(confidenceScore, " \t\n" , false); //extract list members
 							mutable int32 n = 0;
 							for (rstring c in classes_) {
 								float64 f = strtod(c, n);
