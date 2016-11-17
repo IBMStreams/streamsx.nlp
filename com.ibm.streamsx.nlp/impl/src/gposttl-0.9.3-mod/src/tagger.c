@@ -45,6 +45,9 @@ void Tagger (FILE *lexicon, FILE *bigrams, FILE *lRuleFile, FILE *cRuleFile,
   char lemma[MAXWORDLEN] ;
   *lemma_hash = Registry_create(Registry_strcmp,Registry_strhash);
 /* g.m.h */
+  Bool res; // result of Registry_add(), if false then the memory allocated (e.g.with mystrdup()) for name/obj must be freed
+  char* tempNamePtr;
+  char* tempObjPtr;
 
   /* Benjamin Han 100400: time for creativity! */
   *lexicon_hash = Registry_create(Registry_strcmp,Registry_strhash);
@@ -80,20 +83,29 @@ void Tagger (FILE *lexicon, FILE *bigrams, FILE *lRuleFile, FILE *cRuleFile,
 /* g.m.h */
  
   while(fgets(line,sizeof(line),lexicon) != NULL) {
-    if (not_just_blank(line)){
+    if (not_just_blank(line)) {
       line[strlen(line) - 1] = '\0';
-/*Added by Golam Mortuza Hossain */
-        sscanf(line,"%s%s%s",word, lemma, tag);
-//	if ( strcmp ( word, lemma) != 0 ) 
-	Registry_add(*lemma_hash,(char *)mystrdup(word),
-		   (char *)mystrdup(lemma ));
-/* It would have been much better to just use
- * "struct" and put "lemma" in lexicon hash. But
- * it does not seem to be working by simple hacking*/
-/* g.m.h */
-      Registry_add(*lexicon_hash,(char *)mystrdup(word),
-		   (char *)mystrdup(tag));
-     }
+      /*Added by Golam Mortuza Hossain */
+      sscanf(line,"%s%s%s",word, lemma, tag);
+      tempNamePtr = (char *)mystrdup(word);
+      tempObjPtr = (char *)mystrdup(lemma);
+      res = Registry_add(*lemma_hash, tempNamePtr, tempObjPtr);
+      if (!res) {
+        free(tempNamePtr);
+        free(tempObjPtr);
+      }
+      /* It would have been much better to just use
+       * "struct" and put "lemma" in lexicon hash. But
+       * it does not seem to be working by simple hacking*/
+      /* g.m.h */
+      tempNamePtr = (char *)mystrdup(word);
+      tempObjPtr = (char *)mystrdup(tag);
+      res = Registry_add(*lexicon_hash, tempNamePtr, tempObjPtr);
+      if (!res) {
+        free(tempNamePtr);
+        free(tempObjPtr);
+      }
+    }
   }
 
   /* read in lexical rule file */
@@ -104,17 +116,33 @@ void Tagger (FILE *lexicon, FILE *bigrams, FILE *lRuleFile, FILE *cRuleFile,
       perl_split_ptr = perl_split(line);
       temp_perl_split_ptr = perl_split_ptr;
       if (strcmp(perl_split_ptr[1],"goodright") == 0) {
-	tempruleptr = mystrdup(perl_split_ptr[0]);
-	Registry_add(*good_right_hash,tempruleptr,(char *)1); }
+        tempruleptr = mystrdup(perl_split_ptr[0]);
+        res = Registry_add(*good_right_hash,tempruleptr,(char *)1);
+        if (!res) {
+          free(tempruleptr);
+        }
+      }
       else if (strcmp(perl_split_ptr[2],"fgoodright") == 0) {
-	tempruleptr = mystrdup(perl_split_ptr[1]);
-	Registry_add(*good_right_hash,tempruleptr,(char *)1); }
+        tempruleptr = mystrdup(perl_split_ptr[1]);
+        res = Registry_add(*good_right_hash,tempruleptr,(char *)1);
+        if (!res) {
+          free(tempruleptr);
+        }
+      }
       else if (strcmp(perl_split_ptr[1],"goodleft") == 0) {
-	tempruleptr = mystrdup(perl_split_ptr[0]);
-	Registry_add(*good_left_hash,tempruleptr,(char *)1); }
+        tempruleptr = mystrdup(perl_split_ptr[0]);
+        res = Registry_add(*good_left_hash,tempruleptr,(char *)1);
+        if (!res) {
+          free(tempruleptr);
+        }
+      }
       else if (strcmp(perl_split_ptr[2],"fgoodleft") == 0) {
-	tempruleptr = mystrdup(perl_split_ptr[1]);
-	Registry_add(*good_left_hash,tempruleptr,(char *)1); }
+        tempruleptr = mystrdup(perl_split_ptr[1]);
+        res = Registry_add(*good_left_hash,tempruleptr,(char *)1);
+        if (!res) {
+          free(tempruleptr);
+        }
+      }
       free(*perl_split_ptr);
       free(perl_split_ptr);
     }
@@ -150,9 +178,14 @@ void Tagger (FILE *lexicon, FILE *bigrams, FILE *lRuleFile, FILE *cRuleFile,
       perl_split_ptr2 = perl_split_ptr;
       ++perl_split_ptr;
       while(*perl_split_ptr != NULL) {
-	sprintf(space,"%s %s",*perl_split_ptr2,*perl_split_ptr);
-	Registry_add(*seenTagging,mystrdup(space),(char *)1);
-	++perl_split_ptr; }
+        sprintf(space,"%s %s",*perl_split_ptr2,*perl_split_ptr);
+        char* namePtr=mystrdup(space);
+        res = Registry_add(*seenTagging,namePtr,(char *)1);
+        if (!res) {
+          free(namePtr);
+        }
+        ++perl_split_ptr;
+      }
       free(*perl_split_ptr2);
       free(perl_split_ptr2);
     }

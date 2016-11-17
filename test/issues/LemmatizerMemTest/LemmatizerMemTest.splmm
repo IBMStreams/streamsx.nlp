@@ -1,0 +1,47 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+
+<%
+my $STREAMS_INSTALL=$ENV{STREAMS_INSTALL};
+my $ST=$STREAMS_INSTALL."/bin/streamtool";
+
+sub getStreamsVersion()
+{
+	return substr(`$ST version | grep Version`, 8, 3,);
+}
+my $version = getStreamsVersion();
+%>
+
+<%if ($version >= "4.2") {%>
+@threading(model=manual)<%}%>
+composite LemmatizerTest
+{
+	graph 
+
+		stream<rstring text> TextStream as O = Beacon() {
+			output
+				O: text = "It is rebooting every 5 minutes. I am receiving spam emails. this is the first spoken sentence or utterance ";
+			config placement: partitionColocation("MEMTEST");
+		}
+
+		(
+		stream<rstring text, rstring normalizedtext, list<com.ibm.streamsx.nlp::WordPosLemmaType> result, list<rstring> lemmas> TextNormalized as O
+		) as Lemmatizer  = com.ibm.streamsx.nlp::Lemmatizer(TextStream) {
+			param
+				textAttribute: text;
+			output O:
+				normalizedtext = NormalizedText(),
+				lemmas = Lemmas(),
+				result = TagWords();
+			config placement: partitionColocation("MEMTEST");
+		}
+
+		() as CustomSink = Custom(TextNormalized as I) {
+			logic
+				onTuple I: {
+				}
+			config placement: partitionColocation("MEMTEST");
+		}
+}

@@ -14,3 +14,4 @@
 /tagger_controller.o
 /tokenizer.o
 /useful.o
+/libGPoSTTL.a

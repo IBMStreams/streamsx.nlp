@@ -71,6 +71,8 @@ char **StartStateTagger(char **buffer, int numSen, Registry lexicon_hash,
 	//int numlexiconentries=0;
 	//int numwordentries=0;
 	int temp;
+	Bool res; // result of Registry_add(), if false then the memory allocated (e.g.with mystrdup()) for name/obj must be freed
+	char* tempNamePtr;
 	
 	Registry tag_hash,ntot_hash,bigram_hash;
 
@@ -118,29 +120,41 @@ char **StartStateTagger(char **buffer, int numSen, Registry lexicon_hash,
 		      sprintf(bigram_space,"%s %s",
 			      (char *)*temp_perl_split_ptr,
 			      (char *)*(temp_perl_split_ptr+1));
-		      Registry_add(bigram_hash,mystrdup(bigram_space),
-				   (char *)1);
+		      tempNamePtr = mystrdup(bigram_space);
+		      res = Registry_add(bigram_hash, tempNamePtr, (char *)1);
+		      if (!res) {
+		    	  free(tempNamePtr);
+		      }
 		      sprintf(bigram_space,"%s %s",
 			      (char *)*(temp_perl_split_ptr-1),
 			      (char *)*temp_perl_split_ptr);
-		      Registry_add(bigram_hash,mystrdup(bigram_space),
-				   (char *)1);
+		      tempNamePtr = mystrdup(bigram_space);
+		      res = Registry_add(bigram_hash, tempNamePtr, (char *)1);
+		      if (!res) {
+		    	  free(tempNamePtr);
+		      }
 		    }
 		  else if (j!=temp-1)
 		    {
 		      sprintf(bigram_space,"%s %s",
 			      (char *)*temp_perl_split_ptr,
 			      (char *)*(temp_perl_split_ptr+1));
-		      Registry_add(bigram_hash,mystrdup(bigram_space),
-				   (char *)1);
+		      tempNamePtr = mystrdup(bigram_space);
+		      res = Registry_add(bigram_hash, tempNamePtr, (char *)1);
+		      if (!res) {
+		    	  free(tempNamePtr);
+		      }
 		    }
 		  else if (j!=0)
 		    {
 		      sprintf(bigram_space,"%s %s",
 			      (char *)*(temp_perl_split_ptr-1),
 			      (char *)*temp_perl_split_ptr);
-		      Registry_add(bigram_hash,mystrdup(bigram_space),
-				   (char *)1);
+		      tempNamePtr = mystrdup(bigram_space);
+		      res = Registry_add(bigram_hash, tempNamePtr, (char *)1);
+		      if (!res) {
+                free(tempNamePtr);
+		      }
 		    } 
 		}
 	      else assigned[j]=0;
@@ -169,12 +183,20 @@ char **StartStateTagger(char **buffer, int numSen, Registry lexicon_hash,
 	  if (Registry_get(good_right_hash,bigram1) &&
 	      Registry_get(ntot_hash,bigram2)) {
 	    sprintf(bigram_space,"%s %s",bigram1,bigram2);
-	    Registry_add(bigram_hash,mystrdup(bigram_space),(char *)1);
+	    tempNamePtr = mystrdup(bigram_space);
+	    res = Registry_add(bigram_hash, tempNamePtr,(char *)1);
+	    if (!res) {
+	      free(tempNamePtr);
+	    }
 	  }
 	  if (Registry_get(good_left_hash,bigram2) &&
 	      Registry_get(ntot_hash,bigram1)) {
 	    sprintf(bigram_space,"%s %s",bigram1,bigram2);
-	    Registry_add(bigram_hash,mystrdup(bigram_space),(char *)1);
+	    tempNamePtr = mystrdup(bigram_space);
+	    res = Registry_add(bigram_hash, tempNamePtr,(char *)1);
+	    if (!res) {
+	      free(tempNamePtr);
+	    }
 	  }
 	}
 

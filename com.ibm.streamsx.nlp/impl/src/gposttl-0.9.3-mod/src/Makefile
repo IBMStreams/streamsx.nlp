@@ -60,6 +60,11 @@ tokenizer.o: tokenizer.h tokenizer.c
 useful.o: useful.h useful.c
 	$(CC) $(CFLAGS) $(CFLAGS_L) useful.c
 
+# create the GPoSTTL lib (used by test application)
+# c: create, r: insert the listed members into the archive
+libGPoSTTL.a: gposttl.o tagger_controller.o darray.o enhance_penntag.o lex.o memory.o registry.o start-state-tagger.o final-state-tagger.o tagger.o tokenizer.o useful.o
+	$(AR) -r -c $@ $^
+
 clean:
 	rm -f *.o *.so
 	rm -f ../../../lib/libGPoSTTL.so
