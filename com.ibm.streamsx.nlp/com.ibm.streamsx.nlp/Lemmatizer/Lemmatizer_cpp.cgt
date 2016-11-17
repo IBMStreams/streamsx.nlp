@@ -135,6 +135,7 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 {
     <%my $inTupleName = "iport\$0";%>
     IPort0Type const & <%=$inTupleName%> = static_cast<IPort0Type const&>(tuple);
+
     _tuple.clear();
 
     <% # forward input attributes if existing in output schema
@@ -153,6 +154,7 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
     <%if ($usesNormalizedText) {%>
     // reset the text
     _normalizedText = "";
+    _word = "";
     <%}%>
     <%if ($usesTagWords) {%>
     <%=$tupleTypeTagWords%> wplTuple;
@@ -167,7 +169,7 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
     
     free(tokenizerBuf);
     free(tagBuf);
-    
+  
     // this is a nice format if you want to see what happens to each word .. 
     SPLAPPTRC(L_DEBUG, taggerOutput, ""); 
 
@@ -224,6 +226,7 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 
     <%print $outTupleAssignments if $hasOutTupleAssignments;%>
     submit(_tuple, 0); // submit to output port 0
+
 }
 
 // Tuple processing for non-mutating ports
