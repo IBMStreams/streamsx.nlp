@@ -8,6 +8,7 @@ composite LinearClassificationSample
 {
 	param
 		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+		expression<rstring> $inputFile: getSubmissionTimeValue("inputFile", "in.txt");
 
 	type outputSchema = tuple<
 		com.ibm.streamsx.nlp::LinearClassification.resultType, // required by the LinearClassification operator
@@ -20,7 +21,7 @@ composite LinearClassificationSample
 		// for each line in the input file.
 		stream<rstring ln> Src = FileSource() { 
 			param
-				file: "in.txt"; 
+				file: $inputFile; 
 				format: line;
 		}
 

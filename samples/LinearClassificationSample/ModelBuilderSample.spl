@@ -8,12 +8,13 @@ composite ModelBuilderSample
 {
 	param
 		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+		expression<rstring> $trainingFile: getSubmissionTimeValue("trainingFile", "training.csv");
 
 	graph
 
 		() as MB = LinearClassificationModelBuilder() {
 			param 
-				trainingFile: dataDirectory()+"/training.csv";
+				trainingFile: dataDirectory() + "/" + $trainingFile;
 				modelFilesDirectory: dataDirectory();
 				pythonCommand: $pythonCommand;
 		}
