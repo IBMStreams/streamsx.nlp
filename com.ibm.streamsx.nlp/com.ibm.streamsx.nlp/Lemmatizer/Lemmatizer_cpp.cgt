@@ -133,6 +133,7 @@ void MY_OPERATOR::process(uint32_t idx)
 // Tuple processing for mutating ports 
 void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 {
+	AutoPortMutex apm(_mutex, *this);
     <%my $inTupleName = "iport\$0";%>
     IPort0Type const & <%=$inTupleName%> = static_cast<IPort0Type const&>(tuple);
 

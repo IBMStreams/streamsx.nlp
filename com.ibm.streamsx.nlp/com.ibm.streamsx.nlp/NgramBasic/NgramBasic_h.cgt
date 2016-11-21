@@ -5,9 +5,6 @@
 /* Additional includes go here */
 <%
 	SPL::CodeGen::headerPrologue($model);
-
-	my $outputPort = $model->getOutputPortAt(0);
-	my $tupleType = $outputPort->getCppTupleType();
 %>
 
 class MY_OPERATOR : public MY_BASE_OPERATOR 
@@ -35,11 +32,6 @@ class MY_OPERATOR : public MY_BASE_OPERATOR
 		void process(Punctuation const & punct, uint32_t port);
 
 	private:
-
-		/**
-		 * Tuple to be sent.
-		 */
-		<%=$tupleType%> _tuple;
 
 		/**
 		 * The number of words combined to a new term

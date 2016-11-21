@@ -45,6 +45,7 @@ class MY_OPERATOR : public MY_BASE_OPERATOR
 		inline SPL::rstring NormalizedText() const { return _normalizedText;}   
 
 private:
+		Mutex _mutex;
 
 		/**
 		 * Tuple to be sent.

@@ -37,7 +37,8 @@ class MY_OPERATOR : public MY_BASE_OPERATOR
 		void process(Punctuation const & punct, uint32_t port);
 
 	private:
-
+	    Mutex _mutex;
+	    
 		Metric &_nDocuments;
 		Metric &_nTerms;
 
