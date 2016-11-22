@@ -237,6 +237,7 @@ void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
 
 void MY_OPERATOR::process(Punctuation const & punct, uint32_t port) 
 {
+	AutoPortMutex apm(_mutex, *this);
     forwardWindowPunctuation(punct);
 }
 
