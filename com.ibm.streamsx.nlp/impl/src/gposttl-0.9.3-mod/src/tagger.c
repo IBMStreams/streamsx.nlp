@@ -37,7 +37,7 @@ void Tagger (FILE *lexicon, FILE *bigrams, FILE *lRuleFile, FILE *cRuleFile,
   char space[500];
   char word[MAXWORDLEN],tag[MAXTAGLEN];
   //char bigram1[MAXWORDLEN],bigram2[MAXWORDLEN];
-  char **perl_split_ptr,**perl_split_ptr2,*atempstr,**temp_perl_split_ptr;
+  char **perl_split_ptr,**perl_split_ptr2,*atempstr;//**temp_perl_split_ptr;
   char *tempruleptr;
   //char bigram_space[MAXWORDLEN*2];
   int numLexiconEntries;
@@ -114,7 +114,7 @@ void Tagger (FILE *lexicon, FILE *bigrams, FILE *lRuleFile, FILE *cRuleFile,
       line[strlen(line) - 1] = '\0';
       Darray_addh(*lRuleArray,mystrdup(line));
       perl_split_ptr = perl_split(line);
-      temp_perl_split_ptr = perl_split_ptr;
+      //temp_perl_split_ptr = perl_split_ptr;
       if (strcmp(perl_split_ptr[1],"goodright") == 0) {
         tempruleptr = mystrdup(perl_split_ptr[0]);
         res = Registry_add(*good_right_hash,tempruleptr,(char *)1);

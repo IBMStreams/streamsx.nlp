@@ -59,7 +59,7 @@ SPL::boolean initializeLemmatizer(SPL::rstring const & directory)
 
 void lemmatize(SPL::rstring const text, SPL::list<SPL::rstring>& words, SPL::list<SPL::rstring>& pos, SPL::list<SPL::rstring>& lemmas)
 {
-	SPL::rstring res = "";
+	std::string res = "";
 	char* tokenizerBuf = Tokenizer((char*)text.c_str());
 	char* tagBuf = tag(tokenizerBuf, 1);
 	res.append(tagBuf);
@@ -78,13 +78,13 @@ void lemmatize(SPL::rstring const text, SPL::list<SPL::rstring>& words, SPL::lis
 			it2 != tokens2.end(); ++it2) {
 			xx++;
 			if ( xx == 1 ) { // words
-				words.push_back(*it2);
+				words.push_back(static_cast<SPL::rstring>(*it2));
 			}
 			if ( xx == 2 ) { // pos
-				pos.push_back(*it2);
+				pos.push_back(static_cast<SPL::rstring>(*it2));
 			}
 			if ( xx == 3 ) { // lemma
-				lemmas.push_back(*it2);
+				lemmas.push_back(static_cast<SPL::rstring>(*it2));
 			}
 		}
 	}
@@ -92,7 +92,7 @@ void lemmatize(SPL::rstring const text, SPL::list<SPL::rstring>& words, SPL::lis
 
 void lemmatize(SPL::rstring const text, SPL::list<SPL::rstring>& lemmas)
 {
-	SPL::rstring res = "";
+	std::string res = "";
 	char* tokenizerBuf = Tokenizer((char*)text.c_str());
 	char* tagBuf = tag(tokenizerBuf, 1);
 	res.append(tagBuf);
@@ -111,7 +111,7 @@ void lemmatize(SPL::rstring const text, SPL::list<SPL::rstring>& lemmas)
 			it2 != tokens2.end(); ++it2) {
 			xx++;
 			if ( xx == 3 ) { // lemma
-				lemmas.push_back(*it2);
+				lemmas.push_back(static_cast<SPL::rstring>(*it2));
 			}
 		}
 	}
