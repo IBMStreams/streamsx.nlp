@@ -156,7 +156,7 @@ void MY_OPERATOR::process(uint32_t idx)
             if (rc&1) {
                 <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple0", $outputPort0, $inputPort); %> ;
                 <% CodeGenX::assignOutputAttributeValues("outputTuple0", $outputPort0); %> ;
-                <% print "outputTuple0.set_" . $stdoutAttribute->getName() . "(stdoutline); // assign STDOUT line" if $stdoutAttribute && !$stdoutAttribute->hasAssignment(); %>
+                <% print "outputTuple0.set_" . $stdoutAttribute->getName() . "(stdoutLine()); // assign STDOUT line" if $stdoutAttribute && !$stdoutAttribute->hasAssignment(); %>
                 SPLLOG(L_TRACE, "submitting outputTuple0 " << outputTuple0, "ShellPipe");
                 submit(outputTuple0, 0);
                 linecounters[1]++;
@@ -167,7 +167,7 @@ void MY_OPERATOR::process(uint32_t idx)
                 <% if ($outputPort1) { %>
                 <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple1", $outputPort1, $inputPort); %> ;
                 <% CodeGenX::assignOutputAttributeValues("outputTuple1", $outputPort1); %> ;
-                <% print "outputTuple1.set_" . $stderrAttribute->getName() . "(stderrline); // assign STDERR line" if $stderrAttribute && !$stderrAttribute->hasAssignment(); %>
+                <% print "outputTuple1.set_" . $stderrAttribute->getName() . "(stderrLine()); // assign STDERR line" if $stderrAttribute && !$stderrAttribute->hasAssignment(); %>
                 SPLLOG(L_TRACE, "submitting outputTuple1 " << outputTuple1, "ShellPipe");
                 submit(outputTuple1, 1);
                 <% } %>
@@ -192,7 +192,7 @@ void MY_OPERATOR::process(uint32_t idx)
     // wait for shell to exit, and get its exit code
     shell_.terminate();
     exitcode = shell_.getTermInfoExitCode();
-    exitreason = shell_.getTermInfoExplanation();
+    exitreason = static_cast<SPL::rstring>(shell_.getTermInfoExplanation());
 
     SPLAPPTRC(L_INFO, "finished shell command '" << commandline <<  "', reason='" << exitreason << "', exitcode=" << exitcode, "ShellPipe");
     SPLAPPTRC(L_TRACE, "leaving ShellPipe process(" << idx << ") ...", "ShellPipe");
@@ -219,7 +219,7 @@ void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
 
     IPort0Type const & iport$0 = static_cast<IPort0Type const &>(tuple);
     stdinline = <%=$stdinAttributeGetter%>;
-    try { shell_.writeLine(stdinline); }
+    try { shell_.writeLine(static_cast<std::string>(stdinline)); }
     catch(com::ibm::streamsx::linuxshell::LinuxShellException const & e) {
         SPLAPPTRC(L_ERROR, "sorry, could not write to stdin: " << e.what(), "ShellPipe");
         throw; //let the runtime decide how to handle the exception

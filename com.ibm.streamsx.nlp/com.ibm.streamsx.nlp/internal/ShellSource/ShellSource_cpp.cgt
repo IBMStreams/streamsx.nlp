@@ -273,7 +273,7 @@ void MY_OPERATOR::executeShell(std::string command) {
             if (rc&1) {
                 <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple0", $outputPort0, $inputPort); %> ;
                 <% CodeGenX::assignOutputAttributeValues("outputTuple0", $outputPort0); %> ;
-                <% print "outputTuple0.set_" . $stdoutAttribute->getName() . "(stdoutline); // assign STDOUT line" if $stdoutAttribute && !$stdoutAttribute->hasAssignment(); %>
+                <% print "outputTuple0.set_" . $stdoutAttribute->getName() . "(stdoutLine()); // assign STDOUT line" if $stdoutAttribute && !$stdoutAttribute->hasAssignment(); %>
                 SPLLOG(L_TRACE, "submitting outputTuple0" << outputTuple0, "ShellSource");
                 submit(outputTuple0, 0);
                 linecounters[1]++;
@@ -284,7 +284,7 @@ void MY_OPERATOR::executeShell(std::string command) {
                 <% if ($outputPort1) { %>
                 <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple1", $outputPort1, $inputPort); %> ;
                 <% CodeGenX::assignOutputAttributeValues("outputTuple1", $outputPort1); %> ;
-                <% print "outputTuple1.set_" . $stderrAttribute->getName() . "(stderrline); // assign STDERR line" if $stderrAttribute && !$stderrAttribute->hasAssignment(); %>
+                <% print "outputTuple1.set_" . $stderrAttribute->getName() . "(stderrLine()); // assign STDERR line" if $stderrAttribute && !$stderrAttribute->hasAssignment(); %>
                 SPLLOG(L_TRACE, "submitting outputTuple1" << outputTuple1, "ShellSource");
                 submit(outputTuple1, 1);
                 <% } %>
@@ -309,7 +309,7 @@ void MY_OPERATOR::executeShell(std::string command) {
     // wait for shell to exit, and get its exit code
     shell_.terminate();
     exitcode = shell_.getTermInfoExitCode();
-    exitreason = shell_.getTermInfoExplanation();
+    exitreason = static_cast<SPL::rstring>(shell_.getTermInfoExplanation());
 
     SPLAPPTRC(L_INFO, "finished shell command '" << command <<  "', reason='" << exitreason << "', exitcode=" << exitcode, "ShellSource");
 

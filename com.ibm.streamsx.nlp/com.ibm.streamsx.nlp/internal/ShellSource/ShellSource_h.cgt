@@ -56,16 +56,16 @@ private:
 
   SPL::rstring commandline;
   SPL::list<SPL::uint64> linecounters;
-  SPL::rstring stdoutline;
-  SPL::rstring stderrline;
+  std::string stdoutline;
+  std::string stderrline;
   SPL::int32 exitcode;
   SPL::rstring exitreason;
 
   // ----------- assignment functions for output attributes ----------
 
   SPL::rstring commandLine() { return commandline; }
-  SPL::rstring stdoutLine() { return stdoutline; }
-  SPL::rstring stderrLine() { return stderrline; }
+  SPL::rstring stdoutLine() { return static_cast<SPL::rstring>(stdoutline); }
+  SPL::rstring stderrLine() { return static_cast<SPL::rstring>(stderrline); }
   SPL::list<SPL::uint64> lineCounters() { return linecounters; }
   SPL::int32 exitCode() { return exitcode; }
   SPL::rstring exitReason() { return exitreason; }
