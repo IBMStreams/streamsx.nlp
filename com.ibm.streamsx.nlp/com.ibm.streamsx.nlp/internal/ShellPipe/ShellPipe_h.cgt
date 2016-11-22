@@ -46,8 +46,8 @@ private:
   SPL::rstring commandline;
   SPL::list<SPL::uint64> linecounters;
   SPL::rstring stdinline;
-  SPL::rstring stdoutline;
-  SPL::rstring stderrline;
+  std::string stdoutline;
+  std::string stderrline;
   SPL::uint8 exitcode;
   SPL::rstring exitreason;
 
@@ -55,8 +55,8 @@ private:
 
   SPL::rstring commandLine() { return commandline; }
   SPL::rstring stdinLine() { return stdinline; }
-  SPL::rstring stdoutLine() { return stdoutline; }
-  SPL::rstring stderrLine() { return stderrline; }
+  SPL::rstring stdoutLine() { return static_cast<SPL::rstring>(stdoutline); }
+  SPL::rstring stderrLine() { return static_cast<SPL::rstring>(stderrline); }
   SPL::list<SPL::uint64> lineCounters() { return linecounters; }
 
 };

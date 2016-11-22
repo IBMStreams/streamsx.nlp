@@ -190,20 +190,20 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
             xx++;
             if ( xx == 1 )
             {<%if ($usesTagWords) {%>
-                wplTuple.set_word(*it2);
+                wplTuple.set_word(static_cast<SPL::rstring>(*it2));
              <%}%>
              <%if ($usesNormalizedText) {%>
-             _word = *it2;
+             _word = static_cast<SPL::rstring>(*it2);
              <%}%>
             }
             else if ( xx == 2 )
             {<%if ($usesTagWords) {%>
-                wplTuple.set_pos(*it2);<%}%>
+                wplTuple.set_pos(static_cast<SPL::rstring>(*it2));<%}%>
             }
             else if ( xx == 3 )
             {
                 <%if ($usesTagWords) {%>
-                wplTuple.set_lemma(*it2);<%}%>
+                wplTuple.set_lemma(static_cast<SPL::rstring>(*it2));<%}%>
                 <%if ($usesNormalizedText) {%>
                 if ("<unknown>" == *it2)
                 {
@@ -211,12 +211,12 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
                 }
                 else
                 {
-                    _normalizedText.append(*it2);
+                    _normalizedText.append(static_cast<SPL::rstring>(*it2));
                 }
                 _normalizedText.append(" ");
                 <%}%>
                 <%if ($usesLemmaList) {%>
-                _tuple.get_<%=$attributeNameLemmaList%>().push_back(*it2);
+                _tuple.get_<%=$attributeNameLemmaList%>().push_back(static_cast<SPL::rstring>(*it2));
                 <%}%>
             }
         }
