@@ -19,12 +19,13 @@
 	require CommonPerlFunctions;
 
 	my $outputPort = $model->getOutputPortAt(0);
+	my $otupleType = $outputPort->getCppTupleType();	
 	my $usesNgramTerms = 0;
 	my $attributeNameNgramTerms;
 	my $tupleTypeNgramTerms;
 	my $attributeNameNgramTermsList;
 	my $usesNgramTermsList = 0;
-	my $outTupleAssignments = getOutputTupleCppAssignmentsWithSideEffects ("_tuple", $outputPort, 1);
+	my $outTupleAssignments = getOutputTupleCppAssignmentsWithSideEffects ("otuple", $outputPort, 1);
 	my $hasOutTupleAssignments = $outTupleAssignments ne "";
 
 	# -------------------------------------------------------------------------
@@ -187,7 +188,7 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 {
 	<%my $inTupleName = "iport\$0";%>
 	IPort0Type const & <%=$inTupleName%> = static_cast<IPort0Type const&>(tuple);
-	_tuple.clear();
+	<%=$otupleType%> otuple;
 
 	<% # forward input attributes if existing in output schema
 	my $iPort = 0;
@@ -195,7 +196,7 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 	my $inputPort = $model->getInputPortAt($iPort);
 	for my $attr (@{$outputPort->getAttributes()}) {
 		if (defined ($inputPort->getAttributeByName($attr->getName())) && $inputPort->getAttributeByName($attr->getName())->getCppType() eq $attr->getCppType()) {
-	print "_tuple.set_".$attr->getName()."(".$inTupleName.".get_".$attr->getName()."());\n";
+	print "otuple.set_".$attr->getName()."(".$inTupleName.".get_".$attr->getName()."());\n";
 		}
 	}
 	%>
@@ -238,14 +239,14 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 			<%if ($usesNgramTerms) {%>
 			// Add n-gram to output tuple list
 			ngramTuple.set_term(term);
-			_tuple.get_<%=$attributeNameNgramTerms%>().push_back(ngramTuple);
+			otuple.get_<%=$attributeNameNgramTerms%>().push_back(ngramTuple);
 			<%}%>
 			<%if ($usesNgramTermsList) {%>
-			_tuple.get_<%=$attributeNameNgramTermsList%>().push_back(term);
+			otuple.get_<%=$attributeNameNgramTermsList%>().push_back(term);
 			<%}%>
 		}
 	}
-	submit(_tuple, 0); // submit to output port 0
+	submit(otuple, 0); // submit to output port 0
 
 }
 

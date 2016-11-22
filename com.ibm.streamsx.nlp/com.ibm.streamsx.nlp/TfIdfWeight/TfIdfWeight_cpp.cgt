@@ -219,6 +219,9 @@ void MY_OPERATOR::prepareToShutdown()
 void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 {
 	if (0 == port) {
+		<%if ($hasCommandPort) {%>
+		AutoMutex am(_mutex);
+		<%}%>
 		<%my $inTupleName = "iport\$0";%>
 		IPort0Type const & <%=$inTupleName%> = static_cast<IPort0Type const&>(tuple);
 		_tuple.clear();
@@ -310,6 +313,7 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 	} // end of port 0 
 	<%if ($hasCommandPort) {%>
 	else if (1 == port) { // control port
+		AutoMutex am(_mutex);
 		<%my $inTupleName = "iport\$1";%>
 		IPort1Type const & <%=$inTupleName%> = static_cast<IPort1Type const&>(tuple);
 
@@ -330,6 +334,9 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 		if (readCorpusFile(<%=$inTupleName%>.get_<%=$corpusFile%>())) {
 			_corpusFile = <%=$inTupleName%>.get_<%=$corpusFile%>();
 		}
+		else {
+			readCorpusFile(_corpusFile);
+		}
 		<%}%>
 		<%if (defined $defaultIDF) {%>
 		_idfDefault = <%=$inTupleName%>.get_<%=$defaultIDF%>();
@@ -346,6 +353,9 @@ void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
 // Punctuation processing
 void MY_OPERATOR::process(Punctuation const & punct, uint32_t port)
 {
+	<%if ($hasCommandPort) {%>
+	AutoMutex am(_mutex);
+	<%}%>
 	if (0 == port) {
 		forwardWindowPunctuation(punct);
 	}
@@ -363,6 +373,7 @@ bool MY_OPERATOR::readCorpusFile(const rstring& filename)
 		result = false;
 	}
 	else {
+		SPL::Functions::Collections::clearM(_termsMap);
 		std::string line;
 		bool isFirstLine = true;
 		int32 numCharsProcessed;
