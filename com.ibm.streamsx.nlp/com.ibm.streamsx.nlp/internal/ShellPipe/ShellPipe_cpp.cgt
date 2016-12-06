@@ -157,7 +157,7 @@ void MY_OPERATOR::process(uint32_t idx)
                 <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple0", $outputPort0, $inputPort); %> ;
                 <% CodeGenX::assignOutputAttributeValues("outputTuple0", $outputPort0); %> ;
                 <% print "outputTuple0.set_" . $stdoutAttribute->getName() . "(stdoutLine()); // assign STDOUT line" if $stdoutAttribute && !$stdoutAttribute->hasAssignment(); %>
-                SPLLOG(L_TRACE, "submitting outputTuple0 " << outputTuple0, "ShellPipe");
+                SPLAPPTRC(L_TRACE, "submitting outputTuple0 " << outputTuple0, "ShellPipe");
                 submit(outputTuple0, 0);
                 linecounters[1]++;
             }
@@ -168,7 +168,7 @@ void MY_OPERATOR::process(uint32_t idx)
                 <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple1", $outputPort1, $inputPort); %> ;
                 <% CodeGenX::assignOutputAttributeValues("outputTuple1", $outputPort1); %> ;
                 <% print "outputTuple1.set_" . $stderrAttribute->getName() . "(stderrLine()); // assign STDERR line" if $stderrAttribute && !$stderrAttribute->hasAssignment(); %>
-                SPLLOG(L_TRACE, "submitting outputTuple1 " << outputTuple1, "ShellPipe");
+                SPLAPPTRC(L_TRACE, "submitting outputTuple1 " << outputTuple1, "ShellPipe");
                 submit(outputTuple1, 1);
                 <% } %>
                 linecounters[2]++;
