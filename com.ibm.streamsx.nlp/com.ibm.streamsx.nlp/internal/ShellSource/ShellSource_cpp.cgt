@@ -167,7 +167,7 @@ void MY_OPERATOR::process(uint32_t idx)
 
     // wait for a while before starting, if necessary
     if (initDelay) {
-        SPLLOG(L_INFO, "waiting " << initDelay << " seconds before executing shell command", "ShellSource");
+        SPLAPPTRC(L_INFO, "waiting " << initDelay << " seconds before executing shell command", "ShellSource");
         getPE().blockUntilShutdownRequest(initDelay); }
 
     // execute the shell command, and then wait and repeat, if necessary
@@ -180,7 +180,7 @@ void MY_OPERATOR::process(uint32_t idx)
         // wait for next iteration interval, if necessary
         double iterationDelay = iterationInterval - ( theTimeRightNow() - startTime );
         if (!getPE().getShutdownRequested() && iterationDelay>0 && i<iterationCount-1) {
-           SPLLOG(L_INFO, "waiting " << iterationDelay << " seconds before re-executing shell command", "ShellSource");
+           SPLAPPTRC(L_INFO, "waiting " << iterationDelay << " seconds before re-executing shell command", "ShellSource");
            getPE().blockUntilShutdownRequest(iterationDelay); }
     }
 
@@ -274,7 +274,7 @@ void MY_OPERATOR::executeShell(std::string command) {
                 <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple0", $outputPort0, $inputPort); %> ;
                 <% CodeGenX::assignOutputAttributeValues("outputTuple0", $outputPort0); %> ;
                 <% print "outputTuple0.set_" . $stdoutAttribute->getName() . "(stdoutLine()); // assign STDOUT line" if $stdoutAttribute && !$stdoutAttribute->hasAssignment(); %>
-                SPLLOG(L_TRACE, "submitting outputTuple0" << outputTuple0, "ShellSource");
+                SPLAPPTRC(L_TRACE, "submitting outputTuple0" << outputTuple0, "ShellSource");
                 submit(outputTuple0, 0);
                 linecounters[1]++;
             }
@@ -285,7 +285,7 @@ void MY_OPERATOR::executeShell(std::string command) {
                 <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple1", $outputPort1, $inputPort); %> ;
                 <% CodeGenX::assignOutputAttributeValues("outputTuple1", $outputPort1); %> ;
                 <% print "outputTuple1.set_" . $stderrAttribute->getName() . "(stderrLine()); // assign STDERR line" if $stderrAttribute && !$stderrAttribute->hasAssignment(); %>
-                SPLLOG(L_TRACE, "submitting outputTuple1" << outputTuple1, "ShellSource");
+                SPLAPPTRC(L_TRACE, "submitting outputTuple1" << outputTuple1, "ShellSource");
                 submit(outputTuple1, 1);
                 <% } %>
                 linecounters[2]++;
@@ -324,7 +324,7 @@ void MY_OPERATOR::executeShell(std::string command) {
         OPort2Type outputTuple2;
         <% CodeGenX::copyOutputAttributesFromInputAttributes("outputTuple2", $outputPort2, $inputPort); %> ;
         <% CodeGenX::assignOutputAttributeValues("outputTuple2", $outputPort2); %> ;
-        SPLLOG(L_TRACE, "submitting outputTuple2" << outputTuple2, "ShellSource");
+        SPLAPPTRC(L_TRACE, "submitting outputTuple2" << outputTuple2, "ShellSource");
         submit(outputTuple2, 2);
         <% } %>
     }
