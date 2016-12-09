@@ -9,7 +9,7 @@ STREAMSX_NLP_TOOLKIT ?= ../../../com.ibm.streamsx.nlp
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
 SPLC_FLAGS ?= -a  
-SPL_MAIN_COMPOSITE = LemmatizerMemTest
+SPL_MAIN_COMPOSITE = RutaTextMemTest
 SPL_DATA_DIR = ./data
 SPL_CMD_ARGS ?= -t $(STREAMSX_NLP_TOOLKIT)
 
