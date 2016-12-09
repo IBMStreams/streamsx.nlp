@@ -16,8 +16,11 @@ my $version = getStreamsVersion();
 
 <%if ($version >= "4.2") {%>
 @threading(model=manual)<%}%>
-composite LemmatizerMemTest
+composite RutaTextMemTest
 {
+	type
+		AnnoSpan = tuple<rstring text, int32 begin, int32 end>;
+
 	graph 
 
 		stream<rstring text> TextStream as O = Beacon() {
@@ -26,19 +29,17 @@ composite LemmatizerMemTest
 			config placement: partitionColocation("MEMTEST");
 		}
 
-		(
-		stream<rstring text, rstring normalizedtext, list<com.ibm.streamsx.nlp::WordPosLemmaType> result, list<rstring> lemmas> TextNormalized as O
-		) as Lemmatizer  = com.ibm.streamsx.nlp::Lemmatizer(TextStream) {
+		//@parallel(width=3)
+		(stream<list<AnnoSpan> annotations> TextAnnotated) as TestObject = com.ibm.streamsx.nlp::RutaText(TextStream as I) {
 			param
-				textAttribute: text;
-			output O:
-				normalizedtext = NormalizedText(),
-				lemmas = Lemmas(),
-				result = TagWords();
+				pearFile: "getNames.pear"; // relative to etc dir
+				outputAttributes: "annotations";
+				outputTypes: "uima.ruta.getNames.Main.Name"; // filter type descriptions
+				vmArg : "-Xmx4096m";
 			config placement: partitionColocation("MEMTEST");
 		}
 
-		() as CustomSink = Custom(TextNormalized as I) {
+		() as CustomSink = Custom(TextAnnotated as I) {
 			logic
 				onTuple I: {
 				}
