@@ -58,7 +58,7 @@
 </div>
 
 <div class="section splgraph">
-  <embed class="image" src="../../image/tk$NgramBasicSample/op$.$NgramBasicSample.svg" width="337" height="109"/>
+  <embed class="image" src="../../image/tk$NgramBasicSample/op$.$NgramBasicSample.svg" width="342" height="154"/>
 </div>
 
 <div class="section">
@@ -89,6 +89,9 @@
  					mutable DocumentStream otuple = {};
  					otuple.document = "The cow jumps over the moon";
  					submit (otuple, O);
+ 
+ 					otuple.document = "aa xxx bb xxx cc xxx xxx bb";
+ 					submit (otuple, O);
  					
  					// end of demo
  					submit(Sys.WindowMarker, O);
@@ -110,6 +113,20 @@
  				flushOnPunctuation: true;
  		}
  
+ 		(stream&lt;map&lt;rstring, uint32&gt; ngramMap&gt; NgramCountStream as O) as NgramCount = NgramBasic(DocumentStream as I) {
+ 			param
+ 				documentAttribute: "document";
+ 				size: 3u;
+ 				minSize: 1u;
+ 			output O: ngramMap = NgramCount();
+ 		}
+ 
+ 		() as SinkNgramCount = FileSink(NgramCountStream) {
+ 			param                        
+ 				file:  "out1.txt";
+ 				format: txt;
+ 				flushOnPunctuation: true;
+ 		}
  }
 
    </pre>

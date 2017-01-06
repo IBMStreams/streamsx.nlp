@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.2.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; NgramBasic</p>
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.2.3</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; NgramBasic</p>
 
 </div>
 
@@ -222,6 +222,32 @@ stream&lt;rstring text,list&lt;tuple&lt;rstring term&gt;&gt; result&gt; A = Ngra
 stream&lt;rstring text,list&lt;rstring&gt; terms&gt; A = NgramBasic() {
    param ...
    output A : terms = NgramTermsList();
+}
+</pre>
+
+
+</div>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   public map&lt;rstring, uint32&gt; NgramCount()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function generates a map of n-gram terms and the frequency of the term in the document.
+</p>
+
+<p class="p"><strong class="ph b">Example use:</strong>
+</p>
+
+<div class="p">
+<pre class="pre codeblock">
+stream&lt;rstring text, map&lt;rstring, uint32&gt; ngramMap&gt; A = NgramBasic() {
+   param ...
+   output A : ngramMap = NgramCount();
 }
 </pre>
 

@@ -67,6 +67,9 @@
 <li class="sli"><strong class="ph b">pythonCommand</strong>
 </li>
 
+<li class="sli"><strong class="ph b">trainingFile</strong>
+</li>
+
 </ul>
 
 </div>
@@ -89,12 +92,13 @@
  {
  	param
  		expression&lt;rstring&gt; $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+ 		expression&lt;rstring&gt; $trainingFile: getSubmissionTimeValue("trainingFile", "training.csv");
  
  	graph
  
  		() as MB = LinearClassificationModelBuilder() {
  			param 
- 				trainingFile: dataDirectory()+"/training.csv";
+ 				trainingFile: dataDirectory() + "/" + $trainingFile;
  				modelFilesDirectory: dataDirectory();
  				pythonCommand: $pythonCommand;
  		}

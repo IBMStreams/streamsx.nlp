@@ -67,6 +67,9 @@
 <li class="sli"><strong class="ph b">pythonCommand</strong>
 </li>
 
+<li class="sli"><strong class="ph b">inputFile</strong>
+</li>
+
 </ul>
 
 </div>
@@ -89,6 +92,7 @@
  {
  	param
  		expression&lt;rstring&gt; $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+ 		expression&lt;rstring&gt; $inputFile: getSubmissionTimeValue("inputFile", "in.txt");
  
  	type outputSchema = tuple&lt;
  		com.ibm.streamsx.nlp::LinearClassification.resultType, // required by the LinearClassification operator
@@ -101,7 +105,7 @@
  		// for each line in the input file.
  		stream&lt;rstring ln&gt; Src = FileSource() { 
  			param
- 				file: "in.txt"; 
+ 				file: $inputFile; 
  				format: line;
  		}
  
