@@ -42,6 +42,7 @@ when N=3 this is called trigrams.
 When N>3 this is usually referred to as four grams or five grams and so on. 
 This functionality is covered with operator NgramBasic.
 The Ngrams operator implements rolling hash technique and utilizes ngramhashing.
+Ngrams operator operates on letters level only, while NgramBasic operator operates on words level only.
 
 **Rule-based Text Annotation**
 
@@ -73,7 +74,7 @@ The streamsx.nlp Toolkit integrates the following components:
 * Apache UIMA Java SDK (https://uima.apache.org/) - tested with 2.8.1
 * GPoSTTL (http://gposttl.sourceforge.net/)
    </info:description>
-   <info:version>1.2.2</info:version>
+   <info:version>1.2.3</info:version>
    <info:requiredProductVersion>3.2</info:requiredProductVersion>
  </info:identity>
  <info:dependencies/>

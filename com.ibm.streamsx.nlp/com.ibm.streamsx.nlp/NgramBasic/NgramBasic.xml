@@ -37,6 +37,19 @@ This function generates a list of n-gram terms.
     }
 ]]></description>
 				<prototype><![CDATA[public list<rstring> NgramTermsList()]]></prototype>
+			</function>
+			<function>
+				<description><![CDATA[
+This function generates a map of n-gram terms and the frequency of the term in the document.
+
+**Example use:**
+
+    stream<rstring text, map<rstring, uint32> ngramMap> A = NgramBasic() {
+       param ...
+       output A : ngramMap = NgramCount();
+    }
+]]></description>
+				<prototype><![CDATA[public map<rstring, uint32> NgramCount()]]></prototype>
 			</function>			
 		</customOutputFunction>
 	</customOutputFunctions>

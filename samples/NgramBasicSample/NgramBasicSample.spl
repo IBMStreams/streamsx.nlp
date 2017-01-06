@@ -15,6 +15,9 @@ composite NgramBasicSample
 					mutable DocumentStream otuple = {};
 					otuple.document = "The cow jumps over the moon";
 					submit (otuple, O);
+
+					otuple.document = "aa xxx bb xxx cc xxx xxx bb";
+					submit (otuple, O);
 					
 					// end of demo
 					submit(Sys.WindowMarker, O);
@@ -36,4 +39,18 @@ composite NgramBasicSample
 				flushOnPunctuation: true;
 		}
 
+		(stream<map<rstring, uint32> ngramMap> NgramCountStream as O) as NgramCount = NgramBasic(DocumentStream as I) {
+			param
+				documentAttribute: "document";
+				size: 3u;
+				minSize: 1u;
+			output O: ngramMap = NgramCount();
+		}
+
+		() as SinkNgramCount = FileSink(NgramCountStream) {
+			param                        
+				file:  "out1.txt";
+				format: txt;
+				flushOnPunctuation: true;
+		}
 }
