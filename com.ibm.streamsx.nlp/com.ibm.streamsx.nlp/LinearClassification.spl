@@ -14,9 +14,11 @@ use com.ibm.streamsx.nlp.utils::*;
  * One tuple is one document.
  *
  * @output OutStream
- * The result tuple with one attribute 'classes' which is the list of classifications/predictions
- * and a second attribute 'decisions' which is a list<float64> with the list of decisions
+ * The result tuple with one attribute `classes` which is the list of classifications/predictions
+ * and a second attribute `decisions` which is a list<float64> with the list of decisions
  * This stream must contain the schema defined by the resultType.
+ * Where `decisions` is the output of the `LinearSVC` `decision_function` which returns the Confidence scores per (sample, class) combination.
+ * The `decisions` list contains a single value if the training was with 2 classes and it contains more than one value if the training was with n>2 classes
  *
  * @param pythonCommand
  * The name of the python binary. The default name is `python`.
