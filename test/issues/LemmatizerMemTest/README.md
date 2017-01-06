@@ -6,7 +6,7 @@ Build the test application:
 
 Run the test (launch the job, capture memoryConsumption metric and cancel the job):
 
-`runTest.pl`
+`runTest.sh`
 
 Compare output (mem0 file is the first memoryConsumption snapshot and mem1 is the last):
 
