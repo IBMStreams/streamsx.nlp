@@ -1,0 +1,2 @@
+{ngramMap={"moon":1,"over":1,"The cow":1,"the moon":1,"jumps over the":1,"jumps":1,"over the":1,"cow":1,"The":1,"jumps over":1,"the":1,"The cow jumps":1,"cow jumps over":1,"cow jumps":1,"over the moon":1}}
+{ngramMap={"bb xxx cc":1,"aa":1,"cc xxx":1,"xxx bb":2,"bb xxx":1,"aa xxx":1,"cc":1,"xxx xxx bb":1,"xxx cc xxx":1,"xxx bb xxx":1,"xxx xxx":1,"bb":2,"xxx":4,"xxx cc":1,"aa xxx bb":1,"cc xxx xxx":1}}

@@ -25,6 +25,8 @@
 	my $tupleTypeNgramTerms;
 	my $attributeNameNgramTermsList;
 	my $usesNgramTermsList = 0;
+	my $attributeNameNgramCount;
+	my $usesNgramCount = 0;
 	my $outTupleAssignments = getOutputTupleCppAssignmentsWithSideEffects ("otuple", $outputPort, 1);
 	my $hasOutTupleAssignments = $outTupleAssignments ne "";
 
@@ -204,7 +206,7 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 	<%if ($usesNgramTerms) {%>
 	<%=$tupleTypeNgramTerms%> ngramTuple;
 	<%}%>
-
+	
 	<%if ($docParamIsRstring) {%>
 	SPL::list<SPL::rstring> tokens = SPL::Functions::String::tokenize(<%=$inTupleName%>.get_<%=$docString%>(), " ", false);
 	uint32 nWordsInDoc = SPL::Functions::Collections::size(tokens);
@@ -216,9 +218,9 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 		SPLAPPTRC(L_DEBUG, "[ngramSize]=" << ngramSize, "");
 		for (int i = 0; i < (nWordsInDoc-ngramSize+1); i++) {
 			rstring term = "";
-	    		int start = i;
-	    		int end = i + ngramSize;
-	    		for (int w = start; w < end; w++){
+			int start = i;
+			int end = i + ngramSize;
+			for (int w = start; w < end; w++) {
 				<%if ($docParamIsRstring) {%>
 				const rstring word = tokens[w];
 				<%} else {%>
@@ -234,7 +236,7 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 				else {
 					term = term + " " + word; // append words
 				}
-	    		}
+			}
 
 			<%if ($usesNgramTerms) {%>
 			// Add n-gram to output tuple list
@@ -243,6 +245,17 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
 			<%}%>
 			<%if ($usesNgramTermsList) {%>
 			otuple.get_<%=$attributeNameNgramTermsList%>().push_back(term);
+			<%}%>
+			<%if ($usesNgramCount) {%>
+			// The term and its frequency in the document (tuple)
+			if (SPL::Functions::Collections::has(otuple.get_<%=$attributeNameNgramCount%>(), term))
+			{
+				otuple.get_<%=$attributeNameNgramCount%>()[term]++;
+			}
+			else 
+			{
+				SPL::Functions::Collections::insertM(otuple.get_<%=$attributeNameNgramCount%>(), term, 1u);
+			}
 			<%}%>
 		}
 	}
@@ -284,10 +297,14 @@ sub getOutputTupleCppAssignmentsWithSideEffects($$$)
             $attributeNameNgramTerms = $attr->getName();
             $tupleTypeNgramTerms = $elementCppType;
           }
-	} elsif ($of eq 'NgramTermsList') {
-	  $attributeNameNgramTermsList = $attr->getName();
+        } elsif ($of eq 'NgramTermsList') {
+          $attributeNameNgramTermsList = $attr->getName();
           $usesNgramTermsList = 1;
-        } else {
+        } elsif ($of eq 'NgramCount') {
+          $attributeNameNgramCount = $attr->getName();
+          $usesNgramCount = 1;
+        }
+        else {
           # Must be AsIs
           my $exp = $attr->getAssignmentOutputFunctionParameterValueAt(0);
           my $cppExpn = $exp->getCppExpression();
