@@ -117,7 +117,7 @@ The program returns:
     if not args.no_Toolkit_make:
         print '******** Make toolkit:                                               ********\n'
         topdir = os.getcwd()
-        os.chdir('../../com.ibm.streamsx.nlp')
+        os.chdir('../com.ibm.streamsx.nlp')
         su.check_call(['make', 'clean'])
         if not args.clean:
             su.check_call(['make', 'all'])
