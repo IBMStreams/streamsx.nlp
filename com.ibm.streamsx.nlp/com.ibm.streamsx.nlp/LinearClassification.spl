@@ -17,8 +17,11 @@ use com.ibm.streamsx.nlp.utils::*;
  * The result tuple with one attribute `classes` which is the list of classifications/predictions
  * and a second attribute `decisions` which is a list<float64> with the list of decisions
  * This stream must contain the schema defined by the resultType.
- * Where `decisions` is the output of the `LinearSVC` `decision_function` which returns the Confidence scores per (sample, class) combination.
- * The `decisions` list contains a single value if the training was with 2 classes and it contains more than one value if the training was with n>2 classes
+ * Where `decisions` is the output of the `LinearSVC` `decision_function` 
+ * [http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC.decision_function] 
+ * which returns the Confidence scores for one sample and all classes. The confidence score for a sample is the signed 
+ * distance of that sample to the hyperplane. >0 means this class would be predicted.
+ * The `decisions` list contains a single value if the training was with 2 classes and it contains n values if the training was with n>2 classes
  *
  * @param pythonCommand
  * The name of the python binary. The default name is `python`.
