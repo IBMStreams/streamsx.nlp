@@ -10,6 +10,9 @@ def test_execution(name, python_command):
 	tt.run_checked(['output/ModelBuilder/bin/standalone', 'pythonCommand='+python_command])
 	tt.run_checked(['output/bin/standalone', 'pythonCommand='+python_command])
 	tt.run_checked(['diff', 'data/out2.txt', 'data/expected.txt'])
+	tt.run_checked(['output/ModelBuilder/bin/standalone', 'pythonCommand='+python_command, 'trainingFile=training2Classes.csv'])
+	tt.run_checked(['output/bin/standalone', 'pythonCommand='+python_command])
+	tt.run_checked(['diff', 'data/out2.txt', 'data/expected2Classes.txt'])
 
 def test_cleanup(name):
 	'''Removes all output files which are produced during test execution'''
