@@ -30,6 +30,7 @@ while 1:
     test_matrix  = vectorizer.transform(test_doc)  # sparce matrix of test document
     pred = model.predict(test_matrix)
     decision = model.decision_function(test_matrix)
-    outstring = str(pred) + '|*|' + str(decision)
-    #print type(pred), type(decision)
+    classes = model.classes_
+    outstring = str(pred) + '|*|' + str(decision) + '|*|' + str(classes)
+    #print type(pred), type(decision), type(classes)
     print(outstring)

@@ -1,0 +1,6 @@
+["First"],["Else","First"],ibm Streams first
+["Else"],["Else","First"],something else
+["Else"],["Else","First"],blabla bla
+["First"],["Else","First"],This is the first sentence
+["Else"],["Else","First"],This is the second sentence
+["Else"],["Else","First"],This is my second sentence
