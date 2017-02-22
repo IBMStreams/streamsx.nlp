@@ -1,4 +1,4 @@
-# streamsx.text Graduation Status
+# streamsx.nlp Graduation Status
 
 
 ## Overview
