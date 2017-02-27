@@ -2,7 +2,8 @@
 
 This sample demonstrates the use of Linear Classification algorithm from the Python sklearn module.
 
-The example requires the 'streams.topology' toolkit at least version v1.5.11.
+The example requires the **'streams.topology'** toolkit at least version **v1.5.11**.
+
 The recommended Streams version is 4.2.
  
 The LinearClassification Operator is defines in python module 'mysamples.py' in directory opt/python/streams.
@@ -22,7 +23,7 @@ To build this toolkit sample, run the make command in this directory:
 
 `make`
 
-The info.xml is during the build.
+The info.xml is generated during the build.
 
 Clean the toolkit sample:
 
