@@ -41,4 +41,4 @@ clean:
 	rm -rf mysamples
 
 mysamples/LinearClassification/LinearClassification.xml: opt/python/streams/mysamples.py
-	python $(STREAMS_TOPOLOGY_TOOLKIT)/com.ibm.streamsx.topology/bin/spl-python-extract.py -i .
+	python $(STREAMS_TOPOLOGY_TOOLKIT)/bin/spl-python-extract.py -i .
