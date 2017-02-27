@@ -6,12 +6,12 @@ The example requires the **'streams.topology'** toolkit at least version **v1.5.
 
 The recommended Streams version is 4.2.
  
-The LinearClassification Operator is defines in python module 'mysamples.py' in directory opt/python/streams.
+The LinearClassification Operator is defined in python module 'mysamples.py' in directory opt/python/streams.
 This sample reads training data from a file 'training.csv' and the data to classify from file 'in.txt'.
 When no training is ongoing, the data tuples are passed directly to the LinearClassification Operator.
-During the training, data tuples are not transfered to the LinearClassification Operator but they are stored in a queued.
+During the training, data tuples are not transfered to the LinearClassification Operator but they are stored in a queue.
 When the training has finished, theses tuples are passed from the queue to the phyton operator.
-When a new training file is moved into the data directory  (atomic move), the operator is re-trained.
+When a new training file is moved into the data directory (atomic move), then the operator will be re-trained.
 Classification results are printed.
 Submission parameter verbose=True produces diagnostics output.
 
