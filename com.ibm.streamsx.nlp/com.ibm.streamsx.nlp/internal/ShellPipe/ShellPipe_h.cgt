@@ -5,7 +5,7 @@
 
 %>
 
-#include "LinuxShell.h"
+#include "streamsx.shell/LinuxShell.h"
 
 <%SPL::CodeGen::headerPrologue($model);%>
 

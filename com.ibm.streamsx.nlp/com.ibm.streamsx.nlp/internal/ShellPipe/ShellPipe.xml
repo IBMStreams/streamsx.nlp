@@ -166,7 +166,7 @@ by either output port.
         <library>
           <cmn:description></cmn:description>
           <cmn:managedLibrary>
-            <cmn:includePath>../../../impl/include/shell</cmn:includePath>
+            <cmn:includePath>../../../impl/include</cmn:includePath>
           </cmn:managedLibrary>
         </library>
       </libraryDependencies>
