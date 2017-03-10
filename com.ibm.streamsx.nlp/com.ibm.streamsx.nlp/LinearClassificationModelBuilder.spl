@@ -48,18 +48,18 @@ public composite LinearClassificationModelBuilder
 				ST: exitCode = exitCode(), exitReason = exitReason();
 		}
 
-		() as WriterO = FileSink(OutStream) {
-			param
-				file: "/dev/stdout";
-				format: line;
-				flush: 1u;
+		() as WriterO = Custom(OutStream as I){
+			logic
+			onTuple I : {
+				printStringLn(I.ln);
+			}
 		}
 
-		() as WriterE = FileSink(ErrStream) {
-			param
-				file: "/dev/stderr";
-				format: line;
-				flush: 1u;
+		() as WriterE = Custom(ErrStream as I) {
+			logic
+			onTuple I: {
+				appTrc(Trace.error, I.ln);
+			}
 		}
 
 		() as WriterStat = Custom(StatStream as I) {

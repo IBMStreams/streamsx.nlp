@@ -1,0 +1,10 @@
+/.project
+/.classpath
+
+!/.settings/project.sploptions
+/.externalToolBuilders/
+/mysamples/LinearClassification/
+/impl/nl/
+.__splpy/
+__pycache__
+info.xml

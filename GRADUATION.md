@@ -1,4 +1,4 @@
-# streamsx.text Graduation Status
+# streamsx.nlp Graduation Status
 
 
 ## Overview
@@ -9,9 +9,9 @@ Incubation for projects is covered here: https://github.com/IBMStreams/administr
 - [ ] :white_check_mark: Stable release(s)
   * Status: Yes
 - [ ] :white_check_mark: Project is properly documented
-  * Status: Yes
+  * Status: Wiki and SPLDoc
 - [ ] :white_check_mark: Project has samples and instructions to help users get started easily
-  * Status: Yes
+  * Status: Many samples are available and some articles are published on StreamsDev.
 - [ ] :large_orange_diamond: Sufficient testing
   * Status: Test suite for sample applications available
 - [ ] :white_check_mark: Instructions on how to get started with development and contributing to project
