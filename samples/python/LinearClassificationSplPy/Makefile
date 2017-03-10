@@ -26,7 +26,6 @@ endif
 SPLC_FLAGS ?= -a
 SPLC = $(STREAMS_INSTALL)/bin/sc
 SPL_MAIN_COMPOSITE = myapplication::Main
-#DATA_DIR=$(abspath ./data)
 DATA_DIR=./data
 
 all: clean distributed
@@ -34,11 +33,17 @@ all: clean distributed
 build: distributed
 
 distributed: mysamples/LinearClassification/LinearClassification.xml
-	$(SPLC) -M $(SPL_MAIN_COMPOSITE) --data-directory $(DATA_DIR) $(SPL_CMD_ARGS)
+	$(SPLC) -M $(SPL_MAIN_COMPOSITE) --data-directory $(DATA_DIR)
 
 clean:
 	$(SPLC) -C -M $(SPL_MAIN_COMPOSITE) --data-directory $(DATA_DIR)
 	rm -rf mysamples
+	rm -f etc/*.txt etc/*.csv
 
 mysamples/LinearClassification/LinearClassification.xml: opt/python/streams/mysamples.py
 	python $(STREAMS_TOPOLOGY_TOOLKIT)/bin/spl-python-extract.py -i .
+
+bluemix: mysamples/LinearClassification/LinearClassification.xml
+	cp data/* etc/
+	$(SPLC) -M $(SPL_MAIN_COMPOSITE) --data-directory /tmp bluemix
+
