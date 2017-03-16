@@ -1,6 +1,6 @@
 /.project
 /.classpath
-
+/doc/
 !/.settings/project.sploptions
 /.externalToolBuilders/
 /mysamples/LinearClassification/
