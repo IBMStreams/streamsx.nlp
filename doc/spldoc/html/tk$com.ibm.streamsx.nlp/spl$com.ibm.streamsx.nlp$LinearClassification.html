@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.2.3</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; LinearClassification.spl</p>
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.2.7</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; LinearClassification.spl</p>
 
 </div>
 
@@ -116,7 +116,7 @@
 <div class="section"><h2 class="title sectiontitle">Output Ports</h2>
 
 <ul class="sl simple">
-<li class="sli"><strong class="ph b">OutStream</strong>: The result tuple with one attribute <tt class="ph tt">classes</tt> which is the list of classifications/predictions and a second attribute <tt class="ph tt">decisions</tt> which is a list&lt;float64&gt; with the list of decisions This stream must contain the schema defined by the resultType. Where <tt class="ph tt">decisions</tt> is the output of the <tt class="ph tt">LinearSVC</tt> <tt class="ph tt">decision_function</tt> which returns the Confidence scores per (sample, class) combination. The <tt class="ph tt">decisions</tt> list contains a single value if the training was with 2 classes and it contains more than one value if the training was with n&gt;2 classes 
+<li class="sli"><strong class="ph b">OutStream</strong>: The result tuple with one attribute <tt class="ph tt">classes</tt> which is the list of classifications/predictions and a second attribute <tt class="ph tt">decisions</tt> which is a list&lt;float64&gt; with the list of decisions This stream must contain the schema defined by the resultType. Where <tt class="ph tt">decisions</tt> is the output of the <tt class="ph tt">LinearSVC</tt> <tt class="ph tt">decision_function</tt>  <a class="xref" href="http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC.decision_function">http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC.decision_function</a>  which returns the Confidence scores for one sample and all classes. The confidence score for a sample is the signed  distance of that sample to the hyperplane. &gt;0 means this class would be predicted. The <tt class="ph tt">decisions</tt> list contains a single value if the training was with 2 classes and it contains n values if the training was with n&gt;2 classes Where <tt class="ph tt">modelClasses</tt> is the list of the unique class names of the trained model. The order of the <tt class="ph tt">decisions</tt>list corresponds to the order of the  <tt class="ph tt">modelClasses</tt> list. 
 </li>
 
 </ul>
@@ -130,7 +130,7 @@
    <div class="section" id="spldoc_compilationunit__composite_type__LinearClassification.resultType">
      <dl class="dl">
        
-         <dt class="dt dlterm">LinearClassification.resultType = tuple&lt;list&lt;rstring&gt; classes, list&lt;float64&gt; decisions&gt;;</dt>
+         <dt class="dt dlterm">LinearClassification.resultType = tuple&lt;list&lt;rstring&gt; classes, list&lt;float64&gt; decisions, list&lt;rstring&gt; modelClasses&gt;;</dt>
 
          <dd class="dd"/>
 
@@ -164,7 +164,8 @@
  	 */
  	type static resultType = tuple&lt;
  		list&lt;rstring&gt; classes,
- 		list&lt;float64&gt; decisions
+ 		list&lt;float64&gt; decisions,
+ 		list&lt;rstring&gt; modelClasses
  	&gt;;
  
  	graph
@@ -197,18 +198,19 @@
  
  		//Filter out the relevant result classes
  		//This operator expects an result from ShellPipe operator in the form
- 		//[prediction]|*|[[decision0, decision1..]]
+ 		//[prediction]|*|[[decision0, decision1,..]]|*|[class0, class1,..]
  		// or
- 		//[prediction]|*|[decision0, decision1..] if number of classes == 2
+ 		//[prediction]|*|[decisionX]|*|[class0, class1] if number of classes == 2
  		stream&lt;$outStreamType&gt; OutStream as O = Custom(Classifications as I) {
  			logic
  				onTuple I : {
  					//printStringLn(I.lcPythonScriptOutput);
  					mutable list&lt;rstring&gt; outputPredictions = [];
  					mutable list&lt;float64&gt; outputDecisions = [];
+ 					mutable list&lt;rstring&gt; outputModelClasses = [];
  					mutable list&lt;rstring&gt; res = [];
  					spl.string::tokenize(I.lcPythonScriptOutput, '|*|', true, false, res);
- 					if (size(res) == 2) {
+ 					if (size(res) == 3) {
  						//extract predictions
  						mutable int32 s = length(res[0]);
  						if ((s &gt; 1) &amp;&amp; (res[0][0] == "[") &amp;&amp; (res[0][s-1] == "]")) { //remove [ ] from list literal
@@ -248,6 +250,23 @@
  						} else {
  							appTrc(Trace.error, "Ignore invalid decisions result from LinearClassification: '" + I.lcPythonScriptOutput + "'", "texttoolkit");
  						}
+ 						//extract model classes list
+ 						s = length(res[2]);
+ 						if ((s &gt; 1) &amp;&amp; (res[2][0] == "[") &amp;&amp; (res[2][s-1] == "]")) { //remove [ ] from list literal
+ 							rstring modelClassList = spl.string::substring(res[2], 1, s-2);
+ 							list&lt;rstring&gt; modelClasses_ = spl.string::tokenize(modelClassList, " \t\n", false); //extract list members
+ 							for (rstring c in modelClasses_) {
+ 								int32 s = length(c);
+ 								if ((s &gt; 1) &amp;&amp; (((c[0] == "'") &amp;&amp; (c[s-1] == "'")) || ((c[0] == "\"") &amp;&amp; (c[s-1] == "\"")))) {
+ 									rstring strippedString = spl.string::substring(c, 1, s-2);
+ 									appendM(outputModelClasses, strippedString);
+ 								} else {
+ 									appTrc(Trace.error, "Ignore invalid model class list member from LinearClassification: '" + c + "' in:" + I.lcPythonScriptOutput, "texttoolkit");
+ 								}
+ 							}
+ 						} else {
+ 							appTrc(Trace.error, "Ignore invalid model class list from LinearClassification: '" + I.lcPythonScriptOutput + "'", "texttoolkit");
+ 						}
  					} else {
  						appTrc(Trace.error, "Ignore invalid result from LinearClassification: '" + I.lcPythonScriptOutput + "'", "texttoolkit");
  					}
@@ -255,6 +274,7 @@
  					assignFrom(otuple, I);
  					otuple.classes = outputPredictions;
  					otuple.decisions = outputDecisions;
+ 					otuple.modelClasses = outputModelClasses;
  					submit(otuple, O);
  				}
  		}
