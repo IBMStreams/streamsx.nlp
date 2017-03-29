@@ -8,11 +8,11 @@
 STREAMSX_NLP_TOOLKIT ?= ../../com.ibm.streamsx.nlp
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
-SPLC_FLAGS ?= -a  
+SPLC_FLAGS = -a -t $(STREAMSX_NLP_TOOLKIT)
 SPL_MAIN_COMPOSITE = sample::NgramSample
 SPL_MAIN2_COMPOSITE = sample::NgramFuncSample
 SPL_DATA_DIR = ./data
-SPL_CMD_ARGS ?= -t $(STREAMSX_NLP_TOOLKIT)
+SPL_CMD_ARGS ?=
 
 ### determine 'streamtool'
 ifneq ($(realpath $(STREAMS_INSTALL)),)
@@ -29,8 +29,8 @@ ifeq ("$(STANDALONE_REQUIRED)","yes")
 STANDALONE_FLAG = -T
 DISTRIBUTED_OUTPUT_DIR = output/Distributed
 DISTRIBUTED2_OUTPUT_DIR = output/Distributed2
-DISTRIBUTED_BUILD = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) --output-directory $(DISTRIBUTED_OUTPUT_DIR)
-DISTRIBUTED2_BUILD = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN2_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) --output-directory $(DISTRIBUTED2_OUTPUT_DIR)
+DISTRIBUTED_BUILD = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) --output-directory $(DISTRIBUTED_OUTPUT_DIR) $(SPL_CMD_ARGS)
+DISTRIBUTED2_BUILD = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN2_COMPOSITE) --data-directory $(SPL_DATA_DIR) --output-directory $(DISTRIBUTED2_OUTPUT_DIR) $(SPL_CMD_ARGS)
 else
 DISTRIBUTED_BUILD = echo "no extra build required for distributed"
 endif
@@ -45,7 +45,7 @@ distributed:
 
 standalone:
 	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS)
-	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(SPL_MAIN2_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) --output-directory output/NgramFuncSample
+	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(SPL_MAIN2_COMPOSITE) --data-directory $(SPL_DATA_DIR) --output-directory output/NgramFuncSample $(SPL_CMD_ARGS)
 
 clean: 
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)

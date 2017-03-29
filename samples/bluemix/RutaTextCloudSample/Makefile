@@ -8,9 +8,9 @@
 STREAMSX_NLP_TOOLKIT ?= ../../../com.ibm.streamsx.nlp
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
-SPLC_FLAGS = -a  
+SPLC_FLAGS = -a -t $(STREAMSX_NLP_TOOLKIT)
 SPL_MAIN_COMPOSITE = RutaTextCloudSample
-SPL_CMD_ARGS = -t $(STREAMSX_NLP_TOOLKIT)
+SPL_CMD_ARGS ?=
 SPL_DATA_DIR = /tmp
 
 build: distributed 

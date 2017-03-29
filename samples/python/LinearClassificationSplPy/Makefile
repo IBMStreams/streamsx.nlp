@@ -23,17 +23,18 @@ ifeq ("$(VERS_FITS)", "false")
     $(warning The recommended Streams version 4.2.x. Your streams version is not 4.2.x Proceed at your own peril)
 endif
 
-SPLC_FLAGS ?= -a
+SPLC_FLAGS = -a
 SPLC = $(STREAMS_INSTALL)/bin/sc
 SPL_MAIN_COMPOSITE = myapplication::Main
 DATA_DIR=./data
+SPL_CMD_ARGS ?=
 
 all: clean distributed
 
 build: distributed
 
 distributed: mysamples/LinearClassification/LinearClassification.xml
-	$(SPLC) -M $(SPL_MAIN_COMPOSITE) --data-directory $(DATA_DIR)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory $(DATA_DIR) $(SPL_CMD_ARGS)
 
 clean:
 	$(SPLC) -C -M $(SPL_MAIN_COMPOSITE) --data-directory $(DATA_DIR)
@@ -45,5 +46,5 @@ mysamples/LinearClassification/LinearClassification.xml: opt/python/streams/mysa
 
 bluemix: mysamples/LinearClassification/LinearClassification.xml
 	cp data/* etc/
-	$(SPLC) -M $(SPL_MAIN_COMPOSITE) --data-directory /tmp bluemix
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory /tmp bluemix
 
