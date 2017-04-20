@@ -64,10 +64,16 @@ public class UimaText extends AbstractUimaOperator {
 	private static Logger trace = Logger.getLogger(UimaText.class.getName());
 	
 	private static final String PARAMETER_NAME_INPUT_DOC = "inputDoc";
+	private static final String PARAMETER_NAME_TRIM_INPUT_DOC = "trimInputDoc";
 
 	@Parameter(name=PARAMETER_NAME_INPUT_DOC, description="This optional parameter specifies the attribute of the input tuples that is passed to the Analytics Engine of UIMA. If there is only one attribute on the input tuple, this parameter is not required.", optional=true)
 	public void setInputDoc(String inputDoc) {
 		this.inputDoc = inputDoc;
+	}
+
+	@Parameter(name=PARAMETER_NAME_TRIM_INPUT_DOC, description="If this optional parameter is set to false, then trim function is not applied on the input document and leading whitespace characters are not removed. The default value of this parameter is set to true.", optional=true)
+	public void setTrimInputDoc(boolean trimInputDoc) {
+		this.trimInputDoc = trimInputDoc;
 	}
 	
 	@ContextCheck(compile = true)
@@ -139,7 +145,10 @@ public class UimaText extends AbstractUimaOperator {
 	protected void handleInputOnPort0(com.ibm.streams.operator.Tuple tuple) throws Exception{
 		selectView(); // must be called per tuple since cas.reset() destroys the view
 
-		String document = tuple.getString(inputDoc).trim();
+		String document = tuple.getString(inputDoc);
+		if (trimInputDoc) {
+			document = document.trim();
+		}
 		// put document text in CAS
 		cas.setDocumentText(document);
 

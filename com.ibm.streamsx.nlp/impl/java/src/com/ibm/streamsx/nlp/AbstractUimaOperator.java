@@ -118,6 +118,7 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	protected String languageCodeAttribute = null;
 	protected String viewParam = null;
 	protected String view = CAS.NAME_DEFAULT_SOFA;
+	protected boolean trimInputDoc = true;
 
 	protected List<String> outputAttributes = null;
 	protected List<String> outputViews = null;
