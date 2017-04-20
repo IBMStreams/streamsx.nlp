@@ -76,6 +76,7 @@ public class RutaText extends AbstractUimaOperator {
 	private static final String PARAMETER_NAME_INPUT_DOC = "inputDoc";
 	private static final String PARAMETER_NAME_DEBUG_MODE = "debugMode";
 	private static final String PARAMETER_NAME_REMOVE_BASICS = "removeBasics";
+	private static final String PARAMETER_NAME_TRIM_INPUT_DOC = "trimInputDoc";
 	
 	/**
 	 * Configuration parameters of the UIMA Ruta Analysis Engine 
@@ -86,6 +87,11 @@ public class RutaText extends AbstractUimaOperator {
 	@Parameter(name=PARAMETER_NAME_INPUT_DOC, description="This optional parameter specifies the attribute of the input tuples that is passed to the Analytics Engine of UIMA. If there is only one attribute on the input tuple, this parameter is not required.", optional=true)
 	public void setInputDoc(String inputDoc) {
 		this.inputDoc = inputDoc;
+	}
+
+	@Parameter(name=PARAMETER_NAME_TRIM_INPUT_DOC, description="If this optional parameter is set to false, then trim function is not applied on the input document and leading whitespace characters are not removed. The default value of this parameter is set to true.", optional=true)
+	public void setTrimInputDoc(boolean trimInputDoc) {
+		this.trimInputDoc = trimInputDoc;
 	}
 	
 	@Parameter(name=PARAMETER_NAME_DEBUG_MODE, description="If this parameter is set to true, then additional information about the execution of a rule script is added to the CAS. The default value of this parameter is set to false.", optional=true)
@@ -170,7 +176,10 @@ public class RutaText extends AbstractUimaOperator {
 
 		selectView(); // must be called per tuple since cas.reset() destroys the view
 
-		String document = tuple.getString(inputDoc).trim();
+		String document = tuple.getString(inputDoc);
+		if (trimInputDoc) {
+			document = document.trim();
+		}
 		// put document text in CAS
 		cas.setDocumentText(document);
 
