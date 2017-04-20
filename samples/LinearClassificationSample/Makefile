@@ -8,11 +8,11 @@
 STREAMSX_NLP_TOOLKIT ?= ../../com.ibm.streamsx.nlp
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
-SPLC_FLAGS ?= -a  
+SPLC_FLAGS = -a -t $(STREAMSX_NLP_TOOLKIT)
 SPL_MAIN_COMPOSITE = LinearClassificationSample
 SPL_MAIN_COMPOSITE_MODEL_BUILDER = ModelBuilderSample
-SPL_DATA_DIR = ./data
-SPL_CMD_ARGS ?= -t $(STREAMSX_NLP_TOOLKIT)
+SPL_DATA_DIR = ./data 
+SPL_CMD_ARGS ?=
 
 ### determine 'streamtool'
 ifneq ($(realpath $(STREAMS_INSTALL)),)
@@ -29,8 +29,8 @@ endif
 ifeq ("$(STANDALONE_REQUIRED)","yes")
 STANDALONE_FLAG = -T
 DISTRIBUTED_OUTPUT_DIR = output/Distributed
-DISTRIBUTED_BUILD = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) --output-directory $(DISTRIBUTED_OUTPUT_DIR)
-DISTRIBUTED_BUILD_MODEL_BUILDER = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE_MODEL_BUILDER) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) --output-directory $(DISTRIBUTED_OUTPUT_DIR)/ModelBuilder
+DISTRIBUTED_BUILD = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) --output-directory $(DISTRIBUTED_OUTPUT_DIR) $(SPL_CMD_ARGS)
+DISTRIBUTED_BUILD_MODEL_BUILDER = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE_MODEL_BUILDER) --data-directory $(SPL_DATA_DIR) --output-directory $(DISTRIBUTED_OUTPUT_DIR)/ModelBuilder $(SPL_CMD_ARGS)
 else
 DISTRIBUTED_BUILD = echo "no extra build required for distributed"
 endif
@@ -45,7 +45,7 @@ distributed:
 
 standalone:
 	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS)
-	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(SPL_MAIN_COMPOSITE_MODEL_BUILDER) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) --output-directory output/ModelBuilder
+	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(SPL_MAIN_COMPOSITE_MODEL_BUILDER) --data-directory $(SPL_DATA_DIR) --output-directory output/ModelBuilder $(SPL_CMD_ARGS)
 
 clean: 
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)

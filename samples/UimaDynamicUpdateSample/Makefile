@@ -8,10 +8,10 @@
 STREAMSX_NLP_TOOLKIT ?= ../../com.ibm.streamsx.nlp
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
-SPLC_FLAGS ?= -a  
+SPLC_FLAGS = -a -t $(STREAMSX_NLP_TOOLKIT)
 SPL_MAIN_COMPOSITE = UimaDynamicUpdateSample
 SPL_DATA_DIR = ./data
-SPL_CMD_ARGS ?= -t $(STREAMSX_NLP_TOOLKIT)
+SPL_CMD_ARGS ?=
 
 ### determine 'streamtool'
 ifneq ($(realpath $(STREAMS_INSTALL)),)
@@ -27,7 +27,7 @@ endif
 ifeq ("$(STANDALONE_REQUIRED)","yes")
 STANDALONE_FLAG = -T
 DISTRIBUTED_OUTPUT_DIR = output/Distributed
-DISTRIBUTED_BUILD = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS) --output-directory $(DISTRIBUTED_OUTPUT_DIR)
+DISTRIBUTED_BUILD = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) --output-directory $(DISTRIBUTED_OUTPUT_DIR) $(SPL_CMD_ARGS)
 else
 DISTRIBUTED_BUILD = echo "no extra build required for distributed"
 endif
