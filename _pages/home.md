@@ -7,7 +7,7 @@ header:
   # cta_label: "<i class='fa fa-download'></i> Install Now"
   # cta_url: "/docs/quick-start-guide/"
   caption:
-excerpt: 'Provide operations for text analysis, like lemmatization and text annotation with Uima Ruta scripts or existing project specific Uima pear files.<br />' # '<small><a href="https://github.com/IBMStreams/streamsx.nlp/releases/tag/v1.3.0">Latest release v1.3.0</a></small><br /><br />'
+excerpt: 'Provide operations for text analysis, like lemmatization and text annotation with Uima Ruta scripts or existing project specific Uima pear files.' # '<small><a href="https://github.com/IBMStreams/streamsx.nlp/releases/tag/v1.3.0">Latest release v1.3.0</a></small><br /><br />'
 feature_row:
   - image_path: # /assets/images/123.png
     # alt: "usage domain"
