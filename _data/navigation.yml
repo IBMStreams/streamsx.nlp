@@ -28,7 +28,7 @@ developerdocs:
   - title: Developer documentation
     children:
       - title: "Getting Started"
-        url: /docs/develoer/overview
+        url: /docs/developer/overview
       - title: "Project Branches"
         url: /docs/developer/branches
 
