@@ -19,3 +19,9 @@ sidebar:
 ### Sample applications using the toolkit operators
 
 [SPLDoc for the samples of the com.ibm.streamsx.nlp toolkit](https://ibmstreams.github.io/streamsx.nlp/doc/spldoc/html/index.html)
+
+### Articles on StreamsDev:
+
+* [How to extract text using RutaText operator](https://developer.ibm.com/streamsdev/docs/how-to-extract-text-using-the-ibmstreams-extension-text-toolkit-rutatext-operator/)
+* [How to classify text using the LinearClassification operator](https://developer.ibm.com/streamsdev/docs/how-to-classify-text-using-the-ibm-streams-natual-language-processing-nlp-toolkit-linearclassification-operator/)
+
