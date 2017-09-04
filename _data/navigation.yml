@@ -16,7 +16,7 @@ knowledgedocs:
   - title: Background knowledge
     children:
       - title: "Features"
-        url: /docs/knowledge/usecase/overview
+        url: /docs/knowledge/features
 #      - title: "Scenario1"
 #        url: /docs/knowledge/usecase/scenario1
 #      - title: "Scenario1"
