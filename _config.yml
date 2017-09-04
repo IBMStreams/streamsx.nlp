@@ -14,7 +14,7 @@ description              : &description "toolkit site description."
 url                      : https://ibmstreams.github.io # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : "/streamsx.nlp" # the subpath of your site, e.g. "/blog"
 repository               : "IBMStreams/streamsx.nlp" # GitHub username/repo-name
-github_editme_path       : https://github.com/IBMStreams/streamsx.nlp/tree/develop
+github_editme_path       : https://github.com/IBMStreams/streamsx.nlp/blob/gh-pages
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 # breadcrumbs            : false # true, false (default)
 words_per_minute         : 200
