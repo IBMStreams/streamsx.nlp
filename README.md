@@ -18,18 +18,6 @@ Operators, functions & types are described using SPLDOC at
 
 https://ibmstreams.github.io/streamsx.nlp/doc/spldoc/html/tk$com.ibm.streamsx.nlp/tk$com.ibm.streamsx.nlp.html
 
-# Features
-
-https://github.com/IBMStreams/streamsx.nlp/wiki/Features
-
-# Getting Started
-
-https://github.com/IBMStreams/streamsx.nlp/wiki/Getting-Started
-
-Articles on StreamsDev:
-* [How to extract text using RutaText operator](https://developer.ibm.com/streamsdev/docs/how-to-extract-text-using-the-ibmstreams-extension-text-toolkit-rutatext-operator/)
-* [How to classify text using the LinearClassification operator](https://developer.ibm.com/streamsdev/docs/how-to-classify-text-using-the-ibm-streams-natual-language-processing-nlp-toolkit-linearclassification-operator/)
-
 # Troubleshooting
 
 Please enter an issue on GitHub for defects and other problems. 
