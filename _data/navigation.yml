@@ -64,8 +64,8 @@ developerdocs:
     children:
       - title: "Getting Started"
         url: /docs/development/overview
-#      - title: "Requirements"
-#        url: /docs/development/requirements
+      - title: "Project Branches"
+        url: /docs/development/branches
 #      - title: "Design"
 #        url: /docs/development/design
 #      - title: "Build"
