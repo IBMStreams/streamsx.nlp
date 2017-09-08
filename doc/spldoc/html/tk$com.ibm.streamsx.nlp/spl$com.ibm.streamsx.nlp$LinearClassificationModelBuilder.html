@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="SPL File LinearClassificationModelBuilder.spl"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_compilationunit"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>SPL File LinearClassificationModelBuilder.spl</title>
+</head>
+<body id="spldoc_compilationunit">
+
+
+<h1 class="title topictitle1">SPL File <tt class="ph tt">LinearClassificationModelBuilder.spl</tt></h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.3.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; LinearClassificationModelBuilder.spl</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Content</h2>
+  
+  <dl class="dl">
+    <dt class="dt dlterm"/>
+<dd class="dd"/>
+
+    
+      <dt class="dt dlterm splhead-2">Operators</dt>
+
+      <dd class="dd">
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$LinearClassificationModelBuilder.html#spldoc_compilationunit__composite_operator__LinearClassificationModelBuilder">LinearClassificationModelBuilder</a></strong>: This operator builds a model on the basis of a training set of data whose category membership is known.
+</li>
+
+</ul>
+
+      </dd>
+
+    
+  </dl>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Composites</h2>
+  
+</div>
+
+<div class="section" id="spldoc_compilationunit__composite_operator__LinearClassificationModelBuilder"><h2 class="title sectiontitle splpart">composite LinearClassificationModelBuilder</h2>
+  
+</div>
+
+<div class="section splgraph">
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.nlp/op$com.ibm.streamsx.nlp$LinearClassificationModelBuilder.svg" width="232" height="200"/>
+</div>
+
+<div class="section">
+
+<p class="p">This operator builds a model on the basis of a training set of data whose category membership is known.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Parameters</h2>
+
+<ul class="sl simple">
+<li class="sli"><strong class="ph b">pythonCommand</strong>: The name of the python binary. The default name is <tt class="ph tt">python</tt>. With this parameter you can change the version and the location of the python command according to your environment. Linear classification scripts need python 2.7 or later! 
+</li>
+
+<li class="sli"><strong class="ph b">pythonScript</strong>: The name of the python script. The default is <tt class="ph tt">&lt;toolkit_dir&gt;/etc/python/LinearClassificationModelBuilder.py</tt>. 
+</li>
+
+<li class="sli"><strong class="ph b">trainingFile</strong>: The name of the input file containing the training data. 
+</li>
+
+<li class="sli"><strong class="ph b">modelFilesDirectory</strong>: The name of the output directory where the model pkl files are created.
+</li>
+
+</ul>
+
+</div>
+
+<div class="section">
+</div>
+
+<div class="section">
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-2">SPL Source Code</h2>
+  
+</div>
+
+
+<div class="section">
+   <pre class="pre codeblock">
+
+ public composite LinearClassificationModelBuilder
+ (
+ ) {
+ 	param
+ 		expression&lt;rstring&gt; $pythonCommand: "python";
+ 		expression&lt;rstring&gt; $pythonScript: getToolkitPath()+"/etc/python/LinearClassificationModelBuilder.py";
+ 		expression&lt;rstring&gt; $trainingFile;
+ 		expression&lt;rstring&gt; $modelFilesDirectory;
+ 
+ 	graph 
+ 
+ 		// The stdout stream from the grep command is sent on the operator's first output port; the stderr stream is sent on the 
+ 		// second output port.
+ 		(
+ 			stream&lt;rstring ln&gt; OutStream;
+ 			stream&lt;rstring ln&gt; ErrStream;
+ 			stream&lt;int32 exitCode, rstring exitReason&gt; StatStream as ST
+ 		) = ShellSource() { 
+ 			param
+ 				command: $pythonCommand+" "+$pythonScript+" "+$trainingFile+" "+$modelFilesDirectory;
+ 			output
+ 				ST: exitCode = exitCode(), exitReason = exitReason();
+ 		}
+ 
+ 		() as WriterO = Custom(OutStream as I){
+ 			logic
+ 			onTuple I : {
+ 				printStringLn(I.ln);
+ 			}
+ 		}
+ 
+ 		() as WriterE = Custom(ErrStream as I) {
+ 			logic
+ 			onTuple I: {
+ 				appTrc(Trace.error, I.ln);
+ 			}
+ 		}
+ 
+ 		() as WriterStat = Custom(StatStream as I) {
+ 			logic onTuple I: {
+ 				if (exitCode != 0) 
+ 					appTrc(Trace.error, "Model Builder exit code: " + (rstring)exitCode + " reason: " + exitReason);
+ 				printStringLn("Model Builder exit code: " + (rstring)exitCode + " reason: " + exitReason);
+ 			}
+ 		}
+ 
+ }
+
+   </pre>
+
+</div>
+
+</div>
+
+
+</body>
+</html>

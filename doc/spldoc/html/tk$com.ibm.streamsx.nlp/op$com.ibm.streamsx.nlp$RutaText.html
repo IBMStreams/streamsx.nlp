@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="Operator RutaText"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_operator"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>Operator RutaText</title>
+</head>
+<body id="spldoc_operator">
+
+
+<h1 class="title topictitle1">Operator <tt class="ph tt">RutaText</tt></h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.3.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; RutaText</p>
+
+</div>
+
+<div class="section splprimop">
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.nlp/op$com.ibm.streamsx.nlp$RutaText.svg" width="872" height="112"/>
+</div>
+
+<div class="section">
+
+<p class="p">The Java Operator RutaText uses the Apache UIMA Ruta rules to annotate incoming tuple with text of type rstring. It creates a UIMA CAS from the text, applies the RUTA script to the CAS, serializes the resulting CAS to .xmi and then submits a tuple of type rstring. The RUTA rules, resources and CAS types are expected in a UIMA .pear file. The .pear file gets loaded on operator initialization and reloaded when a window punctuation is received on the second input port. The .pear file is installed in the data directory under 'installedPears&lt;OPERATOR_NAME&gt;'. Please, find in toolkit dir ./doc/UIMA_workbench.pdf a detailed sample description of Ruta .pear creation.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Summary</h2>
+
+<dl class="dl" compact="compact">
+ 
+  <dt class="dt dlterm">Ports</dt>
+
+  <dd class="dd">This operator has 2 input ports and 1 output port.</dd>
+
+ 
+ 
+  <dt class="dt dlterm">Windowing</dt>
+
+  <dd class="dd">This operator does not accept any windowing configurations.</dd>
+
+ 
+ 
+  <dt class="dt dlterm">Parameters</dt>
+
+  <dd class="dd">This operator supports 12 parameters.
+<p class="p"> Required: 
+<a class="xref" href="#spldoc_operator__parameter__pearFile">pearFile</a>
+
+</p>
+
+<p class="p"> Optional: 
+<a class="xref" href="#spldoc_operator__parameter__casOut">casOut</a>, <a class="xref" href="#spldoc_operator__parameter__debugMode">debugMode</a>, <a class="xref" href="#spldoc_operator__parameter__inputDoc">inputDoc</a>, <a class="xref" href="#spldoc_operator__parameter__languageCode">languageCode</a>, <a class="xref" href="#spldoc_operator__parameter__languageCodeAttribute">languageCodeAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__outputAttributes">outputAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__outputTypes">outputTypes</a>, <a class="xref" href="#spldoc_operator__parameter__outputViews">outputViews</a>, <a class="xref" href="#spldoc_operator__parameter__removeBasics">removeBasics</a>, <a class="xref" href="#spldoc_operator__parameter__trimInputDoc">trimInputDoc</a>, <a class="xref" href="#spldoc_operator__parameter__view">view</a>
+
+</p>
+</dd>
+
+ 
+ 
+  <dt class="dt dlterm">Metrics</dt>
+
+  <dd class="dd">This operator does not report any metrics.</dd>
+
+ 
+</dl>
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Properties</h2>
+
+<dl class="dl" compact="compact">
+ 
+  <dt class="dt dlterm">Implementation</dt>
+
+  <dd class="dd">Java</dd>
+
+ 
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set">Input Ports</a></strong></p>
+<dl class="dl">
+  
+   <dt class="dt dlterm">Ports (0)</dt>
+
+   <dd class="dd">
+
+<p class="p">Port that ingests tuples
+</p>
+   </dd>
+
+  
+    
+      <dt class="dt dlterm">Properties</dt>
+
+      <dd class="dd">
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__optional">Optional</a>: false
+     </li>
+
+   </ul>
+
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__controlport">ControlPort</a>: false
+</li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowingmode">WindowingMode</a>: NonWindowed
+</li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowpunctuationinputmode">WindowPunctuationInputMode</a>: Oblivious
+</li>
+
+   </ul>
+
+      </dd>
+
+    
+  
+   <dt class="dt dlterm">Ports (1)</dt>
+
+   <dd class="dd">
+
+<p class="p">Optional control port
+</p>
+   </dd>
+
+  
+    
+      <dt class="dt dlterm">Properties</dt>
+
+      <dd class="dd">
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__optional">Optional</a>: true
+     </li>
+
+   </ul>
+
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__controlport">ControlPort</a>: true
+</li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowingmode">WindowingMode</a>: NonWindowed
+</li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowpunctuationinputmode">WindowPunctuationInputMode</a>: Oblivious
+</li>
+
+   </ul>
+
+      </dd>
+
+    
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set">Output Ports</a></strong></p>
+<dl class="dl">
+  
+     <dt class="dt dlterm">Assignments</dt>
+
+       <dd class="dd">Java operators do not support output assignments.
+       </dd>
+
+  
+</dl>
+
+<dl class="dl">
+  
+   <dt class="dt dlterm">Ports (0)</dt>
+
+   <dd class="dd">
+
+<p class="p">Port that produces tuples
+</p>
+
+<p class="p"/>
+
+   <dl class="dl">
+    
+      <dt class="dt dlterm">Properties</dt>
+
+      <dd class="dd">
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__optional">Optional</a>: false
+     </li>
+
+   </ul>
+
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__windowpunctuationoutputmode">WindowPunctuationOutputMode</a>: Preserving
+     </li>
+
+   </ul>
+
+      </dd>
+
+    
+   </dl>
+
+   <p class="p"/>
+
+   </dd>
+
+  
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters">Parameters</a></strong></p>
+This operator supports 12 parameters.
+<p class="p"> Required: 
+<a class="xref" href="#spldoc_operator__parameter__pearFile">pearFile</a>
+
+</p>
+
+<p class="p"> Optional: 
+<a class="xref" href="#spldoc_operator__parameter__casOut">casOut</a>, <a class="xref" href="#spldoc_operator__parameter__debugMode">debugMode</a>, <a class="xref" href="#spldoc_operator__parameter__inputDoc">inputDoc</a>, <a class="xref" href="#spldoc_operator__parameter__languageCode">languageCode</a>, <a class="xref" href="#spldoc_operator__parameter__languageCodeAttribute">languageCodeAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__outputAttributes">outputAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__outputTypes">outputTypes</a>, <a class="xref" href="#spldoc_operator__parameter__outputViews">outputViews</a>, <a class="xref" href="#spldoc_operator__parameter__removeBasics">removeBasics</a>, <a class="xref" href="#spldoc_operator__parameter__trimInputDoc">trimInputDoc</a>, <a class="xref" href="#spldoc_operator__parameter__view">view</a>
+
+</p>
+<dl class="dl">
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__casOut"><!-- --></a><tt class="ph tt">casOut</tt></dt>
+
+<dd class="dd">
+<p class="p">This parameter specifies the attribute of the output tuples that contains the UIMA CAS as serialized XMI string. The output attribute is of type rstring. If this parameter is not specified, the operator expects that the parameter <tt class="ph tt">outputAttributes</tt> is set.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__debugMode"><!-- --></a><tt class="ph tt">debugMode</tt></dt>
+
+<dd class="dd">
+<p class="p">If this parameter is set to true, then additional information about the execution of a rule script is added to the CAS. The default value of this parameter is set to false.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__inputDoc"><!-- --></a><tt class="ph tt">inputDoc</tt></dt>
+
+<dd class="dd">
+<p class="p">This optional parameter specifies the attribute of the input tuples that is passed to the Analytics Engine of UIMA. If there is only one attribute on the input tuple, this parameter is not required.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__languageCode"><!-- --></a><tt class="ph tt">languageCode</tt></dt>
+
+<dd class="dd">
+<p class="p">This optional parameter specifies the ISO language code to be used by UIMA. The default value is <tt class="ph tt">en</tt> for English.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__languageCodeAttribute"><!-- --></a><tt class="ph tt">languageCodeAttribute</tt></dt>
+
+<dd class="dd">
+<p class="p">This optional parameter enables the language to be specified on a tuple-by-tuple basis. It specifies the name of the attribute that contains the language code.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__outputAttributes"><!-- --></a><tt class="ph tt">outputAttributes</tt></dt>
+
+<dd class="dd">
+<p class="p">This parameter specifies the name of tuple attributes on the output port for the annotations. This parameter can be specified more than once. The operator assumes that the views from the parameter <tt class="ph tt">outputViews</tt> are in the same order as the attribute names in this parameter. If this parameter is not specified, the operator expects that the parameter <tt class="ph tt">casOut</tt> is set. The attribute must a list type.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__outputTypes"><!-- --></a><tt class="ph tt">outputTypes</tt></dt>
+
+<dd class="dd">
+<p class="p">This optional parameter specifies the fully qualified type names to filter the output for a set of types. This parameter can be specified more than once. The output attributes, that are set with the parameter <tt class="ph tt">outputAttributes</tt>, contain annotation of these types only.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__outputViews"><!-- --></a><tt class="ph tt">outputViews</tt></dt>
+
+<dd class="dd">
+<p class="p">This optional parameter specifies the fully qualified view names to output. This parameter can be specified more than once. The operator assumes that the output tuple attribute names from the parameter <tt class="ph tt">outputAttributes</tt> are in the same order as the views in this parameter. If this parameter is not specified, the operator expects that the parameter <tt class="ph tt">outputAttributes</tt> contains a single output tuple attribute only.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__pearFile"><!-- --></a><tt class="ph tt">pearFile</tt></dt>
+
+<dd class="dd">
+<p class="p">This parameter specifies the PEAR file to be installed.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: false
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__removeBasics"><!-- --></a><tt class="ph tt">removeBasics</tt></dt>
+
+<dd class="dd">
+<p class="p">If this parameter is set to true, then all inference annotations are removed and the CAS xmi output does not contain these basic annotations. The default value of this parameter is set to false. This parameter needs to be set only, if the parameter casOut is set.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__trimInputDoc"><!-- --></a><tt class="ph tt">trimInputDoc</tt></dt>
+
+<dd class="dd">
+<p class="p">If this optional parameter is set to false, then trim function is not applied on the input document and leading whitespace characters are not removed. The default value of this parameter is set to true.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__view"><!-- --></a><tt class="ph tt">view</tt></dt>
+
+<dd class="dd">
+<p class="p">This parameter specifies the view of the CAS.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__dependencies">Libraries</a></strong></p>
+
+ <dl class="dl">
+ 
+  <dt class="dt dlterm">Operator class library
+  </dt>
+
+  <dd class="dd"/>
+
+  <dd class="dd"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__dependencies__managedlibrary__libpath">Library Path</a>: <tt class="ph tt">../../impl/lib/com.ibm.streamsx.nlp.jar, ../../impl/lib/apache-uima/uima-core.jar, ../../impl/lib/apache-uima/ruta-core-2.4.0.jar, ../../impl/lib/apache-uima/uimafit-core-2.1.0.jar, ../../impl/lib/apache-uima/antlr-runtime-3.5.2.jar, ../../impl/lib/apache-uima/spring-asm-3.1.2.RELEASE.jar, ../../impl/lib/apache-uima/spring-beans-3.1.2.RELEASE.jar, ../../impl/lib/apache-uima/spring-context-3.1.2.RELEASE.jar, ../../impl/lib/apache-uima/spring-core-3.1.2.RELEASE.jar, ../../impl/lib/apache-uima/spring-expression-3.1.2.RELEASE.jar, ../../impl/lib/apache-uima/commons-lang-2.6.jar, ../../impl/lib/apache-uima/commons-logging-1.1.1.jar, ../../impl/lib/apache-uima/commons-lang3-3.1.jar, ../../impl/lib/apache-uima/commons-collections-3.2.1.jar, ../../impl/lib/apache-uima/commons-io-2.4.jar, ../../impl/lib/apache-uima/commons-math3-3.0.jar</tt></dd>
+
+ 
+ </dl>
+
+</div>
+
+</div>
+
+
+</body>
+</html>

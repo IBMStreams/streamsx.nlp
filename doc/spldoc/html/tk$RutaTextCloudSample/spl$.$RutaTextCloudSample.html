@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="SPL File RutaTextCloudSample.spl"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_compilationunit"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>SPL File RutaTextCloudSample.spl</title>
+</head>
+<body id="spldoc_compilationunit">
+
+
+<h1 class="title topictitle1">SPL File <tt class="ph tt">RutaTextCloudSample.spl</tt></h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$RutaTextCloudSample.html">RutaTextCloudSample 1.0.0</a> &gt; <a class="xref" href="ns$.html">&lt;default&gt;</a> &gt; RutaTextCloudSample.spl</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Content</h2>
+  
+  <dl class="dl">
+    <dt class="dt dlterm"/>
+<dd class="dd"/>
+
+    
+      <dt class="dt dlterm splhead-2">Operators</dt>
+
+      <dd class="dd">
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$.$RutaTextCloudSample.html#spldoc_compilationunit__composite_operator__RutaTextCloudSample">RutaTextCloudSample</a></strong>
+</li>
+
+</ul>
+
+      </dd>
+
+    
+  </dl>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Composites</h2>
+  
+</div>
+
+<div class="section" id="spldoc_compilationunit__composite_operator__RutaTextCloudSample"><h2 class="title sectiontitle splpart">public composite RutaTextCloudSample</h2>
+  
+</div>
+
+<div class="section splgraph">
+  <embed class="image" src="../../image/tk$RutaTextCloudSample/op$.$RutaTextCloudSample.svg" width="547" height="109"/>
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Parameters</h2>
+
+<ul class="sl simple">
+<li class="sli"><strong class="ph b">loop</strong>
+</li>
+
+</ul>
+
+</div>
+
+<div class="section">
+</div>
+
+<div class="section">
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-2">SPL Source Code</h2>
+  
+</div>
+
+
+<div class="section">
+   <pre class="pre codeblock">
+
+ composite RutaTextCloudSample {
+ 	param
+ 		expression&lt;int32&gt;   $loop: (int32)getSubmissionTimeValue("loop", "-1"); // infinite loop = -1
+ 
+ 	type
+ 		AnnoSpan = tuple&lt;rstring text, int32 begin, int32 end&gt;;
+ 
+ 	graph
+ 
+ 		
+ 		stream&lt;rstring file&gt; DocumentFilenames as O = Custom() {
+ 			logic state: {
+ 				mutable int32 loop_ = $loop;
+ 			}
+ 			onProcess: {
+ 				mutable rstring filename = "";
+ 				if (loop_ &gt;= 0) {
+ 					if (loop_ &gt; 0) {
+ 						for (int32 l in range(loop_)) {
+ 							if (l==0) {}
+ 							for (int32 iter in range(51)) {
+ 								filename = getThisToolkitDir()+"/opt/"+"SenseAndSensibility/chapter" +(rstring)(iter) + ".txt";
+ 								submit({file=filename}, O);
+ 							}
+ 						}
+ 					}
+ 				}
+ 				else {
+ 					while (true) {
+ 						for (int32 iter in range(51)) {
+ 							filename = getThisToolkitDir()+"/opt/"+"SenseAndSensibility/chapter" +(rstring)(iter) + ".txt";
+ 							submit({file=filename}, O);
+ 						}
+ 					}
+ 				}
+ 			}
+ 		}
+ 
+ 		stream&lt;rstring oneline&gt; Lines = FileSource(DocumentFilenames) {
+ 			param
+ 				format : line;
+ 		}
+ 		
+ 		stream&lt;rstring entireDoc&gt; Documents as O = Custom(Lines as I) {
+ 			logic state: {
+ 				mutable rstring soFar = "";
+ 			}
+ 			onTuple I: {
+ 				soFar +=(rstring) "\n" + I.oneline;
+ 			}
+ 			onPunct I: {
+ 				if(currentPunct() == Sys.WindowMarker) {
+ 					submit({entireDoc = soFar}, O);
+ 					soFar =(rstring) "";
+ 					submit(currentPunct(), O);
+ 				}
+ 				else {
+ 					// it's a final punctuation, so send it on.
+ 					submit(currentPunct(), O);
+ 				}
+ 			}
+ 		}
+ 
+ 		stream&lt;list&lt;AnnoSpan&gt; annotations&gt; TextAnnotated = RutaText(Documents as I) {
+ 			param
+ 				inputDoc: "entireDoc"; // text to analyze
+ 				pearFile: "getNames2.pear"; // relative to etc dir
+ 				outputAttributes: "annotations";
+ 				outputTypes: "uima.ruta.getNames2.Main.TitleAndName"; // filter type descriptions
+ 		}
+ 		
+ 		/**
+ 		 * This is a simple helper to print the results to the console.
+ 		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+ 		 */
+ 		() as OutputPrinter = Custom(TextAnnotated as I){
+ 			logic
+ 				onTuple I : {
+ 					if (spl.collection::size(I.annotations) &gt; 0) {
+ 						printStringLn((rstring)I);
+ 					}
+ 				}
+ 		}
+ 
+ }
+
+   </pre>
+
+</div>
+
+</div>
+
+
+</body>
+</html>

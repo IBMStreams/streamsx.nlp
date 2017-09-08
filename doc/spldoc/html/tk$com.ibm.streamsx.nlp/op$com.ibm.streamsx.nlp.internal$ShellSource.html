@@ -1,0 +1,840 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="Operator ShellSource"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_operator"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>Operator ShellSource</title>
+</head>
+<body id="spldoc_operator">
+
+
+<h1 class="title topictitle1">Operator <tt class="ph tt">ShellSource</tt></h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.3.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.internal.html">com.ibm.streamsx.nlp.internal</a> &gt; ShellSource</p>
+
+</div>
+
+<div class="section splprimop">
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.nlp/op$com.ibm.streamsx.nlp.internal$ShellSource.svg" width="872" height="128"/>
+</div>
+
+<div class="section">
+
+<p class="p">ShellSource is an operator for the IBM Streams product that executes Linux commands or command pipelines in a shell. The command's STDOUT output is emitted as tuples by the operator's required output port,  one tuple per line. If a second output port is configured, the command's STDERR output is emitted as tuples on that port. If a third output port is configued, a tuple is emitted on that port when  the command exits.
+</p>
+
+<p class="p">The command or pipeline may be specified as an operator parameter, or, the operator can receive commands as input tuples from an optional input port.   Command pipelines can be specified with the usual shell pipe character "|".
+</p>
+
+<p class="p">Each command is executed in separate Linux shell, as specified by the <tt class="ph tt">/bin/sh</tt> program, which is the Bash shell on most Linux systems.
+</p>
+
+<p class="p">The ShellSource operator is part of the 'com.ibm.streamsx.shell' toolkit.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Processes and Threads
+</h2>
+
+<p class="p">The ShellSource operator creates separate processes to execute shell commands, and creates a separate thread within the operator's process to receive output from commands.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Punctuation
+</h2>
+
+<p class="p">The ShellSource operator emits punctuation on all configured output ports after each shell command exits.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Exceptions
+</h2>
+
+<p class="p">The ShellSource operator throws an exception if it is unable to execute the  <tt class="ph tt">/bin/sh</tt> program, which is the Bash shell on most Linux systems.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Sample Applications
+</h2>
+
+<p class="p">The network toolkit includes several <a class="xref" href=".././tk$SampleShellSource/tk$SampleShellSource.html">sample applications</a> that illustrate how to use this operator.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Summary</h2>
+
+<dl class="dl" compact="compact">
+ 
+  <dt class="dt dlterm">Ports</dt>
+
+  <dd class="dd">This operator has 1 input port and 3 output ports.</dd>
+
+ 
+ 
+  <dt class="dt dlterm">Windowing</dt>
+
+  <dd class="dd">This operator does not accept any windowing configurations.</dd>
+
+ 
+ 
+  <dt class="dt dlterm">Parameters</dt>
+
+  <dd class="dd">This operator supports 7 parameters.
+<p class="p"> Optional: 
+<a class="xref" href="#spldoc_operator__parameter__command">command</a>, <a class="xref" href="#spldoc_operator__parameter__commandAttribute">commandAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__initDelay">initDelay</a>, <a class="xref" href="#spldoc_operator__parameter__iterationCount">iterationCount</a>, <a class="xref" href="#spldoc_operator__parameter__iterationInterval">iterationInterval</a>, <a class="xref" href="#spldoc_operator__parameter__stderrAttribute">stderrAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__stdoutAttribute">stdoutAttribute</a>
+
+</p>
+</dd>
+
+ 
+ 
+  <dt class="dt dlterm">Metrics</dt>
+
+  <dd class="dd">This operator does not report any metrics.</dd>
+
+ 
+</dl>
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Properties</h2>
+
+<dl class="dl" compact="compact">
+ 
+  <dt class="dt dlterm">Implementation</dt>
+
+  <dd class="dd">C++</dd>
+
+ 
+ 
+  <dt class="dt dlterm"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__providessinglethreadedexecutioncontext">Threading</a></dt>
+
+  <dd class="dd"><tt class="ph tt">Never</tt> - Operator never provides a single threaded execution context.</dd>
+
+ 
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set">Input Ports</a></strong></p>
+<dl class="dl">
+  
+   <dt class="dt dlterm">Ports (0)</dt>
+
+   <dd class="dd">
+<p class="p">The ShellSource operator has one optional input port.
+</p>
+
+<p class="p">When the ShellSource operator is configured with an input port, shell commands to be executed are consumed from input tuples. The <tt class="ph tt">commandAttribute</tt> parameter specifies the input attribute containing shell commands, or if not specified, the first input attribute of type <tt class="ph tt">rstring</tt> is used.
+</p>
+
+   <dl class="dl">
+    
+      <dt class="dt dlterm">Properties</dt>
+
+      <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__optional">Optional</a>: true
+     </li>
+
+   </ul>
+
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__controlport">ControlPort</a>: false
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__tuplemutationallowed">TupleMutationAllowed</a>: false
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowingmode">WindowingMode</a>: NonWindowed
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowpunctuationinputmode">WindowPunctuationInputMode</a>: Oblivious
+     </li>
+
+   </ul>
+
+      </dd>
+    
+   </dl>
+
+   <p class="p"/>
+   </dd>
+
+  
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set">Output Ports</a></strong></p>
+<dl class="dl">
+  
+     <dt class="dt dlterm">Assignments</dt>
+
+     <dd class="dd">This operator allows any SPL expression of the correct type to be assigned to output attributes.</dd>
+
+  
+</dl>
+
+<dl class="dl">
+      <dt class="dt dlterm"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__customoutputfunctions">Output Functions</a></dt>
+
+    <dd class="dd">
+      <dl class="dl">
+      
+        <dt class="dt dlterm">STDOUT_functions</dt>
+
+        <dd class="dd">
+          <dl class="dl">
+            <dt class="dt dlterm"/>
+<dd class="dd"/>
+
+            
+              <dt class="dt dlterm">
+                <tt class="ph tt">   rstring commandLine()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can be used in the <tt class="ph tt">output</tt> clause of any output port. It assigns a string value containing the shell command that produced the current output tuple.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   rstring stdoutLine()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can only be used in the <tt class="ph tt">output</tt> clause of output port 0. It assigns a string value containing one line of text written to STDOUT by the shell command.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   list&lt;uint64&gt; lineCounters()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can be used in the <tt class="ph tt">output</tt> clause of any output port. It assigns a list of three <tt class="ph tt">uint64</tt> numbers: counts of the shell command's STDIN, STDOUT, and STDERR lines, respectively.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   &lt;any T&gt; T copy()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">When an input port is configured, output attributes that match input attributes in name and type are automatically copied from those input attributes.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                      </dl>
+        </dd>
+
+      
+      
+        <dt class="dt dlterm">STDERR_functions</dt>
+
+        <dd class="dd">
+          <dl class="dl">
+            <dt class="dt dlterm"/>
+<dd class="dd"/>
+
+            
+              <dt class="dt dlterm">
+                <tt class="ph tt">   rstring commandLine()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can be used in the <tt class="ph tt">output</tt> clause of any output port. It assigns a string value containing the shell command that produced the current output tuple.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   rstring stderrLine()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can only be used in the <tt class="ph tt">output</tt> clause of output port 1, if there is one. It assigns a string value containing one line of text written to STDERR by the shell command.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   list&lt;uint64&gt; lineCounters()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can be used in the <tt class="ph tt">output</tt> clause of any output port. It assigns a list of three <tt class="ph tt">uint64</tt> numbers: counts of the shell command's STDIN, STDOUT, and STDERR lines, respectively.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   &lt;any T&gt; T copy()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">When an input port is configured, output attributes that match input attributes in name and type are automatically copied from those input attributes.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                      </dl>
+        </dd>
+
+      
+      
+        <dt class="dt dlterm">STATUS_functions</dt>
+
+        <dd class="dd">
+          <dl class="dl">
+            <dt class="dt dlterm"/>
+<dd class="dd"/>
+
+            
+              <dt class="dt dlterm">
+                <tt class="ph tt">   rstring commandLine()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can be used in the <tt class="ph tt">output</tt> clause of any output port. It assigns a string value containing the shell command that produced the current output tuple.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   int32 exitCode()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can only be used in the <tt class="ph tt">output</tt> clause of output port 2, if there is one. It assigns the <tt class="ph tt">int32</tt> value of the shell command's exit code.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   rstring exitReason()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can only be used in the <tt class="ph tt">output</tt> clause of output port 2, if there is one. It assigns a string value describing the reason the shell command exited: 
+</p>
+
+<div class="p">
+<ul class="ul">
+<li class="li"> "Exit", if the shell exited normally</li>
+
+<li class="li"> "Shutdown", if the Streams process is shutting down</li>
+
+<li class="li"> "Unknown", if the reason is not known</li>
+
+</ul>
+
+</div>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   list&lt;uint64&gt; lineCounters()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function can be used in the <tt class="ph tt">output</tt> clause of any output port. It assigns a list of three <tt class="ph tt">uint64</tt> numbers: counts of the shell command's STDIN, STDOUT, and STDERR lines, respectively.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   &lt;any T&gt; T copy()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">When an input port is configured, output attributes that match input attributes in name and type are automatically copied from those input attributes.
+</p>
+              <p class="p"/>
+
+            </dd>
+
+                      </dl>
+        </dd>
+
+      
+      </dl>
+
+    </dd>
+
+  </dl>
+
+ <dl class="dl">
+  
+   <dt class="dt dlterm">Ports (0)</dt>
+
+   <dd class="dd">
+
+<p class="p">The ShellSource operator has one required output port.
+</p>
+
+<p class="p">Output port 0 produces a tuple for each line of text  written to STDOUT by the shell command. The <tt class="ph tt">stdoutAttribute</tt> parameter specifies the output attribute STDOUT lines are assigned to, or if not specified, the first output attribute of type <tt class="ph tt">rstring</tt> is used. Alternatively, the assigment function 'stdoutLine()' can be used in an <tt class="ph tt">output</tt> clause for port 0 to assign STDOUT lines to an output attribute.
+</p>
+
+    <p class="p"/>
+
+    <dl class="dl">
+     
+      <dt class="dt dlterm">Properties</dt>
+
+      <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__optional">Optional</a>: false
+     </li>
+
+   </ul>
+
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__tuplemutationallowed">TupleMutationAllowed</a>: false
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__windowpunctuationoutputmode">WindowPunctuationOutputMode</a>: Generating
+     </li>
+
+   </ul>
+
+</dd>
+     
+    </dl>
+
+    <p class="p"/>
+
+   </dd>
+
+  
+  
+   <dt class="dt dlterm">Ports (1)</dt>
+
+   <dd class="dd">
+
+<p class="p">The ShellSource operator has two optional output ports.
+</p>
+
+<p class="p">If output port 1 is configured, it produces a tuple for each line of text  written to STDERR by the shell command. The <tt class="ph tt">stderrAttribute</tt> parameter specifies the output attribute STDERR lines are assigned to, or if not specified, the first output attribute of type <tt class="ph tt">rstring</tt> is used. Alternatively, the function 'stderrLine()' can be used in an <tt class="ph tt">output</tt> clause for port 1 to assign STDERR lines to an output attribute.
+</p>
+
+    <p class="p"/>
+
+    <dl class="dl">
+     
+      <dt class="dt dlterm">Properties</dt>
+
+      <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__optional">Optional</a>: true
+     </li>
+
+   </ul>
+
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__tuplemutationallowed">TupleMutationAllowed</a>: false
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__windowpunctuationoutputmode">WindowPunctuationOutputMode</a>: Generating
+     </li>
+
+   </ul>
+
+</dd>
+     
+    </dl>
+
+    <p class="p"/>
+
+   </dd>
+
+  
+  
+   <dt class="dt dlterm">Ports (2)</dt>
+
+   <dd class="dd">
+
+<p class="p">The ShellSource operator has two optional output ports.
+</p>
+
+<p class="p">If output port 2 is configured, it produces a tuple after each shell command exits. The <tt class="ph tt">exitCode()</tt> and <tt class="ph tt">exitReason()</tt> functions can be used in an <tt class="ph tt">output</tt> clause for port 2 to assign the shell command's exit code and reason, respectively.
+</p>
+
+    <p class="p"/>
+
+    <dl class="dl">
+     
+      <dt class="dt dlterm">Properties</dt>
+
+      <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__optional">Optional</a>: true
+     </li>
+
+   </ul>
+
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__tuplemutationallowed">TupleMutationAllowed</a>: false
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__windowpunctuationoutputmode">WindowPunctuationOutputMode</a>: Generating
+     </li>
+
+   </ul>
+
+</dd>
+     
+    </dl>
+
+    <p class="p"/>
+
+   </dd>
+
+  
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters">Parameters</a></strong></p>
+
+
+<p class="p"> Optional: 
+<a class="xref" href="#spldoc_operator__parameter__command">command</a>, <a class="xref" href="#spldoc_operator__parameter__commandAttribute">commandAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__initDelay">initDelay</a>, <a class="xref" href="#spldoc_operator__parameter__iterationCount">iterationCount</a>, <a class="xref" href="#spldoc_operator__parameter__iterationInterval">iterationInterval</a>, <a class="xref" href="#spldoc_operator__parameter__stderrAttribute">stderrAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__stdoutAttribute">stdoutAttribute</a>
+
+</p>
+<dl class="dl">
+  
+     <dt class="dt dlterm"><a name="spldoc_operator__parameter__command"><!-- --></a><tt class="ph tt">command</tt></dt>
+
+     <dd class="dd">
+<p class="p">This optional parameter takes an expression of type <tt class="ph tt">rstring</tt> that specifies the shell command  or pipeline to be executed by the operator. 
+</p>
+
+<p class="p">If this parameter is specified, the <tt class="ph tt">commandAttribute</tt> parameter may not be specified.  If neither parameter is specified, and an input port is configured,  shell commands are consumed from the first input attribute of type <tt class="ph tt">rstring</tt>.
+</p>
+
+  <dl class="dl">
+    
+     <dt class="dt dlterm">Properties</dt>
+
+     <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: AttributeFree
+     </li>
+
+   </ul>
+
+     <p class="p"/>
+     </dd>
+
+    
+  </dl>
+
+     </dd>
+
+  
+  
+     <dt class="dt dlterm"><a name="spldoc_operator__parameter__commandAttribute"><!-- --></a><tt class="ph tt">commandAttribute</tt></dt>
+
+     <dd class="dd">
+<p class="p">When an input port is configured,  this optional parameter specifies an input attribute of type <tt class="ph tt">rstring</tt> that contains the shell commands or pipelines to be executed by the operator. 
+</p>
+
+<p class="p">If this parameter is specified, the <tt class="ph tt">command</tt> parameter may not be specified.  If neither parameter is specified,  shell commands are consumed from the first input attribute of type <tt class="ph tt">rstring</tt>.
+</p>
+
+  <dl class="dl">
+    
+     <dt class="dt dlterm">Properties</dt>
+
+     <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: Attribute
+     </li>
+
+   </ul>
+
+     <p class="p"/>
+     </dd>
+
+    
+  </dl>
+
+     </dd>
+
+  
+  
+     <dt class="dt dlterm"><a name="spldoc_operator__parameter__initDelay"><!-- --></a><tt class="ph tt">initDelay</tt></dt>
+
+     <dd class="dd">
+<p class="p">This optional parameter takes an expression of type <tt class="ph tt">float64</tt> that specifies the number of seconds the operator will wait before executing the shell command.
+</p>
+
+<p class="p">The default value is 0.
+</p>
+
+  <dl class="dl">
+    
+     <dt class="dt dlterm">Properties</dt>
+
+     <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: float64
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: AttributeFree
+     </li>
+
+   </ul>
+
+     <p class="p"/>
+     </dd>
+
+    
+  </dl>
+
+     </dd>
+
+  
+  
+     <dt class="dt dlterm"><a name="spldoc_operator__parameter__iterationCount"><!-- --></a><tt class="ph tt">iterationCount</tt></dt>
+
+     <dd class="dd">
+<p class="p">This optional parameter takes an expression of type <tt class="ph tt">uint32</tt> that specifies the number of times the shell command will be executed.
+</p>
+
+<p class="p">The default value is 0.
+</p>
+
+  <dl class="dl">
+    
+     <dt class="dt dlterm">Properties</dt>
+
+     <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: uint32
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: AttributeFree
+     </li>
+
+   </ul>
+
+     <p class="p"/>
+     </dd>
+
+    
+  </dl>
+
+     </dd>
+
+  
+  
+     <dt class="dt dlterm"><a name="spldoc_operator__parameter__iterationInterval"><!-- --></a><tt class="ph tt">iterationInterval</tt></dt>
+
+     <dd class="dd">
+<p class="p">This optional parameter takes an expression of type <tt class="ph tt">float64</tt> that specifies the time, in seconds, between executions of the shell command, when the <tt class="ph tt">iterationCount</tt> parameter is specified.
+</p>
+
+<p class="p">Note that if the shell command takes longer to complete than the time value specified with this  parameter, the shell command will be executed again immediately.
+</p>
+
+<p class="p">The default value is 0.
+</p>
+
+  <dl class="dl">
+    
+     <dt class="dt dlterm">Properties</dt>
+
+     <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: float64
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: AttributeFree
+     </li>
+
+   </ul>
+
+     <p class="p"/>
+     </dd>
+
+    
+  </dl>
+
+     </dd>
+
+  
+  
+     <dt class="dt dlterm"><a name="spldoc_operator__parameter__stderrAttribute"><!-- --></a><tt class="ph tt">stderrAttribute</tt></dt>
+
+     <dd class="dd">
+<p class="p">This optional parameter specifies the name of an output attribute of type <tt class="ph tt">rstring</tt> for output port 1,  if there is one.  Lines of text written to STDERR by the shell command will be assigned to this attribute.
+</p>
+
+<p class="p">If this parameter is not specified, the first output attribute of type <tt class="ph tt">rstring</tt> for output port 1 will be used.
+</p>
+
+  <dl class="dl">
+    
+     <dt class="dt dlterm">Properties</dt>
+
+     <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: Constant
+     </li>
+
+   </ul>
+
+     <p class="p"/>
+     </dd>
+
+    
+  </dl>
+
+     </dd>
+
+  
+  
+     <dt class="dt dlterm"><a name="spldoc_operator__parameter__stdoutAttribute"><!-- --></a><tt class="ph tt">stdoutAttribute</tt></dt>
+
+     <dd class="dd">
+<p class="p">This optional parameter specifies the name of an output attribute of type <tt class="ph tt">rstring</tt> for output port 0.  Lines of text written to STDOUT by the shell command will be assigned to this attribute in output tuples.
+</p>
+
+<p class="p">If this parameter is not specified,  the first output attribute of type <tt class="ph tt">rstring</tt> for output port 0 will be used.
+</p>
+
+  <dl class="dl">
+    
+     <dt class="dt dlterm">Properties</dt>
+
+     <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: Constant
+     </li>
+
+   </ul>
+
+     <p class="p"/>
+     </dd>
+
+    
+  </dl>
+
+     </dd>
+
+  
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__dependencies">Libraries</a></strong></p>
+<dl class="dl">
+ 
+  <dt class="dt dlterm">No description for library.
+  </dt>
+
+<dd class="dd"/>
+  <dd class="dd"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__dependencies__managedlibrary__includepath">Include Path</a>: <tt class="ph tt">../../../impl/include</tt></dd>
+
+ 
+</dl>
+
+</div>
+
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="Namespace com.ibm.streamsx.nlp"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_namespace"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>Namespace com.ibm.streamsx.nlp</title>
+</head>
+<body id="spldoc_namespace">
+
+
+<h1 class="title topictitle1">Namespace <tt class="ph tt">com.ibm.streamsx.nlp</tt></h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.3.0</a> &gt; com.ibm.streamsx.nlp</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Operators</h2>
+  
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$ContentRanking.html#spldoc_compilationunit__composite_operator__ContentRanking">ContentRanking</a></strong>: This operator uses a previously trained model in order to find out the most likely intend of a text.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$ContentRankingModelBuilder.html#spldoc_compilationunit__composite_operator__ContentRankingModelBuilder">ContentRankingModelBuilder</a></strong>: This operator trains a model for ContentRanking based on training documents.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.nlp$DictionaryFilter.html">DictionaryFilter</a></strong>: This operator checks the words of a text against a dictionary.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$IdfCorpusBuilder.html#spldoc_compilationunit__composite_operator__IdfCorpusBuilder">IdfCorpusBuilder</a></strong>: This operator trains the model (aka corpus) for TfIdfWight based on training data.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.nlp$Lemmatizer.html">Lemmatizer</a></strong>: This operator derives dictionary form of words in a text (aka lemma), (e.g. box for boxes), and determines their part-of-speech tags (e.g. NNS for noun, plural).
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$LinearClassification.html#spldoc_compilationunit__composite_operator__LinearClassification">LinearClassification</a></strong>: This operator identifies to which of a set of categories the input text belongs on the basis of a previously trained model.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$LinearClassificationModelBuilder.html#spldoc_compilationunit__composite_operator__LinearClassificationModelBuilder">LinearClassificationModelBuilder</a></strong>: This operator builds a model on the basis of a training set of data whose category membership is known.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.nlp$NgramBasic.html">NgramBasic</a></strong>: This operator generates n-grams of co-occuring words within a given window.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.nlp$Ngrams.html">Ngrams</a></strong>: The Ngrams operator implements rolling hash technique and utilizes ngramhashing.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.nlp$RutaCas.html">RutaCas</a></strong>: The Java Operator RutaCas uses the Apache UIMA Ruta rules to annotate incoming tuple with serialized UIMA CAS xmi of type rstring.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.nlp$RutaText.html">RutaText</a></strong>: The Java Operator RutaText uses the Apache UIMA Ruta rules to annotate incoming tuple with text of type rstring.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.nlp$TfIdfWeight.html">TfIdfWeight</a></strong>: This operator determines how meaningful a term/word in a text is related to a previously trained model (corpus).
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.nlp$UimaCas.html">UimaCas</a></strong>: The Java Operator UimaCas uses a Apache UIMA Analysis Engine to annotate incoming tuple with serialized UIMA CAS xmi of type rstring.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.nlp$UimaText.html">UimaText</a></strong>: The Java Operator UimaText uses a Apache UIMA Analysis Engine to annotate incoming tuple with text of type rstring.
+</li>
+
+</ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Functions</h2>
+  
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="fc$com.ibm.streamsx.nlp.html#spldoc_functions__countNgrams.rstring.uint32">countNgrams(rstring, uint32)</a></strong>: This function counts each n-gram in the string and places the counter in the result list at the same index as located in the string.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="fc$com.ibm.streamsx.nlp.html#spldoc_functions__getNgrams.rstring.uint32">getNgrams(rstring, uint32)</a></strong>: This function counts each n-gram in the string and places the n-gram and the counter in the result map as a key/value pair.
+</li>
+
+</ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Types</h2>
+  
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$ContentRanking.html#spldoc_compilationunit__composite_type__ContentRanking.resultType">ContentRanking.resultType</a></strong>
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$IdfCorpusBuilder.html#spldoc_compilationunit__composite_type__IdfCorpusBuilder.IdfCorpusType">IdfCorpusBuilder.IdfCorpusType</a></strong>: list of terms of one document to build the corpus 
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$LinearClassification.html#spldoc_compilationunit__composite_type__LinearClassification.resultType">LinearClassification.resultType</a></strong>
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$ToolkitTypes.html#spldoc_compilationunit__type__NgramType">NgramType</a></strong>: The Ngram operator custom output functions NgramTerms() expects a type SPL:list&lt;NgramType&gt;.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$ToolkitTypes.html#spldoc_compilationunit__type__TfIdfType">TfIdfType</a></strong>: The TfIdfWeight operator custom output functions WeightedTerms() and TopWeightedTerms() expects a type SPL:list&lt;TfIdfType&gt;.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp$ToolkitTypes.html#spldoc_compilationunit__type__WordPosLemmaType">WordPosLemmaType</a></strong>: The Lemmatizer operator custom output function TagWords() expects a type SPL:list&lt;WordPosLemmaType&gt;.
+</li>
+
+</ul>
+
+</div>
+
+</div>
+
+
+</body>
+</html>
