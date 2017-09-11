@@ -21,6 +21,6 @@ Instead of the operator com.ibm.streamsx.nlp::RutaText (UIMA Ruta rules based), 
 
 In addition to the com.ibm.streams.text toolkit the streamsx.nlp toolkit covers features that are useful in the natural language analysis pipeline with functionality: lemmatization, part-of-speech tagging, stop-word-removal, dictionary-filter, n-gram, tf-idf (determine the meaning of a word to the text), classification (which category a text belongs to), content ranking (figure out the intend of a text).
 
-The toolkit supports the following features:
+
 
 
