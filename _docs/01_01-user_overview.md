@@ -14,11 +14,7 @@ sidebar:
 
 ## Natural Language Processing (NLP) Toolkit
 
-[SPLDoc for the com.ibm.streamsx.nlp toolkit](https://ibmstreams.github.io/streamsx.nlp/doc/spldoc/html/tk$com.ibm.streamsx.nlp/tk$com.ibm.streamsx.nlp.html)
-
-### Sample applications using the toolkit operators
-
-[SPLDoc for the samples of the com.ibm.streamsx.nlp toolkit](https://ibmstreams.github.io/streamsx.nlp/doc/spldoc/html/index.html)
+[SPLDoc for the com.ibm.streamsx.nlp toolkit](https://ibmstreams.github.io/streamsx.nlp/doc/spldoc/html/index.html)
 
 ### Articles on StreamsDev:
 
