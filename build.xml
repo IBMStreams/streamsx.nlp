@@ -1,0 +1,66 @@
+<project name="streamsx.nlp" default="all" basedir=".">
+<!--
+// *******************************************************************************
+// * Copyright (C)2017, International Business Machines Corporation and *
+// * others. All Rights Reserved. *
+// *******************************************************************************
+-->
+    <description>
+        Build file for streamsx.nlp project.
+    </description>
+  <!-- set global properties for this build -->
+  <property environment="env" />
+  <property name="streams.install" value="${env.STREAMS_INSTALL}" />
+  <property name="toolkit" location="com.ibm.streamsx.nlp"/>
+  <property name="samples" location="samples"/>
+  <property name="tmp" location="tmp" />
+	
+  <target name="all"
+     description="Build the toolkit." >
+     <echo message="build: ${toolkit}"/>
+     <exec executable="make" failonerror="true" dir="${toolkit}">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="all" />
+     </exec>
+  </target>
+
+  <target name="clean"
+     description="clean up" >
+     <delete includeemptydirs="true">
+        <fileset dir="${basedir}" includes="tmp/ doc/"/>
+     </delete>
+     <exec executable="make" failonerror="false" dir="${toolkit}">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="clean" />
+     </exec>
+     <exec executable="make" failonerror="false" dir="${samples}">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="clean" />
+     </exec>
+  </target>
+
+  
+  <!-- Targets to build releases -->
+  <target name="release"  depends="clean,all">
+	<mkdir dir="${tmp}" />
+	<!-- Create the time stamp -->
+	<tstamp />
+	<!-- Extract info from the toolkit's info.xml -->
+	<xmlproperty file="${toolkit}/info.xml" prefix="tkinfo" keepRoot="no" />
+	<echo message="Toolkit Version: ${tkinfo.info:identity.info:version}" />
+        <property name="releasefilename" value="${tmp}/streamsx.nlp.toolkits-${tkinfo.info:identity.info:version}-${DSTAMP}-${TSTAMP}.tgz" />
+    	<tar compression="gzip" longfile="gnu"
+             destfile="${releasefilename}"
+    	     basedir="${basedir}"
+             includes="com.ibm.streamsx.nlp/** samples/** setup/**"
+             excludes="**/.gitignore com.ibm.streamsx.nlp/.settings/** com.ibm.streamsx.nlp/.project com.ibm.streamsx.nlp/.classpath"
+    	/>
+        <checksum file="${releasefilename}"/>
+        <checksum algorithm="sha1" file="${releasefilename}"/>
+  </target>
+
+
+</project>
