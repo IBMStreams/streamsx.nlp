@@ -10,9 +10,7 @@ else
     SPLC = $(STREAMS_INSTALL)/bin/sc
 endif
 
-ifeq ($(STREAMS_TOPOLOGY_TOOLKIT),)
-    $(error error: you must set the environment STREAMS_TOPOLOGY_TOOLKIT to the location of the topology toolkit)
-endif
+STREAMS_TOPOLOGY_TOOLKIT ?= $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.topology
 
 #VERS=$(shell bash -c "V=$(ST); if [[ ${V} == *Version=4.2* ]]; then echo true; else echo false; fi")
 VERS=$(shell bash -c "$(ST) version | grep Version")
@@ -26,7 +24,7 @@ endif
 SPLC_FLAGS = -a
 SPLC = $(STREAMS_INSTALL)/bin/sc
 SPL_MAIN_COMPOSITE = myapplication::Main
-DATA_DIR=./data
+DATA_DIR=/tmp
 SPL_CMD_ARGS ?=
 
 all: clean distributed
@@ -39,12 +37,12 @@ distributed: mysamples/LinearClassification/LinearClassification.xml
 clean:
 	$(SPLC) -C -M $(SPL_MAIN_COMPOSITE) --data-directory $(DATA_DIR)
 	rm -rf mysamples
-	rm -f etc/*.txt etc/*.csv
+	rm -rf impl
+	rm -rf opt/python/streams/__pycache__
+	rm -rf opt/.__splpy
 
 mysamples/LinearClassification/LinearClassification.xml: opt/python/streams/mysamples.py
 	python $(STREAMS_TOPOLOGY_TOOLKIT)/bin/spl-python-extract.py -i .
 
-bluemix: mysamples/LinearClassification/LinearClassification.xml
-	cp data/* etc/
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory /tmp bluemix
+
 

@@ -6,15 +6,7 @@ namespace myapplication;
 
 use mysamples::*;
 
-<%  # switch to Perl scripting mode
-    # parse arguments, do error checking
-    use integer;
-    my $sampleFilesDir="";
-    my $mode = $ARGV[0];
-    if(defined($mode) and $mode eq "bluemix") {
-        $sampleFilesDir="getThisToolkitDir()+\"/etc/\"+";
-    }
-%>
+
 
 /**
  * This main composite demonstrates the use of Linear Classification algorithm from the Python sklearn module.
@@ -38,7 +30,7 @@ public composite Main {
 		/** Data inlet for the training data */
 		stream<rstring fname> TrainingFileNamesStream as O = DirectoryScan() {
 			param
-				directory : <%=$sampleFilesDir%>".";
+				directory : getThisToolkitDir()+"/etc/"+".";
 				pattern : "training.*";
 		}
 		stream<rstring corpus, rstring classes> TrainigStream0 as O = FileSource(TrainingFileNamesStream) {}
@@ -46,7 +38,7 @@ public composite Main {
 		/** Data inlet for the production tuples */
 		stream<rstring ln> SourceStream = FileSource() { 
 			param
-				file: <%=$sampleFilesDir%>"in.txt"; 
+				file: getThisToolkitDir()+"/etc/"+"in.txt"; 
 				format: line;
 		}
 		

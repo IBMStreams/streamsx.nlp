@@ -46,5 +46,6 @@ standalone:
 clean: 
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
 	rm -rf output
+	rm -rf impl
 	rm -rf bin
 	rm -f data/out*
