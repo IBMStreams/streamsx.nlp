@@ -4,7 +4,7 @@
 !/.settings/project.sploptions
 /.externalToolBuilders/
 /mysamples/LinearClassification/
-/impl/nl/
+/impl/
 .__splpy/
 __pycache__
 info.xml

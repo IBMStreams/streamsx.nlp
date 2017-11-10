@@ -24,4 +24,5 @@ clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
 	rm -rf output
 	rm -rf bin
+	rm -rf impl
 

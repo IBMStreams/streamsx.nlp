@@ -83,6 +83,7 @@ clean: clean-doc
 	cd impl/src/; make -f Makefile.libtextutils clean
 	cd impl/java/; make clean
 	rm -f .toolkitList
+	rm -rf output
 
 make-doc: toolkit.xml
 	spl-make-doc -i . --include-composite-operator-diagram

@@ -51,6 +51,7 @@ clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE_MODEL_BUILDER)
 	rm -rf output
+	rm -rf impl
 	rm -rf bin
 	rm -f data/out*
 	rm -f data/model_KB/d_lemms.json
