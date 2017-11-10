@@ -114,7 +114,8 @@ sub getFirstAnnoType($) {
 
 sub generateComposite($$$) {
 
-    my ($compositeName, $pearFile, $annoType) = @_;    
+    my ($compositeName, $pearFile, $annoType) = @_;
+    $pearFile = basename($pearFile);
     my $prolog=<<END;
 composite $compositeName
 {
