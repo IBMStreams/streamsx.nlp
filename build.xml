@@ -23,6 +23,11 @@
         <arg value="Makefile" />
         <arg value="all" />
      </exec>
+     <exec executable="make" failonerror="true" dir="${toolkit}">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="make-doc" />
+     </exec>
   </target>
 
   <target name="clean"
@@ -34,6 +39,11 @@
         <arg value="-f" />
         <arg value="Makefile" />
         <arg value="clean" />
+     </exec>
+     <exec executable="make" failonerror="false" dir="${toolkit}">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="clean-doc" />
      </exec>
      <exec executable="make" failonerror="false" dir="${samples}">
         <arg value="-f" />
