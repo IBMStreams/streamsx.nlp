@@ -36,3 +36,5 @@ StreamsLogs*.tgz
 *.pyc
 
 /.project
+
+/tmp/
