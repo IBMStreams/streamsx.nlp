@@ -45,4 +45,6 @@ mysamples/LinearClassification/LinearClassification.xml: opt/python/streams/mysa
 	python $(STREAMS_TOPOLOGY_TOOLKIT)/bin/spl-python-extract.py -i .
 
 
+prepare: mysamples/LinearClassification/LinearClassification.xml
+	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .
 
