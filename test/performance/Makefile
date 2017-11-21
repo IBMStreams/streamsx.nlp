@@ -73,7 +73,10 @@ uima:
 
 clean: clean-ruta clean-aql clean-uima
 	rm -rf output
+	rm -rf doc
 	rm -rf bin
+	rm -f data/*.out
+	rm -f .toolkitList
 
 clean-aql: 
 	$(SPLC) $(SPLC_FLAGS) -C -M $(AQL_SPL_MAIN_COMPOSITE)

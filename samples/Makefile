@@ -11,13 +11,9 @@ $(info )
 
 all:
 	for x in $(DIRS); do echo -e "\n######## make sample $$x ########"; cd $$x; make all; cd -; done
-	cd cloud/RutaTextCloudSample; make all
-	cd python/LinearClassificationSplPy; make all
 
 clean: clean-doc
 	for x in $(DIRS); do cd $$x; make clean; cd -; done
-	cd cloud/RutaTextCloudSample; make clean
-	cd python/LinearClassificationSplPy; make clean
 
 make-doc:
 	cd UimaTextGenerated; make gentypes
@@ -25,5 +21,4 @@ make-doc:
 
 clean-doc:
 	for x in $(DIRS); do cd $$x; rm -rf doc; cd -; done
-	cd python/LinearClassificationSplPy; rm -rf doc
-	cd cloud/RutaTextCloudSample; rm -rf doc
+
