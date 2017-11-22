@@ -151,9 +151,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	 */
 	protected File dataDir = null;
 	/**
-	 * The etc directory of the application
+	 * The base directory of the application
 	 */	
-	protected File etcDir = null;
+	protected File baseDir = null;
 	
 	// UIMA objects
 	protected AnalysisEngine ae = null;
@@ -502,7 +502,17 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		// Must call super.initialize(context) to correctly setup an operator.
 		super.initialize(context);
 		trace.info("Operator " + context.getName() + " initializing in PE: " + context.getPE().getPEId() + " in Job: " + context.getPE().getJobId() );
-		etcDir = new File(context.getPE().getApplicationDirectory().toString() + File.separator + "etc");
+		
+		trace.debug("pearFile: " + pearFileParam);
+		baseDir = context.getPE().getApplicationDirectory();
+		if (true == new File(baseDir + File.separator + "etc" + File.separator + pearFileParam).isFile()) {
+			// compatibility:
+			// in earlier versions it was sufficient to apply the filename only,
+			// if the PEAR file is located in applications etc dir.
+			trace.debug("pearFile base is ApplicationDirectory/etc");
+			baseDir = new File(baseDir + File.separator + "etc");
+		}
+		
 		try {
 			dataDir = context.getPE().getDataDirectory();
 		} catch (Exception e) {
@@ -512,10 +522,10 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		// pear files are installed in data directory
 		installDir = new File(dataDir + File.separator + new File("installedPears") + context.getName());
 		if (null != pearFileParam) {
-			setPearFilename(etcDir, pearFileParam);
+			setPearFilename(baseDir, pearFileParam);
 			installPearFile();
 			if (controlPortDefined) {
-				initialPearFile = new File(makeAbsolute(etcDir, pearFileParam));
+				initialPearFile = new File(makeAbsolute(baseDir, pearFileParam));
 			}
 		}
 		if (viewParam != null) {
