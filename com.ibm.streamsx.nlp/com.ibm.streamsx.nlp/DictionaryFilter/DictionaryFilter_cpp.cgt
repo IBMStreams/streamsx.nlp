@@ -95,8 +95,7 @@ std::string MY_OPERATOR::makeAbsolute(const std::string & fileName)
 	<%} else {%>
 	if (!file.is_absolute()) {
 	<%}%>
-		// getDataDirectory will throw an exception if there is no data directory
-		file = getPE().getDataDirectory();
+		file = getPE().getApplicationDirectory();
 		file /= fileName;
 	}
 	return file.string();

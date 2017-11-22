@@ -37,7 +37,7 @@ composite DictionaryFilterSample
 
 		(stream<I> TextFiltered) as StopWordRemover = DictionaryFilter(TextStream as I/*; CommandStream*/){
 			param
-				dictionaryFile: "stopwords.txt";
+				dictionaryFile: "etc/stopwords.txt";
 				textAttribute: text;
 			      //commandAttribute: cmd;
 			      //wordAttribute: word;
