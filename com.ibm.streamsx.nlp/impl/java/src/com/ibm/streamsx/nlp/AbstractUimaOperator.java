@@ -182,7 +182,7 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	private static final String PARAMETER_NAME_OUTPUT_VIEWS = "outputViews";
 	private static final String PARAMETER_NAME_OUTPUT_TYPES = "outputTypes";
 	
-	@Parameter(name=PARAMETER_NAME_PEARFILE, description="This parameter specifies the PEAR file to be installed.", optional=false)
+	@Parameter(name=PARAMETER_NAME_PEARFILE, description="This parameter specifies the PEAR file to be installed. The file should be stored in etc directory and can be specified using absolute paths or relative paths. If relative paths, then the PEAR file is relative to the root of the application directory.", optional=false)
 	public void setPearFile(String pearFile) {
 		this.pearFileParam = pearFile;
 	}
