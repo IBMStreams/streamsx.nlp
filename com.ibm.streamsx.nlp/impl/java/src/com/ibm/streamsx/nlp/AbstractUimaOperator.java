@@ -503,7 +503,12 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		super.initialize(context);
 		trace.info("Operator " + context.getName() + " initializing in PE: " + context.getPE().getPEId() + " in Job: " + context.getPE().getJobId() );
 		etcDir = new File(context.getPE().getApplicationDirectory().toString() + File.separator + "etc");
-		dataDir = context.getPE().getDataDirectory();
+		try {
+			dataDir = context.getPE().getDataDirectory();
+		} catch (Exception e) {
+			trace.warn("Unable to get the data directory. Install PEAR file in /tmp ...");
+			dataDir = new File("/tmp");
+		}
 		// pear files are installed in data directory
 		installDir = new File(dataDir + File.separator + new File("installedPears") + context.getName());
 		if (null != pearFileParam) {
