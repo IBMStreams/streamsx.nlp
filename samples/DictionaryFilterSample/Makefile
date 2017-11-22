@@ -9,7 +9,7 @@ STREAMSX_NLP_TOOLKIT ?= ../../com.ibm.streamsx.nlp
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
 SPLC_FLAGS = -a -t $(STREAMSX_NLP_TOOLKIT)
-SPL_MAIN_COMPOSITE = nlp.sample::RutaTextSample
+SPL_MAIN_COMPOSITE = nlp.sample::DictionaryFilterSample
 SPL_CMD_ARGS ?=
 
 build: distributed 
@@ -24,4 +24,5 @@ clean:
 	rm -rf output
 	rm -rf bin
 	rm -rf impl
+
 

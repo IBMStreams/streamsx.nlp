@@ -18,6 +18,8 @@ class TestCloud(unittest.TestCase):
         Tester.setup_streaming_analytics(self, force_remote_build=False)
 
     def _add_toolkits(self, topo):
+        tk.add_toolkit(topo, '../../samples/DictionaryFilterSample')
+        tk.add_toolkit(topo, '../../samples/LemmatizerSample')
         tk.add_toolkit(topo, '../../samples/RutaTextSample')
         tk.add_toolkit(topo, '../../samples/LinearClassificationSplPy')
         tk.add_toolkit(topo, '../../com.ibm.streamsx.nlp')
@@ -36,11 +38,18 @@ class TestCloud(unittest.TestCase):
 
         tester.test(self.test_ctxtype, self.test_config)
 
+    def test_dictionary_filter(self):
+        self._build_launch_validate("test_dictionary_filter", "nlp.sample::DictionaryFilterComp", {})
+
+    def test_lemmatizer(self):
+        self._build_launch_validate("test_lemmatizer", "nlp.sample::LemmatizerComp", {})
+
     def test_ruta_text(self):
         self._build_launch_validate("test_ruta_text", "nlp.sample::RutaTextComp", {'loop':1})
 
     def test_linear_classification_py(self):
         self._build_launch_validate("test_linear_classification_py", "nlp.sample::LinearClassificationComp", {})
+
 
 
 

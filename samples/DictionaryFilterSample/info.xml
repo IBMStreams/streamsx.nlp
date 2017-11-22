@@ -25,8 +25,8 @@
 <info:toolkitInfoModel xmlns:common="http://www.ibm.com/xmlns/prod/streams/spl/common"
  xmlns:info="http://www.ibm.com/xmlns/prod/streams/spl/toolkitInfo">
  <info:identity>
-   <info:name>RutaTextSample</info:name>
-   <info:description>Sample demonstrating the RutaText operator (IBM Cloud ready)</info:description>
+   <info:name>DictionaryFilterSample</info:name>
+   <info:description>Sample demonstrating the DictionaryFilter operator</info:description>
    <info:version>2.0.0</info:version>
    <info:requiredProductVersion>4.2.0</info:requiredProductVersion>
  </info:identity>
