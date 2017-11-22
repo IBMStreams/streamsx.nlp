@@ -11,14 +11,13 @@ SPLC = $(STREAMS_INSTALL)/bin/sc
 SPLC_FLAGS = -a -t $(STREAMSX_NLP_TOOLKIT)
 SPL_MAIN_COMPOSITE = nlp.sample::RutaTextSample
 SPL_CMD_ARGS ?=
-SPL_DATA_DIR = /tmp
 
 build: distributed 
 
 all: clean build
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(SPL_MAIN_COMPOSITE) $(SPL_CMD_ARGS)
 
 clean: 
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
