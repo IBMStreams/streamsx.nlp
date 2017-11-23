@@ -19,10 +19,13 @@ class TestCloud(unittest.TestCase):
 
     def _add_toolkits(self, topo):
         tk.add_toolkit(topo, '../../samples/DictionaryFilterSample')
+        tk.add_toolkit(topo, '../../samples/FunctionsSample')
         tk.add_toolkit(topo, '../../samples/LemmatizerSample')
-        tk.add_toolkit(topo, '../../samples/RutaTextSample')
         tk.add_toolkit(topo, '../../samples/LinearClassificationSample')
         tk.add_toolkit(topo, '../../samples/LinearClassificationSplPy')
+        tk.add_toolkit(topo, '../../samples/NgramBasicSample')
+        tk.add_toolkit(topo, '../../samples/NgramSample')
+        tk.add_toolkit(topo, '../../samples/RutaTextSample')
         tk.add_toolkit(topo, '../../com.ibm.streamsx.nlp')
 
     def _build_launch_validate(self, name, composite_name, parameters):
@@ -42,17 +45,26 @@ class TestCloud(unittest.TestCase):
     def test_dictionary_filter(self):
         self._build_launch_validate("test_dictionary_filter", "nlp.sample::DictionaryFilterComp", {})
 
+    def test_functions(self):
+        self._build_launch_validate("test_functions", "nlp.sample::FunctionsComp", {})
+
     def test_lemmatizer(self):
         self._build_launch_validate("test_lemmatizer", "nlp.sample::LemmatizerComp", {})
-
-    def test_ruta_text(self):
-        self._build_launch_validate("test_ruta_text", "nlp.sample::RutaTextComp", {'loop':1})
 
     def test_linear_classification(self):
         self._build_launch_validate("test_linear_classification", "nlp.sample::LinearClassificationComp", {'pythonCommand':'$PYTHONHOME/bin/python3'})
 
     def test_linear_classification_py(self):
         self._build_launch_validate("test_linear_classification_py", "nlp.sample::LinearClassificationPyComp", {})
+
+    def test_ngram_basic(self):
+        self._build_launch_validate("test_ngram_basic", "nlp.sample::NgramBasicComp", {})
+
+    def test_ngram(self):
+        self._build_launch_validate("test_ngram", "nlp.sample::NgramComp", {})
+
+    def test_ruta_text(self):
+        self._build_launch_validate("test_ruta_text", "nlp.sample::RutaTextComp", {'loop':1})
 
 
 

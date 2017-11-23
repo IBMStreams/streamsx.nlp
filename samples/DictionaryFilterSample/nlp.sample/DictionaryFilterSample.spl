@@ -9,8 +9,7 @@ use com.ibm.streamsx.nlp::*;
 /**
  * Sample main composite
  */
-composite DictionaryFilterSample
-{
+composite DictionaryFilterSample {
 	graph
 	
 		stream<rstring result> DictionaryFilterResult = DictionaryFilterComp() {
@@ -56,14 +55,16 @@ public composite DictionaryFilterComp (output ResultStream) {
 		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(TextFiltered as I){
 			logic state: {
 				mutable boolean resultSent = false;
+				mutable int32 tuplesReceived = 0;
 			}
 			onTuple I : {
 				printStringLn((rstring)I);
+				tuplesReceived++;
 			}
 			onPunct I: {
 				if (currentPunct() == Sys.WindowMarker) {
 					if (!resultSent) {
-						submit ({result="ok"}, O);
+						submit ({result=((tuplesReceived > 0) ? "ok" : "fail")}, O);
 						resultSent = true;
 					}
 				}

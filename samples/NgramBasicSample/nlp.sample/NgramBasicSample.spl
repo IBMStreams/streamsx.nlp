@@ -1,0 +1,72 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace nlp.sample;
+
+use com.ibm.streamsx.nlp::*;
+
+/**
+ * Sample main composite
+ */
+composite NgramBasicSample {
+	graph
+	
+		stream<rstring result> NgramBasicResult = NgramBasicComp() {
+		}	
+}
+
+/**
+ * NgramBasicComp is used in NgramBasicSample and in unit test Main composite.
+ */
+public composite NgramBasicComp (output ResultStream) {
+
+	graph 
+
+		// Simple data generator sending one small document for N-gram processing
+		(stream<rstring document> DocumentStream as O) as DataGen = Custom() {
+			logic
+				onProcess: {
+					mutable DocumentStream otuple = {};
+					otuple.document = "The cow jumps over the moon";
+					submit (otuple, O);
+
+					otuple.document = "aa xxx bb xxx cc xxx xxx bb";
+					submit (otuple, O);
+					
+					// end of demo
+					submit(Sys.WindowMarker, O);
+				}
+		}
+		
+		(stream<map<rstring, uint32> ngramMap> NgramCountStream as O) as NgramCount = NgramBasic(DocumentStream as I) {
+			param
+				documentAttribute: "document";
+				size: 3u;
+				minSize: 1u;
+			output O: ngramMap = NgramCount();
+		}
+
+		/**
+		 * This is a simple helper to print the results to the console.
+		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+		 */
+		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(NgramCountStream as I){
+			logic state: {
+				mutable boolean resultSent = false;
+				mutable int32 tuplesReceived = 0;
+			}
+			onTuple I : {
+				printStringLn((rstring)I);
+				tuplesReceived++;
+			}
+			onPunct I: {
+				if (currentPunct() == Sys.WindowMarker) {
+					if (!resultSent) {
+						submit ({result=((tuplesReceived > 0) ? "ok" : "fail")}, O);
+						resultSent = true;
+					}
+				}
+			}			
+		}
+}

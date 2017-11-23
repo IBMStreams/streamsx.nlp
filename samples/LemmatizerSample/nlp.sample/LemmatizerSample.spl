@@ -47,14 +47,16 @@ public composite LemmatizerComp(output ResultStream) {
 		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(TextNormalized as I) {
 			logic state: {
 				mutable boolean resultSent = false;
+				mutable int32 tuplesReceived = 0;
 			}
 			onTuple I : {
 				printStringLn((rstring)I);
+				tuplesReceived++;
 			}
 			onPunct I: {
 				if (currentPunct() == Sys.WindowMarker) {
 					if (!resultSent) {
-						submit ({result="ok"}, O);
+						submit ({result=((tuplesReceived > 0) ? "ok" : "fail")}, O);
 						resultSent = true;
 					}
 				}
