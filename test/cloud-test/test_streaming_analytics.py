@@ -21,6 +21,7 @@ class TestCloud(unittest.TestCase):
         tk.add_toolkit(topo, '../../samples/DictionaryFilterSample')
         tk.add_toolkit(topo, '../../samples/LemmatizerSample')
         tk.add_toolkit(topo, '../../samples/RutaTextSample')
+        tk.add_toolkit(topo, '../../samples/LinearClassificationSample')
         tk.add_toolkit(topo, '../../samples/LinearClassificationSplPy')
         tk.add_toolkit(topo, '../../com.ibm.streamsx.nlp')
 
@@ -47,8 +48,11 @@ class TestCloud(unittest.TestCase):
     def test_ruta_text(self):
         self._build_launch_validate("test_ruta_text", "nlp.sample::RutaTextComp", {'loop':1})
 
+    def test_linear_classification(self):
+        self._build_launch_validate("test_linear_classification", "nlp.sample::LinearClassificationComp", {'pythonCommand':'$PYTHONHOME/bin/python3'})
+
     def test_linear_classification_py(self):
-        self._build_launch_validate("test_linear_classification_py", "nlp.sample::LinearClassificationComp", {})
+        self._build_launch_validate("test_linear_classification_py", "nlp.sample::LinearClassificationPyComp", {})
 
 
 

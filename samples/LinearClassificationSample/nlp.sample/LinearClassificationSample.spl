@@ -1,0 +1,105 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace nlp.sample;
+
+use com.ibm.streamsx.nlp::*;
+
+@threading(model=manual)
+composite LinearClassificationSample {
+	param
+		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+
+	graph
+	
+		stream<rstring result> LCResult = LinearClassificationComp() {
+			param
+				pythonCommand: $pythonCommand;
+			config placement: partitionColocation("LC");				
+		}		
+}
+
+/**
+ * LinearClassificationComp is used in LinearClassificationSample and in unit test Main composite.
+ */
+@threading(model=manual)
+public composite LinearClassificationComp(output ResultStream) {
+	
+	param
+		expression<rstring> $pythonCommand;
+		expression<rstring> $inputFile: getThisToolkitDir()+"/opt/in.txt";
+		expression<rstring> $trainingFile: getThisToolkitDir()+"/opt/training.csv";
+		expression<rstring> $modelFilesDirectory: "/tmp";
+	
+	
+	type outputSchema = tuple<
+		com.ibm.streamsx.nlp::LinearClassification.resultType, // required by the LinearClassification operator
+		tuple <rstring ln> // optional attributes, forwarded by the LinearClassification operator
+	>;
+
+	graph
+
+		(stream<rstring result> MBResult) as MB = LinearClassificationModelBuilder2() {
+			param 
+				trainingFile: $trainingFile;
+				modelFilesDirectory: $modelFilesDirectory;
+				pythonCommand: $pythonCommand;
+		}
+		
+		stream<rstring filename> StartTrigger as O= Custom(MBResult as I) {
+			logic state: {
+				mutable boolean triggerSent = false;
+			}
+			onPunct I: {
+				if (currentPunct() == Sys.WindowMarker) {
+					if (!triggerSent) {
+						block(5.0);
+						submit ({filename=$inputFile}, O);
+						triggerSent = true;
+					}
+				}
+			}			
+		}		
+
+		// An spl.adapter::FileSource operator reads some sample text from a file and sends it as a stream of rstring tuples, one tuple
+		// for each line in the input file.
+		stream<rstring ln> Src = FileSource(StartTrigger) { 
+			param
+				format: line;
+		}
+
+		// The stdout stream from the grep command is sent on the operator's first output port; the stderr stream is sent on the 
+		// second output port.
+		stream<outputSchema> OutStream = LinearClassification(Src) {
+			param 
+				modelFilesDirectory: $modelFilesDirectory;
+				documentAttribute: ln;
+				outStreamType: outputSchema;
+				pythonCommand: $pythonCommand;
+				initOnFirstTuple: true;
+		}
+
+		/**
+		 * This is a simple helper to print the results to the console.
+		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+		 */
+		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(OutStream as I) {
+			logic state: {
+				mutable boolean resultSent = false;
+				mutable int32 tuplesReceived = 0;
+			}
+			onTuple I : {
+				printStringLn((rstring)I);
+				tuplesReceived++;
+				if (tuplesReceived > 5) {
+					if (!resultSent) {
+						submit ({result="ok"}, O);
+						resultSent = true;
+					}
+				}
+			}
+		}
+		
+		config placement: partitionColocation("LC");
+}

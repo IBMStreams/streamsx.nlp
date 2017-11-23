@@ -26,11 +26,11 @@ use mysamples::*;
 public composite LinearClassificationPythonSample {
 	graph
 
-		stream<rstring result> SampleResult = LinearClassificationComp() {
+		stream<rstring result> SampleResult = LinearClassificationPyComp() {
 		}
 }
 
-public composite LinearClassificationComp (output ResultStream) {
+public composite LinearClassificationPyComp (output ResultStream) {
 	param
 		expression<rstring> $verbose : getSubmissionTimeValue("verbose", "");
 
