@@ -1,4 +1,0 @@
-### Add the following environment variables
-### to appropriate existing environment variables
-### to run the getNames2 component
-

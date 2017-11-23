@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<pearSpecifier xmlns="http://uima.apache.org/resourceSpecifier">
-    <pearPath>/mnt/hgfs/share/git-public/streamsx.nlp/test/performance/data/installedPearsTestRuta.NamesList.NamesList/getNames2</pearPath>
-</pearSpecifier>
