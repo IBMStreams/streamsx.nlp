@@ -8,10 +8,10 @@
 STREAMSX_NLP_TOOLKIT ?= ../../../com.ibm.streamsx.nlp
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
-SPLC_FLAGS ?= -a  
+SPLC_FLAGS = -a -t $(STREAMSX_NLP_TOOLKIT)
 SPL_MAIN_COMPOSITE = LemmatizerMemTest
 SPL_DATA_DIR = ./data
-SPL_CMD_ARGS ?= -t $(STREAMSX_NLP_TOOLKIT)
+SPL_CMD_ARGS ?= 
 
 ### determine 'streamtool'
 ifneq ($(realpath $(STREAMS_INSTALL)),)

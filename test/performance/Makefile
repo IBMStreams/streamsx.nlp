@@ -24,7 +24,7 @@
 .PHONY: build all clean ruta aql uima
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
-SPLC_FLAGS ?= -a  
+SPLC_FLAGS = -a  
 SPL_DATA_DIR = ./data
 SPL_CMD_ARGS ?= 
 AQL_SPL_MAIN_COMPOSITE=aql::Main
