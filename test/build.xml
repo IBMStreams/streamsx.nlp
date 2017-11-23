@@ -6,6 +6,8 @@
     <property name="performance" location="performance" />
 
     <target name="clean" depends="cleantemp,cleantestprojects">
+       <ant dir="cloud-test" target="clean">
+       </ant>
     </target>
 
     <target name="cleantemp">

@@ -50,6 +50,8 @@
         <arg value="Makefile" />
         <arg value="clean" />
      </exec>
+     <ant dir="test" target="clean">
+     </ant>
   </target>
 
   
