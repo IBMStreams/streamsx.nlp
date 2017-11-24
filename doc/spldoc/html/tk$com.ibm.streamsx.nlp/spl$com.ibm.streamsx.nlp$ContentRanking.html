@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.3.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; ContentRanking.spl</p>
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.4.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; ContentRanking.spl</p>
 
 </div>
 
@@ -79,6 +79,9 @@
 <p class="p">This operator uses a previously trained model in order to find out the most likely intend of a text.
 </p>
 
+<p class="p">The ContentRanking operator should be used in a Streams release where SPL Python primitive support is not provided (e.g. Streams 3.2). It uses a <strong class="ph b">ShellPipe</strong> operator to invoke Python scripts. When using a Streams release 4.2 or later, it is recommended to create a <em class="ph i">SPL Python primitive operator</em> to invoke Python classes or functions.
+</p>
+
 </div>
 
 <div class="section"><h2 class="title sectiontitle">Parameters</h2>
@@ -105,7 +108,10 @@
 <li class="sli"><strong class="ph b">documentAttribute</strong>: The attribute used for the content ranking. 
 </li>
 
-<li class="sli"><strong class="ph b">outStreamType</strong>: The OutStream (output port 0) schema of this operator. The schema must contain the schema defined by the resultType.
+<li class="sli"><strong class="ph b">outStreamType</strong>: The OutStream (output port 0) schema of this operator. The schema must contain the schema defined by the resultType. 
+</li>
+
+<li class="sli"><strong class="ph b">initOnFirstTuple</strong>: The script is called on operator startup. If this parameter is set to true, then the script is called on first tuple.
 </li>
 
 </ul>
@@ -147,133 +153,6 @@
      </dl>
 
    </div>
-
-<div class="section"><h2 class="title sectiontitle splhead-2">SPL Source Code</h2>
-  
-</div>
-
-
-<div class="section">
-   <pre class="pre codeblock">
-
- public composite ContentRanking (
- 	input InStream;
- 	output OutStream // must contain resultType
- ) {
- 	param
- 		expression&lt;rstring&gt; $pythonCommand: "python"; // Content ranking scripts need python 2.7 or above!
- 		expression&lt;rstring&gt; $pythonScript: getToolkitPath()+"/etc/python/ContentRanking.py";
- 		expression&lt;rstring&gt; $modelFile;
- 		expression&lt;rstring&gt; $kbIndexFile;
- 		expression&lt;rstring&gt; $dictLemmasFile;
- 		expression&lt;rstring&gt; $kbNamesFile;
- 		attribute $documentAttribute;
- 		type $outStreamType;
- 
- 	/**
- 	 * OutStream must contain the resultType schema
- 	 */
- 	type static resultType = tuple&lt;
- 		list&lt;rstring&gt; articleIDs
- 	&gt;;
- 
- 	graph
- 	
- 		stream&lt;I&gt; GatedInput = Gate(InStream as I; Ack) {
- 			param
- 				maxUnackedTupleCount: 1u;
- 		}
- 
- 		// The stdout stream from the command is sent on the operator's first output port.
- 		stream&lt;tuple&lt;rstring crPythonScriptOutput&gt;, I&gt; PredictionsShell= ShellPipe(GatedInput as I) { 
- 			param
- 				command: $pythonCommand + " -u " + $pythonScript + " " + $modelFile + " " + $kbIndexFile + " " +  $dictLemmasFile;
- 				stdinAttribute: $documentAttribute;
- 				stdoutAttribute: "crPythonScriptOutput";
- 		}
- 
- 		(
- 		stream&lt;I&gt; Predictions as O;
- 		stream&lt;boolean ack&gt; Ack
- 		) = Custom(PredictionsShell as I) {
- 			logic
- 				state :{
- 					mutable Ack ackTuple = {};
- 				}
- 				onTuple I : {
- 					submit (ackTuple, Ack);
- 					submit (I, O);
- 				}
- 		}
- 
- 		stream&lt;tuple&lt;list&lt;int64&gt; predictionIndexes&gt;, I&gt; IndexStream as O = Custom(Predictions as I) {
- 			logic
- 				onTuple I : {
- 					int32 s = length(I.crPythonScriptOutput);
- 					// output of python script is a list of indexes (integers), separated by semicolon, starting with R char
- 					if ((s &gt; 1) &amp;&amp; (I.crPythonScriptOutput[0] == "R")) {
- 						rstring idxStr = spl.string::ltrim(I.crPythonScriptOutput, "R;");
- 						mutable O otuple = {};
- 						assignFrom(otuple, I);
- 						mutable list&lt;rstring&gt; indexList = tokenize(idxStr, ";", true); // ignore empty
- 						for (rstring idx in indexList) {
- 							mutable int32 numchars = 0;
- 							int64 r = strtoll(idx, 10, numchars);
- 							int32 stringLen = spl.string::length(idx);
- 							if ((stringLen == 0) || (stringLen != numchars)) {
- 								appTrc(Trace.error, "Invalid number conversation:" + idx);
- 							} else {
- 								spl.collection::appendM(otuple.predictionIndexes, r);
- 							}
- 						}
- 						submit(otuple, O);
- 					}
- 				}
- 		}
- 
- 		(stream&lt;$outStreamType&gt; OutStream as O) as LookupKBArticle = Custom(IndexStream as I; NamesStream as N) {
- 			logic
- 				state: {
- 					mutable list&lt;rstring&gt; namesList;
- 					mutable int64 numArticles = 0l;
- 				}
- 				onTuple I: {
- 					mutable O otuple = {};
- 					assignFrom(otuple, I);
- 					for (int64 index in I.predictionIndexes) {
- 						if ((index &gt;= 0l) &amp;&amp; (index &lt; numArticles)) {
- 							spl.collection::appendM(otuple.articleIDs, namesList[index]);
- 						} else {
- 							appTrc(Trace.error, "Invalid index received from ContentRanking: " + (rstring)index, "texttoolkit");
- 						}
- 					}
- 					submit(otuple, O);
- 				}
- 				onTuple N: {
- 					createCustomMetric("nArticles", "The number of articles in the knowledge base", Sys.Counter, 0l);
- 					// file has one line, names are separated by space 
- 					namesList = tokenize(N.names," ",false);
- 					numArticles = (int64)spl.collection::size(namesList);
- 					// update the metric value
- 					setCustomMetricValue("nArticles", numArticles);
- 				}
- 				onPunct I: {
- 					if (currentPunct() == Sys.WindowMarker) {
- 						submit(Sys.WindowMarker, O);
- 					}
- 				}
- 		}
- 		
- 		stream&lt;rstring names&gt; NamesStream = FileSource() {
- 			param
- 				file : $kbNamesFile;
- 				format: line;
- 		}
- }
-
-   </pre>
-
-</div>
 
 </div>
 

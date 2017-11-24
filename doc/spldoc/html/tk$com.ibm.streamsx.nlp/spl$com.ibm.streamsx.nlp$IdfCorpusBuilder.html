@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.3.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; IdfCorpusBuilder.spl</p>
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.4.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; IdfCorpusBuilder.spl</p>
 
 </div>
 
@@ -122,77 +122,6 @@
      </dl>
 
    </div>
-
-<div class="section"><h2 class="title sectiontitle splhead-2">SPL Source Code</h2>
-  
-</div>
-
-
-<div class="section">
-   <pre class="pre codeblock">
-
- public composite IdfCorpusBuilder
- (
- 	input
- 		stream&lt;IdfCorpusType&gt; TermsStream
- ) {
- 	param
- 		expression&lt;rstring&gt; $corpusFile;
- 
- 	type
- 		/**
- 		 * list of terms of one document to build the corpus
- 		 */
- 		static IdfCorpusType = tuple&lt;
- 			list&lt;rstring&gt; terms
- 		&gt;;
- 
- 	graph 
- 	
- 		(stream&lt;rstring data&gt; CorpusData as O) as CorpusBuilder = Custom(TermsStream as I) {
- 			logic
- 				state: {
- 					mutable map&lt;rstring, uint64&gt; termsMap;
- 					mutable uint64 numDocs = 0ul;
- 				}
- 				onTuple I: {
- 					numDocs++;
- 
- 					for (rstring term in I.terms) {
- 						if (term in termsMap) {
- 							termsMap[term]++;
- 						}
- 						else {
- 							termsMap[term] = 1ul;
- 						}
- 					}
- 				}
- 				onPunct I: {
- 					if (currentPunct() == Sys.WindowMarker) {
- 						// end of training
- 						submit ({data=(rstring)numDocs}, O);
- 						for (rstring term in termsMap) {
- 							submit ({data=term+":"+(rstring) termsMap[term]}, O);
- 						}
- 						submit(Sys.WindowMarker, O);
- 					}
- 				}
- 		}
- 		
- 
-  		() as CorpusFileWriter = FileSink(CorpusData) {
-  			param                        
- 				file:  $corpusFile;
- 				format: csv;
- 				flushOnPunctuation: true;
- 				quoteStrings: false;
- 		}
- 
- }
-
-   </pre>
-
-</div>
 
 </div>
 
