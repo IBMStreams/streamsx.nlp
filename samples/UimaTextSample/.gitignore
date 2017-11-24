@@ -1,0 +1,8 @@
+/.apt_generated/
+/.classpath
+/output/
+/.toolkitList
+/toolkit.xml
+/scenario.pyc
+/doc/
+/impl/

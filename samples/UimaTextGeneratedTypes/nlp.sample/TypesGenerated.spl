@@ -1,0 +1,71 @@
+namespace nlp.sample;
+
+
+// ------------------------------------------------------------
+//	component file: desc/aeDescriptor.xml
+// ------------------------------------------------------------
+	
+
+type com_ibm_example_KeyPhrase_type = 
+	tuple <
+		uima_tcas_Annotation_type,
+		
+		tuple <
+		 rstring Category,
+		 int32 CategoryID,
+		 boolean test_bool,
+		 int16 test_short,
+		 int64 test_long,
+		 int8 test_byte,
+		 float64 test_double,
+		 float32 test_float,
+		 list<rstring> test_emptyStringList,
+		 list<rstring> test_nonEmptyStringList,
+		 list<rstring> test_stringArray,
+		 list<boolean> test_booleanArray,
+		 list<int8> test_byteArray,
+		 list<float64> test_doubleArray,
+		 list<float32> test_floatArray,
+		 list<int32> test_integerArray,
+		 list<int16> test_shortArray,
+		 list<int64> test_longArray,
+		 list<float32> test_floatList,
+		 list<int32> test_integerList,
+		 list<rstring> test_stringList,
+		 list<float32> test_nonEmptyFloatList,
+		 list<int32> test_nonEmptyIntegerList,
+		 boolean protectreserved_graph
+	    > 
+		
+    > ;
+
+
+// ------------------------------------------------------------
+// basic type definitions
+// ------------------------------------------------------------
+	
+
+type uima_tcas_Annotation_type = 
+	tuple <
+		
+		tuple <
+		 rstring typeDescription,
+		 rstring text,
+		 int32 begin,
+		 int32 end
+	    > 
+		
+    > ;
+
+
+type uima_cas_TOP_type = 
+	tuple <
+		
+		tuple <
+		 rstring typeDescription,
+		 rstring text,
+		 int32 begin,
+		 int32 end
+	    > 
+		
+    > ;
