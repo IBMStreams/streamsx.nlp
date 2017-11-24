@@ -24,7 +24,7 @@ composite TfIdfSample
 		}
 
 		(stream<list<com.ibm.streamsx.nlp::TfIdfType> tfidfList, list<com.ibm.streamsx.nlp::TfIdfType> topList> TfIdfStream as O) as TFIDF = TfIdfWeight(DocumentStream as I) {
-			param corpusFile: "out_tfidf_corpus.txt";
+			param corpusFile: dataDirectory() + "/out_tfidf_corpus.txt";
 			      documentAttribute: "terms";
 			      defaultIDF: 0.1;
 			output O: tfidfList = WeightedTerms();

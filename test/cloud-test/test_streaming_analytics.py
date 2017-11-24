@@ -26,6 +26,8 @@ class TestCloud(unittest.TestCase):
         tk.add_toolkit(topo, '../../samples/NgramBasicSample')
         tk.add_toolkit(topo, '../../samples/NgramSample')
         tk.add_toolkit(topo, '../../samples/RutaTextSample')
+        tk.add_toolkit(topo, '../../samples/TfIdfSample')
+
         tk.add_toolkit(topo, '../../com.ibm.streamsx.nlp')
 
     def _build_launch_validate(self, name, composite_name, parameters):
@@ -66,7 +68,8 @@ class TestCloud(unittest.TestCase):
     def test_ruta_text(self):
         self._build_launch_validate("test_ruta_text", "nlp.sample::RutaTextComp", {'loop':1})
 
-
+    def test_tfidf(self):
+        self._build_launch_validate("test_tfidf", "nlp.sample::TfIdfComp", {})
 
 
 
