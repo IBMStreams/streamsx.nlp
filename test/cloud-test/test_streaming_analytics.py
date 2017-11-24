@@ -18,6 +18,7 @@ class TestCloud(unittest.TestCase):
         Tester.setup_streaming_analytics(self, force_remote_build=False)
 
     def _add_toolkits(self, topo):
+        tk.add_toolkit(topo, '../../samples/ContentRankingSample')
         tk.add_toolkit(topo, '../../samples/DictionaryFilterSample')
         tk.add_toolkit(topo, '../../samples/FunctionsSample')
         tk.add_toolkit(topo, '../../samples/LemmatizerSample')
@@ -45,6 +46,10 @@ class TestCloud(unittest.TestCase):
         tester.contents(test_op.stream, [{'result':'ok'}] )
 
         tester.test(self.test_ctxtype, self.test_config)
+
+# missing python modules
+#    def test_content_ranking(self):
+#        self._build_launch_validate("test_content_ranking", "nlp.sample::ContentRankingComp", {'pythonCommand':'$PYTHONHOME/bin/python3'})
 
     def test_dictionary_filter(self):
         self._build_launch_validate("test_dictionary_filter", "nlp.sample::DictionaryFilterComp", {})
