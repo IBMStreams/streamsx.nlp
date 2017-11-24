@@ -1,0 +1,65 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+
+namespace nlp.sample;
+
+/**
+ * Sample main composite
+ */
+composite LemmatizerSample
+{
+	graph
+	
+		stream<rstring result> LemmatizerResult = LemmatizerComp() {
+		}	
+}
+
+/**
+ * LemmatizerComp is used in LemmatizerSample and in unit test Main composite.
+ */
+public composite LemmatizerComp(output ResultStream) {
+	
+	graph
+
+ 		stream<rstring text> TextStream = FileSource() {
+			param
+				file : getThisToolkitDir()+"/opt/"+"SourceData.txt";
+				parsing: permissive;
+		}
+
+		(
+		stream<rstring text, rstring normalizedtext, list<com.ibm.streamsx.nlp::WordPosLemmaType> result, list<rstring> lemmas> TextNormalized as O
+		) as Lemmatizer  = com.ibm.streamsx.nlp::Lemmatizer(TextStream) {
+			param
+				textAttribute: text;
+			output O:
+				normalizedtext = NormalizedText(),
+				lemmas = Lemmas(),
+				result = TagWords();
+		}
+
+		/**
+		 * This is a simple helper to print the results to the console.
+		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+		 */
+		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(TextNormalized as I) {
+			logic state: {
+				mutable boolean resultSent = false;
+				mutable int32 tuplesReceived = 0;
+			}
+			onTuple I : {
+				printStringLn((rstring)I);
+				tuplesReceived++;
+			}
+			onPunct I: {
+				if (currentPunct() == Sys.WindowMarker) {
+					if (!resultSent) {
+						submit ({result=((tuplesReceived > 0) ? "ok" : "fail")}, O);
+						resultSent = true;
+					}
+				}
+			}			
+		}
+}

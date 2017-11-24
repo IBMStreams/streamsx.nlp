@@ -1,0 +1,10 @@
+/err.txt
+/out.txt
+/LinearSVC_model.pkl
+/LinearSVC_model.pkl_01.npy
+/LinearSVC_model.pkl_02.npy
+/LinearSVC_model.pkl_03.npy
+/TfidfVectorizer_model.pkl
+/TfidfVectorizer_model.pkl_01.npy
+/TfidfVectorizer_model.pkl_02.npy
+/out2.txt

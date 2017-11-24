@@ -58,7 +58,7 @@ This function generates a list of terms and corresponding TF-IDF value limited t
       <allowAny>false</allowAny>
       <parameter>
         <name>corpusFile</name>
-        <description>Filename of the corpus file read at operator initialization</description>
+        <description>Filename of the corpus file read at operator initialization. If relative path is used, then root is application directory. It is recommended to store the file in etc directory.</description>
         <optional>false</optional>
         <rewriteAllowed>true</rewriteAllowed>
         <expressionMode>Expression</expressionMode>

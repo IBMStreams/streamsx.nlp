@@ -1,0 +1,74 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace nlp.sample;
+
+use com.ibm.streamsx.nlp::*;
+
+/**
+ * Sample main composite
+ */
+composite DictionaryFilterSample {
+	graph
+	
+		stream<rstring result> DictionaryFilterResult = DictionaryFilterComp() {
+		}	
+}
+
+/**
+ * DictionaryFilterComp is used in DictionaryFilterSample and in unit test Main composite.
+ * 
+ * This composite is used as toolkit in the unit test Main composite and 
+ * it is required to set the dictionaryFile parameter with getThisToolkitDir(),
+ * because etc directory is part of this toolkit.
+ * If you would run the DictionaryFilterSample, then the dictionaryFile would be found also in 
+ * application directory of DictionaryFilterSample without the getThisToolkitDir() prefix.
+ */
+public composite DictionaryFilterComp (output ResultStream) {
+	
+	graph 
+
+ 		stream<rstring text> TextStream = FileSource() {
+			param
+				file : getThisToolkitDir()+"/opt/"+"SourceData.txt";
+				parsing : permissive;
+		}
+
+		/*
+		 * This composite is used as toolkit in the unit test Main composite and 
+		 * it is required to set the dictionaryFile parameter with getThisToolkitDir(),
+		 * because etc directory is part of this toolkit.
+		 * If you would run the DictionaryFilterSample, then the dictionaryFile would be found also in 
+		 * application directory of DictionaryFilterSample without the getThisToolkitDir() prefix. 
+		*/
+		(stream<I> TextFiltered) as StopWordRemover = DictionaryFilter(TextStream as I){
+			param
+				dictionaryFile: getThisToolkitDir() + "/etc/stopwords.txt";
+				textAttribute: text;
+		}
+
+		/**
+		 * This is a simple helper to print the results to the console.
+		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+		 */
+		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(TextFiltered as I){
+			logic state: {
+				mutable boolean resultSent = false;
+				mutable int32 tuplesReceived = 0;
+			}
+			onTuple I : {
+				printStringLn((rstring)I);
+				tuplesReceived++;
+			}
+			onPunct I: {
+				if (currentPunct() == Sys.WindowMarker) {
+					if (!resultSent) {
+						submit ({result=((tuplesReceived > 0) ? "ok" : "fail")}, O);
+						resultSent = true;
+					}
+				}
+			}			
+		}
+
+}

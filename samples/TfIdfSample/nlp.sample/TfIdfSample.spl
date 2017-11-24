@@ -1,0 +1,67 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace nlp.sample;
+
+use com.ibm.streamsx.nlp::*;
+
+composite TfIdfSample {
+	
+	graph
+
+		stream<rstring result> TfIdfResult = TfIdfComp() {
+		}
+}
+/**
+ * TfIdfComp is used in TfIdfSample and in unit test Main composite.
+ */
+public composite TfIdfComp (output ResultStream) {
+	
+	graph
+
+		// Simple data generator sending one small document for TFIDF processing
+		(stream<list<rstring> terms> DocumentStream as O) as DataGen = Custom() {
+			logic
+				onProcess:
+				{
+					mutable list<rstring> terms = [];
+					com.ibm.streamsx.nlp.utils::generateNgram(tokenize("I am interested in bees", " ", false), 1u, terms);
+
+					submit({terms=terms}, O);
+					
+					// end of demo
+					submit(Sys.WindowMarker, O);
+				}
+		}
+
+		(stream<list<com.ibm.streamsx.nlp::TfIdfType> tfidfList, list<com.ibm.streamsx.nlp::TfIdfType> topList> TfIdfStream as O) as TFIDF = TfIdfWeight(DocumentStream as I) {
+			param corpusFile: "etc/tfidf_corpus.txt";
+			      documentAttribute: "terms";
+			      defaultIDF: 0.1;
+			output O: tfidfList = WeightedTerms();
+		}
+
+		/**
+		 * This is a simple helper to print the results to the console.
+		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+		 */
+		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(TfIdfStream as I){
+			logic state: {
+				mutable boolean resultSent = false;
+				mutable int32 tuplesReceived = 0;
+			}
+			onTuple I : {
+				printStringLn((rstring)I);
+				tuplesReceived++;
+			}
+			onPunct I: {
+				if (currentPunct() == Sys.WindowMarker) {
+					if (!resultSent) {
+						submit ({result=((tuplesReceived > 0) ? "ok" : "fail")}, O);
+						resultSent = true;
+					}
+				}
+			}			
+		}
+}

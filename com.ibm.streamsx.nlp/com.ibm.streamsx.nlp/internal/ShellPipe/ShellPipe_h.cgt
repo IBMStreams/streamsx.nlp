@@ -9,6 +9,11 @@
 
 <%SPL::CodeGen::headerPrologue($model);%>
 
+<%
+my $initOnFirstTuple		= $model->getParameterByName("initOnFirstTuple");
+$initOnFirstTuple		= $initOnFirstTuple ? $initOnFirstTuple->getValueAt(0)->getSPLExpression() : "false";
+%>
+
 class MY_OPERATOR : public MY_BASE_OPERATOR
 {
 
@@ -34,6 +39,7 @@ private:
   SPL::Mutex drainMutex_;
   SPL::Mutex mutex_;
   com::ibm::streamsx::linuxshell::LinuxShell shell_;
+  <% if($initOnFirstTuple eq "true") { %>bool firstTuple_;<% } %>
 
   // ----------- operator input and output tuples ----------
 

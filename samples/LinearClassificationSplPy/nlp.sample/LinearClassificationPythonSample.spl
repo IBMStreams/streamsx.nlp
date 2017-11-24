@@ -1,0 +1,107 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace nlp.sample;
+
+use mysamples::*;
+
+
+
+/**
+ * This LinearClassificationPythonSample composite demonstrates the use of Linear Classification algorithm from the Python sklearn module.
+ * 
+ * The example requires the 'streams.topology' toolkit at least version v1.5.11.
+ * The recommended Streams version is 4.2.
+ * 
+ * The LinearClassification Operator is defines in python module 'mysamples.py' in directory opt/python/streams.
+ * This sample reads training data from a file 'training.csv' and the data to classify from file 'in.txt'.
+ * When no training is ongoing, the data tuples are passed directly to the LinearClassification Operator.
+ * During the training, data tuples are not transfered to the LinearClassification Operator but they are stored in a queue.
+ * When the training has finished, theses tuples are passed from the queue to the phyton operator.
+ * When a new training file is moved into the data directory  (atomic move), the operator is re-trained.
+ * Classification results are printed.
+ * Submission parameter verbose=True produces diagnostics output.
+ */
+public composite LinearClassificationPythonSample {
+	graph
+
+		stream<rstring result> SampleResult = LinearClassificationPyComp() {
+		}
+}
+
+public composite LinearClassificationPyComp (output ResultStream) {
+	param
+		expression<rstring> $verbose : getSubmissionTimeValue("verbose", "");
+
+	graph
+
+		/** Data inlet for the training data */
+		stream<rstring fname> TrainingFileNamesStream as O = DirectoryScan() {
+			param
+				directory : getThisToolkitDir()+"/etc/"+".";
+				pattern : "training.*";
+		}
+		stream<rstring corpus, rstring classes> TrainigStream0 as O = FileSource(TrainingFileNamesStream) {}
+		
+		/** Data inlet for the production tuples */
+		stream<rstring ln> SourceStream = FileSource() { 
+			param
+				file: getThisToolkitDir()+"/etc/"+"in.txt"; 
+				format: line;
+		}
+		
+		/** Custom operator for the locking of the production tuples during training */
+		stream<rstring training, rstring corpus, rstring classes, rstring ln, rstring end> CombinedStream as O = Custom(TrainigStream0 as T; SourceStream as S) {
+			logic
+				state : {
+					mutable list<rstring> buffer = [];
+					mutable boolean trainingState = true;
+				}
+				onTuple S : {
+					if (trainingState) {
+						appendM(buffer, S.ln);
+					} else {
+						submit({training = "", corpus = "", classes = "", ln = S.ln, end = ""}, O);
+					}
+				}
+				onTuple T : {
+					trainingState = true;
+					submit({training = "True", corpus = T.corpus, classes = T.classes, ln = "", end = ""}, O);
+				}
+				onPunct T : {
+					submit({training = "", corpus = "", classes = "", ln = "", end = "True"}, O);
+					trainingState = false;
+					mutable int32 i = 0;
+					while (i < size(buffer)) {
+						submit({training = "", corpus = "", classes = "", ln = buffer[i], end = ""}, O);
+						i++;
+					}
+					clearM(buffer);
+				}
+		}
+		
+		/** The Python sklearn linear classification */
+		stream<rstring pred, rstring decision, rstring classes, rstring ln> ResultsStream = LinearClassification(CombinedStream as I) {
+			param
+				verbose : $verbose;
+		}
+		
+		() as Printer = Custom(ResultsStream as I) {
+			logic
+				onTuple I : println(I);
+				onPunct I : println(currentPunct());
+		}
+
+		(stream<rstring result> ResultStream as O) as TestResult = Custom(ResultsStream as I){
+			logic state: {
+				mutable boolean resultSent = false;
+			}
+			onTuple I : {
+				if (!resultSent) {
+					submit ({result="ok"}, O);
+					resultSent = true;
+				}
+			}
+		}
+}

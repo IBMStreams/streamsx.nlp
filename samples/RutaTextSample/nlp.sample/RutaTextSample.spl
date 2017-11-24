@@ -1,0 +1,130 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+
+namespace nlp.sample;
+
+use com.ibm.streamsx.nlp::*;
+
+/**
+ * Sample main composite
+ */
+composite RutaTextSample {
+	param
+		expression<int32>   $loop: (int32)getSubmissionTimeValue("loop", "-1"); // infinite loop = -1
+
+	graph
+
+		stream<rstring result> RutaTextSampleResult = RutaTextComp() {
+			param
+				loop: $loop;
+		}
+
+}
+
+/**
+ * RutaTextComp is used in RutaTextSample and in unit test Main composite.
+ * Since it is used as toolkit in the unit test Main composite, 
+ * it is required to set the pearFile parameter with getThisToolkitDir(),
+ * because etc directory is part of this toolkit.
+ * If you would run the RutaTextSample, then the pear file would be found also in 
+ * application directory of RutaTextSample without the getThisToolkitDir() prefix. 
+ */
+public composite RutaTextComp (output ResultStream) {
+	param
+		expression<int32>   $loop;
+
+	type
+		AnnoSpan = tuple<rstring text, int32 begin, int32 end>;
+
+	graph
+		
+		stream<rstring file> DocumentFilenames as O = Custom() {
+			logic state: {
+				mutable int32 loop_ = $loop;
+			}
+			onProcess: {
+				mutable rstring filename = "";
+				if (loop_ >= 0) {
+					if (loop_ > 0) {
+						for (int32 l in range(loop_)) {
+							if (l==0) {}
+							for (int32 iter in range(51)) {
+								filename = getThisToolkitDir()+"/opt/"+"SenseAndSensibility/chapter" +(rstring)(iter) + ".txt";
+								submit({file=filename}, O);
+							}
+						}
+					}
+				}
+				else {
+					while (true) {
+						for (int32 iter in range(51)) {
+							filename = getThisToolkitDir()+"/opt/"+"SenseAndSensibility/chapter" +(rstring)(iter) + ".txt";
+							submit({file=filename}, O);
+						}
+					}
+				}
+			}
+		}
+
+		stream<rstring oneline> Lines = FileSource(DocumentFilenames) {
+			param
+				format : line;
+		}
+		
+		stream<rstring entireDoc> Documents as O = Custom(Lines as I) {
+			logic state: {
+				mutable rstring soFar = "";
+			}
+			onTuple I: {
+				soFar +=(rstring) "\n" + I.oneline;
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.WindowMarker) {
+					submit({entireDoc = soFar}, O);
+					soFar =(rstring) "";
+					submit(currentPunct(), O);
+				}
+				else {
+					// it's a final punctuation, so send it on.
+					submit(currentPunct(), O);
+				}
+			}
+		}
+
+		/*
+		 * This composite is used as toolkit in the unit test Main composite and 
+		 * it is required to set the pearFile parameter with getThisToolkitDir(),
+		 * because etc directory is part of this toolkit.
+		 * If you would run the RutaTextSample, then the pear file would be found also in 
+		 * application directory of RutaTextSample without the getThisToolkitDir() prefix. 
+		*/
+		stream<list<AnnoSpan> annotations> TextAnnotated = RutaText(Documents as I) {
+			param
+				inputDoc: "entireDoc"; // text to analyze
+				pearFile: getThisToolkitDir()+ "/" + "etc/getNames2.pear";
+				outputAttributes: "annotations";
+				outputTypes: "uima.ruta.getNames2.Main.TitleAndName"; // filter type descriptions
+		}
+		
+		/**
+		 * This is a simple helper to print the results to the console.
+		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+		 */
+		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(TextAnnotated as I){
+			logic state: {
+				mutable boolean resultSent = false;
+			}
+			onTuple I : {
+				if (spl.collection::size(I.annotations) > 0) {
+					printStringLn((rstring)I);
+					if (!resultSent) {
+						submit ({result="ok"}, O);
+						resultSent = true;
+					}
+				}
+			}
+		}
+
+}

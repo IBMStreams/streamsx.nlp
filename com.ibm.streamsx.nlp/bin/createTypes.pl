@@ -32,8 +32,10 @@ sub usage($;$) {
 
 Options:
 		--pearFile <filename>					Specifies the PEAR file to be loaded.
-		--outputfile <filename>         			Filename as the output file name.  .spl will be appended.
-		--help                          			Print this message.
+		--outputfile <filename>         		Filename as the output file name.
+		--namespace <namespace>         		SPL namespace of the generated SPL files (optional)
+		--main <composite>						Name of the main composite to be generated (optional). File <composite>.spl will be created.
+		--help                          		Print this message.
 END
 if ($retCode == 0) {
     print STDOUT $usageString;
@@ -144,9 +146,20 @@ END
     return $prolog;
 }
 
+sub addNamespace($) {
+
+    my ($namespace) = @_;
+    my $prolog=<<END;
+namespace $namespace;
+
+END
+    return $prolog;
+}
+
 sub main() {
     my $pearFile;
     my $outfilename;
+    my $namespace;
     my $needHelp;
     my $outfilename="TypesGenerated.spl";
     my $createMain = 0;
@@ -155,6 +168,7 @@ sub main() {
         
     GetOptions ("pearFile=s" => \$pearFile,
                 "outputfile=s", \$outfilename,
+                "namespace=s", \$namespace,
                 "main=s",\$mainParam,
                 "help|h|?",\$needHelp,
                 ) or usage(1);
@@ -192,8 +206,28 @@ sub main() {
     if ($createMain) {
         my $annoType=getFirstAnnoType($outfilename);
         open (MAINFILE,">".$compositeName.".spl") or die "Could not create file ".$compositeName.".spl";
+        if (defined $namespace) {
+        	print MAINFILE addNamespace($namespace);
+        }        
         print MAINFILE generateComposite($compositeName,$pearFile,$annoType);
         close MAINFILE;
+    }
+    
+    if (defined $namespace) {
+    	executeAndCapture("mkdir -p $namespace");
+    	if ($createMain) {
+			my $mainFile=$compositeName.".spl";
+    	   	executeAndCapture("mv $mainFile $namespace");
+    	}
+		open (DATA, "<".$outfilename) || die "could not open $outfilename\n";
+		my @body=<DATA>;
+		close(DATA);
+		# add namespace to top of the file
+		open(TYPESFILE,">".$namespace."/".$outfilename);
+		print TYPESFILE addNamespace($namespace);
+		print TYPESFILE @body;
+		close(TYPESFILE);    	
+    	executeAndCapture("rm -f $outfilename");    	
     }
 }
 

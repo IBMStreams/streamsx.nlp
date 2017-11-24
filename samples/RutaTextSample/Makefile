@@ -4,49 +4,41 @@
 # All rights reserved.                                 
 .PHONY: build all clean distributed
 
-# Fill in streamsx.nlp toolkit location here.
-STREAMSX_NLP_TOOLKIT ?= ../../com.ibm.streamsx.nlp
+SPLC_FLAGS = -a
+OUTPUT_DIR = output
+TO_BE_DELETED = 
+ifeq ($(STREAMS_STUDIO_BUILDING), 1)
+  # Building from Streams Studio, use env vars set by studio
+  SPLC = $(STREAMS_STUDIO_SC_PATH)
+  SPL_PATH = $(STREAMS_STUDIO_SPL_PATH)
+  OUTPUT_DIR = $(STREAMS_STUDIO_OUTPUT_DIRECTORY)
+else
+  # Building outside of Streams Studio...
+  ifeq ($(STREAMS_INSTALL),)
+    $(error error: environment variable STREAMS_INSTALL has to be set)
+  endif
+  # Set this variable if streamsx.nlp sample or toolkit location changed in your environment.
+  STREAMSX_NLP_TOOLKIT ?= ../../com.ibm.streamsx.nlp
+  SPLC = $(STREAMS_INSTALL)/bin/sc
+  SPL_PATH = $(STREAMSX_NLP_TOOLKIT)
+  # delete directories and files generated and required by StreamsStudio
+  TO_BE_DELETED += bin impl .toolkitList .classpath
+endif
+TO_BE_DELETED += $(OUTPUT_DIR)
 
-SPLC = $(STREAMS_INSTALL)/bin/sc
-SPLC_FLAGS = -a -t $(STREAMSX_NLP_TOOLKIT)
-SPL_MAIN_COMPOSITE = RutaTextSample
-SPL_DATA_DIR = ./data
+SPLC_FLAGS += -t $(SPL_PATH)
+
+SPL_MAIN_COMPOSITE = nlp.sample::RutaTextSample
 SPL_CMD_ARGS ?=
 
-### determine 'streamtool'
-ifneq ($(realpath $(STREAMS_INSTALL)),)
-ST=$(STREAMS_INSTALL)/bin/streamtool
-else 
-$(error STREAMS_INSTALL not defined)
-endif
-STANDALONE_FLAG =
-STANDALONE_REQUIRED = $(shell $(ST) version | perl -ne 'm/^Version=(.*)/ && (print ($$1 =~ m/^3\.2\.[01]\./ ? "yes" : "no"));')
-ifeq ("$(STANDALONE_REQUIRED)","no")
-STANDALONE_REQUIRED = $(shell $(ST) version | perl -ne 'm/^Version=(.*)/ && (print ($$1 =~ m/^4\.[01]\./ ? "yes" : "no"));')
-endif
-ifeq ("$(STANDALONE_REQUIRED)","yes")
-STANDALONE_FLAG = -T
-DISTRIBUTED_OUTPUT_DIR = output/Distributed
-DISTRIBUTED_BUILD = $(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) --output-directory $(DISTRIBUTED_OUTPUT_DIR) $(SPL_CMD_ARGS)
-else
-DISTRIBUTED_BUILD = echo "no extra build required for distributed"
-endif
-
-
-build: standalone 
+build: distributed 
 
 all: clean build
 
 distributed:
-	$(DISTRIBUTED_BUILD)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) $(SPL_CMD_ARGS)
 
-standalone:
-	$(SPLC) $(SPLC_FLAGS) $(STANDALONE_FLAG) -M $(SPL_MAIN_COMPOSITE) --data-directory $(SPL_DATA_DIR) $(SPL_CMD_ARGS)
-
-clean: 
-	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
-	rm -rf output
-	rm -rf impl
-	rm -rf bin
-	rm -f data/out*
+clean:
+	$(SPLC) -C -M $(SPL_MAIN_COMPOSITE)
+	rm -rf $(TO_BE_DELETED)
 

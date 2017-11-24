@@ -1,0 +1,73 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace nlp.sample;
+
+use com.ibm.streamsx.nlp::*;
+
+/**
+ * Sample main composite
+ */
+composite FunctionsSample {
+	graph
+	
+		stream<rstring result> FuncResult = FunctionsComp() {
+		}	
+}
+
+/**
+ * FunctionsComp is used in FunctionsSample and in unit test Main composite.
+ */
+public composite FunctionsComp (output ResultStream) {
+
+	graph 
+
+ 		stream<rstring text> TextStream = FileSource() {
+			param
+				file: getThisToolkitDir()+"/opt/"+"SourceData.txt";
+				parsing: permissive;
+		}
+
+		(stream<IdfCorpusBuilder.IdfCorpusType> TrainingStream as O) as PrepareTerms = Custom(TextStream as I){
+			logic
+				state: {
+					boolean ok = com.ibm.streamsx.nlp.utils::initializeLemmatizer();
+				}
+				onTuple I: {
+					mutable list<rstring> lemmas = [];
+					com.ibm.streamsx.nlp.utils::lemmatize(text, lemmas);
+					
+					mutable list<rstring> terms = [];
+					com.ibm.streamsx.nlp.utils::generateNgram(lemmas, 1u, 3u, terms);
+
+					submit({terms=terms}, O);
+				}
+				onPunct I: {
+					if (currentPunct() == Sys.WindowMarker) {
+						submit(Sys.WindowMarker, O);
+					}
+				}
+		}
+
+		/**
+		 * This is a simple helper to print the results to the console.
+		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+		 */
+		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(TrainingStream as I){
+			logic state: {
+				mutable boolean resultSent = false;
+			}
+			onTuple I : {
+				printStringLn((rstring)I);
+			}
+			onPunct I: {
+				if (currentPunct() == Sys.WindowMarker) {
+					if (!resultSent) {
+						submit ({result="ok"}, O);
+						resultSent = true;
+					}
+				}
+			}			
+		}
+}

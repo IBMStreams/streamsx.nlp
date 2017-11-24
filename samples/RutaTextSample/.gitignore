@@ -3,6 +3,7 @@
 /output/
 /.toolkitList
 /toolkit.xml
-/scenario.pyc
 /doc/
+/data/
+/bin/
 /impl/

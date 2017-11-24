@@ -10,6 +10,9 @@ use com.ibm.streamsx.nlp.utils::*;
 /**
  * This operator uses a previously trained model in order to find out the most likely intend of a text.
  *
+ * The ContentRanking operator should be used in a Streams release where SPL Python primitive support is not provided (e.g. Streams 3.2). It uses a **ShellPipe** operator to invoke Python scripts.
+ * When using a Streams release 4.2 or later, it is recommended to create a *SPL Python primitive operator* to invoke Python classes or functions.
+ * 
  * @input InStream
  * One tuple is one document.
  *
@@ -42,6 +45,9 @@ use com.ibm.streamsx.nlp.utils::*;
  * 
  * @param outStreamType
  * The OutStream (output port 0) schema of this operator. The schema must contain the schema defined by the resultType.
+ * 
+ * @param initOnFirstTuple
+ * The script is called on operator startup. If this parameter is set to true, then the script is called on first tuple.
  */
 public composite ContentRanking (
 	input InStream;
@@ -56,6 +62,7 @@ public composite ContentRanking (
 		expression<rstring> $kbNamesFile;
 		attribute $documentAttribute;
 		type $outStreamType;
+		expression<boolean> $initOnFirstTuple : false;
 
 	/**
 	 * OutStream must contain the resultType schema
@@ -77,6 +84,7 @@ public composite ContentRanking (
 				command: $pythonCommand + " -u " + $pythonScript + " " + $modelFile + " " + $kbIndexFile + " " +  $dictLemmasFile;
 				stdinAttribute: $documentAttribute;
 				stdoutAttribute: "crPythonScriptOutput";
+				initOnFirstTuple: $initOnFirstTuple;
 		}
 
 		(

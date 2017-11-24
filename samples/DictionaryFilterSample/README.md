@@ -1,12 +1,12 @@
 ## DictionaryFilterSample
 
 This sample demonstrates how you can use the DictionaryFilter operator from the com.ibm.streamsx.nlp toolkit.
-The operator reads the list of stopwords from the `./data/stopwords.txt` file on start-up to build up the dictionary.
+The operator reads the list of stopwords from the `./etc/stopwords.txt` file on start-up to build up the dictionary.
 Each line of the input file represents a document. Each term of the document that matches a word in the dictionary is removed in the output.
 
 ## Use
 
-Build standalone application:
+Build the application:
 
 `make`
 
@@ -14,20 +14,11 @@ Run:
 
 `./output/bin/standalone`
 
-You can examine the input `./data/SourceData.txt` and output `./data/out.txt`.
+In the Streaming Analytics service, click LAUNCH to open the Streams Console, where you can submit and manage your jobs.
+Upload the application bundle file ./output/nlp.sample.DictionaryFilterSample.sab from your file system.
 
-Compare output with expected data:
-
-`diff ./data/expected.txt ./data/out.txt`
-
-There should be no difference between the files.
+In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
 
 Clean:
 
 `make clean`
-
-You can also build a distributed application with the following command (required for Streams releases lower than 4.2 only):
-
-`make distributed`
-
-then submit your job to a running Streams instance.

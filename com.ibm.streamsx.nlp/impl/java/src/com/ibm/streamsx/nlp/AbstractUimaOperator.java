@@ -151,9 +151,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	 */
 	protected File dataDir = null;
 	/**
-	 * The etc directory of the application
+	 * The base directory of the application
 	 */	
-	protected File etcDir = null;
+	protected File baseDir = null;
 	
 	// UIMA objects
 	protected AnalysisEngine ae = null;
@@ -182,7 +182,7 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	private static final String PARAMETER_NAME_OUTPUT_VIEWS = "outputViews";
 	private static final String PARAMETER_NAME_OUTPUT_TYPES = "outputTypes";
 	
-	@Parameter(name=PARAMETER_NAME_PEARFILE, description="This parameter specifies the PEAR file to be installed.", optional=false)
+	@Parameter(name=PARAMETER_NAME_PEARFILE, description="This parameter specifies the PEAR file to be installed. The file should be stored in etc directory and can be specified using absolute paths or relative paths. If relative paths, then the PEAR file is relative to the root of the application directory.", optional=false)
 	public void setPearFile(String pearFile) {
 		this.pearFileParam = pearFile;
 	}
@@ -502,15 +502,30 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		// Must call super.initialize(context) to correctly setup an operator.
 		super.initialize(context);
 		trace.info("Operator " + context.getName() + " initializing in PE: " + context.getPE().getPEId() + " in Job: " + context.getPE().getJobId() );
-		etcDir = new File(context.getPE().getApplicationDirectory().toString() + File.separator + "etc");
-		dataDir = context.getPE().getDataDirectory();
+		
+		trace.debug("pearFile: " + pearFileParam);
+		baseDir = context.getPE().getApplicationDirectory();
+		if (true == new File(baseDir + File.separator + "etc" + File.separator + pearFileParam).isFile()) {
+			// compatibility:
+			// in earlier versions it was sufficient to apply the filename only,
+			// if the PEAR file is located in applications etc dir.
+			trace.debug("pearFile base is ApplicationDirectory/etc");
+			baseDir = new File(baseDir + File.separator + "etc");
+		}
+		
+		try {
+			dataDir = context.getPE().getDataDirectory();
+		} catch (Exception e) {
+			trace.warn("Unable to get the data directory. Install PEAR file in /tmp ...");
+			dataDir = new File("/tmp");
+		}
 		// pear files are installed in data directory
 		installDir = new File(dataDir + File.separator + new File("installedPears") + context.getName());
 		if (null != pearFileParam) {
-			setPearFilename(etcDir, pearFileParam);
+			setPearFilename(baseDir, pearFileParam);
 			installPearFile();
 			if (controlPortDefined) {
-				initialPearFile = new File(makeAbsolute(etcDir, pearFileParam));
+				initialPearFile = new File(makeAbsolute(baseDir, pearFileParam));
 			}
 		}
 		if (viewParam != null) {

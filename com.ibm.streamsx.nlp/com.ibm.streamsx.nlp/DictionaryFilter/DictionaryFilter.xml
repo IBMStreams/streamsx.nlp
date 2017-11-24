@@ -23,7 +23,7 @@
             param
                 filterMode : DictionaryFilter.remove;
 		textAttribute : text;
-		dictionaryFile : "stopwords.csv";
+		dictionaryFile : "etc/stopwords.csv";
             output
                 ${outputStream} : ${outputAttribute} = ${value};
         }</template>
@@ -51,7 +51,7 @@ In case the filterMode `keep` is selected, then those words of the textAttribute
         <name>textAttribute</name>
         <description>
 <![CDATA[
-Specifies the dictionary file loaded on startup.
+Specifies the text attribute of the input stream.
 ]]></description>
         <optional>false</optional>
         <rewriteAllowed>false</rewriteAllowed>
@@ -63,7 +63,7 @@ Specifies the dictionary file loaded on startup.
         <name>dictionaryFile</name>
         <description>
 <![CDATA[
-Specifies the dictionary file loaded on startup.
+Specifies the dictionary file loaded on startup. If relative path is used, then root is application directory. It is recommended to store the file in etc directory.
 ]]></description>
         <optional>false</optional>
         <rewriteAllowed>false</rewriteAllowed>

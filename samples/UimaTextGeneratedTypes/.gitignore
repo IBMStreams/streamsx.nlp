@@ -1,0 +1,10 @@
+/.apt_generated/
+/.classpath
+/output/
+/.toolkitList
+/toolkit.xml
+/*.spl
+/doc/
+/impl/
+/nlp.samples/TypesGenerated.spl
+TypesGenerated.spl

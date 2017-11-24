@@ -1,0 +1,66 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace nlp.sample;
+
+use com.ibm.streamsx.nlp::*;
+
+composite UimaTextSample {
+	
+	graph
+
+		stream<rstring result> UimaTextResult = UimaTextComp() {
+		}
+}
+/**
+ * UimaTextComp is used in UimaTextSample and in unit test Main composite.
+ */
+public composite UimaTextComp (output ResultStream) {
+	
+	type
+		AnnoSpan = tuple<rstring text, int32 begin, int32 end, rstring typeDescription>;
+
+	graph 
+
+		stream<rstring text> TextStream = FileSource() {
+			param
+				format : line;
+				file : getThisToolkitDir()+"/opt/"+"input.txt";
+		}
+
+		/*
+		 * This composite is used as toolkit in the unit test Main composite and 
+		 * it is required to set the pearFile parameter with getThisToolkitDir(),
+		 * because etc directory is part of this toolkit.
+		 * If you would run the UimaTextSample, then the pear file would be found also in 
+		 * application directory of UimaTextSample without the getThisToolkitDir() prefix. 
+		*/
+		(stream<rstring text, rstring xmi1, list<AnnoSpan> annotations> TextAnnotated as O) as UIMA_Text = UimaText(TextStream as I){
+			param
+				inputDoc: "text"; // text to analyze
+				pearFile: getThisToolkitDir()+ "/" + "etc/getNamesUima.pear";
+				casOut: "xmi1"; // serialized CAS
+				outputAttributes: "annotations"; // this attribute must be of type list<tuple>
+				outputTypes: "com.ibm.getNamesUima.fullNameWithTitle"; // filter the types, only this type is part of the annotations output
+		}
+
+		/**
+		 * This is a simple helper to print the results to the console.
+		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+		 */
+		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(TextAnnotated as I){
+			logic state: {
+				mutable boolean resultSent = false;
+			}
+			onTuple I : {
+				if (spl.collection::size(I.annotations) > 0) {
+					printStringLn((rstring)I);
+					if (!resultSent) {
+						submit ({result="ok"}, O);
+						resultSent = true;
+					}
+				}
+			}
+		}
+}

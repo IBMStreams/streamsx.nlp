@@ -1,0 +1,54 @@
+<project name="streamsx.nlp.tests" default="test" basedir=".">
+
+    <property environment="env" />
+    <property name="feature" location="feature"/>
+    <property name="issues" location="issues" />
+    <property name="performance" location="performance" />
+
+    <target name="clean" depends="cleantemp,cleantestprojects">
+       <ant dir="cloud-test" target="clean">
+       </ant>
+    </target>
+
+    <target name="cleantemp">
+	<delete>
+	    <fileset dir="${basedir}" includes="**/*.pyc,**/StreamsLogs*.tgz"/>
+	</delete>
+	<delete includeemptydirs="true">
+	    <fileset dir="${basedir}" includes="**/__pycache__/**"/>
+	</delete>
+    </target>
+
+
+    <target name="cleantestprojects">
+        <subant genericantfile="${basedir}/build.xml">
+            <target name="cleantestproject"/>
+            <dirset dir="${feature}" includes="*"/>
+            <dirset dir="${issues}" includes="*Test"/>
+        </subant>
+        <echo message="SPL project to clean: ${performance}"/>
+        <exec executable="make" failonerror="true" dir="${performance}">
+            <arg value="-f" />
+            <arg value="Makefile" />
+            <arg value="clean" />
+        </exec>
+    </target>
+
+    <target name="cleantestproject">
+        <echo message="SPL project to clean: ${basedir}"/>
+        <exec executable="make" failonerror="true" dir="${basedir}">
+            <arg value="-f" />
+            <arg value="Makefile" />
+            <arg value="clean" />
+        </exec>
+    </target>
+
+    <target name="test" depends="clean">
+        <exec executable="python" failonerror="true">
+            <arg value="runtests.py"/>
+            <arg value="-f"/>
+            <arg value="alltests.txt"/>
+        </exec>
+    </target>
+
+</project>

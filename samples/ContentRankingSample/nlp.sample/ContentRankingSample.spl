@@ -1,0 +1,109 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace nlp.sample;
+
+use com.ibm.streamsx.nlp::*;
+
+@threading(model=manual)
+composite ContentRankingSample {
+	param
+		expression<rstring> $nEpoch: getSubmissionTimeValue("nEpoch", "100");
+		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
+
+	graph
+	
+		stream<rstring result> CRResult = ContentRankingComp() {
+			param
+			    //nEpoch: $nEpoch;
+				pythonCommand: $pythonCommand;
+			config placement: partitionColocation("CR");				
+		}		
+}
+
+/**
+ * ContentRankingComp is used in ContentRankingSample and in unit test Main composite.
+ */
+@threading(model=manual)
+public composite ContentRankingComp(output ResultStream) {
+	
+	param
+		expression<rstring> $pythonCommand;
+		//expression<rstring> $nEpoch;
+		expression<rstring> $inputFile: getThisToolkitDir()+"/opt/in.txt";
+		expression<rstring> $modelFilesDirectory: "/tmp";
+		
+	type outputSchema = tuple<
+		com.ibm.streamsx.nlp::ContentRanking.resultType, // required by the LinearClassification operator
+		tuple <rstring ln> // optional attributes, forwarded by the LinearClassification operator
+	>;
+
+	graph
+
+		(stream<rstring result> MBResult) as MB = ContentRankingModelBuilder2() {
+			param 
+				xRegFile: getThisToolkitDir()+"/opt/training_input/X_reg.txt";
+				yRegFile: getThisToolkitDir()+"/opt/training_input/y_reg_text.txt";
+				modelFilesDirectory: $modelFilesDirectory;
+				//nEpoch: $nEpoch;
+				pythonCommand: $pythonCommand;
+		}		
+		
+		stream<rstring filename> StartTrigger as O= Custom(MBResult as I) {
+			logic state: {
+				mutable boolean triggerSent = false;
+			}
+			onPunct I: {
+				if (currentPunct() == Sys.WindowMarker) {
+					if (!triggerSent) {
+						block(5.0);
+						submit ({filename=$inputFile}, O);
+						triggerSent = true;
+					}
+				}
+			}			
+		}		
+
+		// An spl.adapter::FileSource operator reads some sample text from a file and sends it as a stream of rstring tuples, one tuple
+		// for each line in the input file.
+		stream<rstring ln> Src = FileSource(StartTrigger) { 
+			param
+				format: line;
+		}
+
+		stream<outputSchema> OutStream = ContentRanking(Src) {
+			param 
+				modelFile: $modelFilesDirectory+"/kb_lstm_model.pklz";
+				kbIndexFile: getThisToolkitDir()+"/opt/model_KB/KB_dic.json";
+				dictLemmasFile: $modelFilesDirectory+"/d_lemms.json";
+				kbNamesFile: getThisToolkitDir()+"/opt/model_KB/ID_name.txt";
+				documentAttribute: ln;
+				outStreamType: outputSchema;
+				pythonCommand: $pythonCommand;
+				initOnFirstTuple: true;
+		}		
+
+		/**
+		 * This is a simple helper to print the results to the console.
+		 * In the Streaming Analytics service, go to the Log Viewer and Click on the PE's Console Log to view output
+		 */
+		(stream<rstring result> ResultStream as O) as OutputPrinter= Custom(OutStream as I) {
+			logic state: {
+				mutable boolean resultSent = false;
+				mutable int32 tuplesReceived = 0;
+			}
+			onTuple I : {
+				printStringLn((rstring)I);
+				tuplesReceived++;
+				if (tuplesReceived > 1) {
+					if (!resultSent) {
+						submit ({result="ok"}, O);
+						resultSent = true;
+					}
+				}
+			}
+		}
+		
+		config placement: partitionColocation("CR");
+}

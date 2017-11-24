@@ -242,6 +242,16 @@ the first output attribute of type `rstring` for output port 1 will be used.
         <type>rstring</type>
         <cardinality>1</cardinality>
       </parameter>
+      <parameter>
+        <name>initOnFirstTuple</name>
+        <description>
+If this parameter is true, then the shell command is called on first tuple. If not set, then value is false and the shell command is called on operator initialization.</description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>AttributeFree</expressionMode>
+        <type>boolean</type>
+        <cardinality>1</cardinality>
+      </parameter>      
     </parameters>
     <inputPorts>
       <inputPortSet>

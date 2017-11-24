@@ -22,6 +22,9 @@ my $stdinAttributeGetter = $model->getParameterByName("stdinAttribute") ? $model
 my $stdoutAttributeName = $model->getParameterByName("stdoutAttribute") ? $model->getParameterByName("stdoutAttribute")->getValueAt(0)->getSPLExpression() : undef;
 my $stderrAttributeName = $model->getParameterByName("stderrAttribute") ? $model->getParameterByName("stderrAttribute")->getValueAt(0)->getSPLExpression() : undef;
 
+my $initOnFirstTuple		= $model->getParameterByName("initOnFirstTuple");
+$initOnFirstTuple		= $initOnFirstTuple ? $initOnFirstTuple->getValueAt(0)->getSPLExpression() : "false";
+
 # who would put quotes around a literal constant?
 
 $stdoutAttributeName =~ s/^\"|\"$//g if $stdoutAttributeName;
@@ -94,12 +97,15 @@ MY_OPERATOR::MY_OPERATOR()
     commandline = <%=$command%>;
 
     // start the command in a shell
+    <%	if($initOnFirstTuple eq "false") { %>
     SPLAPPTRC(L_INFO, "starting shell command '" << commandline << "'", "ShellPipe");
     try { shell_.setup(commandline); }
     catch(com::ibm::streamsx::linuxshell::LinuxShellException const & e) {
         SPLAPPTRC(L_ERROR, "sorry, could not execute shell command '" << commandline << "', reason='" << shell_.getTermInfoExplanation() << "', exitcode=" << shell_.getTermInfoExitCode(), "ShellPipe");
         throw;
     }
+    <% } %>
+    <% if($initOnFirstTuple eq "true") { %>firstTuple_ = false;<% } %>
 
     SPLAPPTRC(L_TRACE, "leaving ShellPipe constructor ...", "ShellPipe");
 }
@@ -140,7 +146,13 @@ void MY_OPERATOR::prepareToShutdown()
 void MY_OPERATOR::process(uint32_t idx)
 {
     SPLAPPTRC(L_TRACE, "entering ShellPipe process(" << idx << ") ...", "ShellPipe");
-
+    
+    <%	if($initOnFirstTuple eq "true") { %>
+    while (!getPE().getShutdownRequested()) {
+        if (firstTuple_) break;
+    }
+    <% } %>
+    
     // read lines written by the shell to STDOUT and STDIN, and write them to output ports 0 and 1
     try {
         while (!getPE().getShutdownRequested()) {
@@ -211,6 +223,19 @@ void MY_OPERATOR::process(Tuple const & tuple, uint32_t port)
 {
     SPLAPPTRC(L_TRACE, "entering ShellPipe process(" << tuple << "," << port << ") ...", "ShellPipe");
 
+    // start the command in a shell
+    <%	if($initOnFirstTuple eq "true") { %>
+    if (false == firstTuple_) {
+        SPLAPPTRC(L_INFO, "starting shell command '" << commandline << "'", "ShellPipe");
+        try { shell_.setup(commandline); }
+        catch(com::ibm::streamsx::linuxshell::LinuxShellException const & e) {
+            SPLAPPTRC(L_ERROR, "sorry, could not execute shell command '" << commandline << "', reason='" << shell_.getTermInfoExplanation() << "', exitcode=" << shell_.getTermInfoExitCode(), "ShellPipe");
+            throw;
+        }
+        firstTuple_ = true;
+    }
+    <% } %>    
+    
     AutoPortMutex apm(mutex_, *this);
 
     // save a copy of the input tuple for copying input attributes to output tuples
