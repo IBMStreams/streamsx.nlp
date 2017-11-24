@@ -51,7 +51,7 @@ public composite LinearClassificationModelBuilder
 /**
  * This operator builds a model on the basis of a training set of data whose category membership is known.
  *
- * @output
+ * @output ResultStream
  * Result stream, window marker at end of building the model
  * 
  * @param pythonCommand
@@ -120,7 +120,7 @@ composite LinearClassificationModelBuilderCore
 /**
  * This operator builds a model on the basis of a training set of data whose category membership is known.
  *
- * @output
+ * @output ResultStream
  * Result stream, window marker at end of building the model 
  *
  * @param pythonCommand
