@@ -27,6 +27,8 @@ class TestCloud(unittest.TestCase):
         tk.add_toolkit(topo, '../../samples/NgramSample')
         tk.add_toolkit(topo, '../../samples/RutaTextSample')
         tk.add_toolkit(topo, '../../samples/TfIdfSample')
+        tk.add_toolkit(topo, '../../samples/UimaTextGeneratedTypes')
+        tk.add_toolkit(topo, '../../samples/UimaTextSample')
 
         tk.add_toolkit(topo, '../../com.ibm.streamsx.nlp')
 
@@ -71,6 +73,11 @@ class TestCloud(unittest.TestCase):
     def test_tfidf(self):
         self._build_launch_validate("test_tfidf", "nlp.sample::TfIdfComp", {})
 
+    def test_uima_text_gen_types(self):
+        self._build_launch_validate("test_uima_text_gen_types", "nlp.sample::UimaTextGeneratedTypesComp", {})
+
+    def test_uima_text(self):
+        self._build_launch_validate("test_uima_text", "nlp.sample::UimaTextComp", {})
 
 
 

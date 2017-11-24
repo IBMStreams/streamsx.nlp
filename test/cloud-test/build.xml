@@ -6,12 +6,18 @@
     <property name="samples-dir" location="../../samples" />
 
     <target name="prepareTestProjects">
-	<echo message="Index sample toolkits"/>
+        <echo message="Index sample toolkits"/>
         <subant target="indexTestToolkit" genericantfile="${basedir}/build.xml">
            <dirset dir="${samples-dir}" includes="*Sample"/>
         </subant>
-	<echo message="Prepare sample LinearClassificationSplPy"/>
+        <echo message="Prepare sample LinearClassificationSplPy"/>
         <exec executable="make" failonerror="true" dir="${samples-dir}/LinearClassificationSplPy">
+            <arg value="-f" />
+            <arg value="Makefile" />
+            <arg value="prepare" />
+        </exec>
+        <echo message="Prepare sample UimaTextGeneratedTypes"/>
+        <exec executable="make" failonerror="true" dir="${samples-dir}/UimaTextGeneratedTypes">
             <arg value="-f" />
             <arg value="Makefile" />
             <arg value="prepare" />
