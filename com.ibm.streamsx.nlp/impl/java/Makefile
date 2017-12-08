@@ -13,7 +13,7 @@ endif
 # compiler settings ####################################################################
 SRC_GEN = ./src-gen
 BUILD_DIR = ./build
-JFLAGS = -sourcepath ./src -d $(BUILD_DIR) -cp $(STREAMS_INSTALL)/lib/com.ibm.streams.operator.jar:../lib/apache-uima/uima-core.jar:../lib/apache-uima/ruta-core-2.4.0.jar:../lib/apache-uima/uimafit-core-2.1.0.jar -s $(SRC_GEN)
+JFLAGS = -sourcepath ./src -d $(BUILD_DIR) -cp $(STREAMS_INSTALL)/lib/com.ibm.streams.operator.jar:../lib/apache-uima/uima-core.jar:../lib/apache-uima/ruta-core-2.4.0.jar:../lib/apache-uima/uimafit-core-2.1.0.jar:../lib/apache-uima/uimaj-json.jar -s $(SRC_GEN)
 JAVAC = $(STREAMS_INSTALL)/java/bin/javac
 JAR = $(STREAMS_INSTALL)/java/bin/jar
 JAVA_FILES_LIST=.sources

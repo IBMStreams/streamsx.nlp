@@ -44,6 +44,7 @@ import org.apache.uima.util.XMLInputSource;
 import org.apache.uima.cas.impl.XmiCasDeserializer;
 import org.apache.uima.cas.impl.XmiCasSerializer;
 import org.apache.uima.cas.text.AnnotationFS;
+import org.apache.uima.json.JsonCasSerializer;
 import org.apache.uima.pear.tools.PackageBrowser;
 import org.apache.uima.pear.tools.PackageInstaller;
 import org.apache.uima.util.XMLSerializer;
@@ -97,7 +98,7 @@ import com.ibm.streams.operator.types.RString;
  * <p>With the exception of operator initialization, all the other events may occur concurrently with each other, 
  * which lead to these methods being called concurrently by different threads.</p> 
  */
-@Libraries({"impl/lib/apache-uima/uima-core.jar"})
+@Libraries({"impl/lib/apache-uima/uima-core.jar","impl/lib/apache-uima/uimaj-json.jar","impl/lib/apache-uima/jackson-core-2.4.2.jar"})
 public abstract class AbstractUimaOperator extends AbstractOperator {
 	
 	private static Logger trace = Logger.getLogger(AbstractUimaOperator.class.getName());
@@ -161,6 +162,7 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	protected PackageBrowser instPear = null;
 	
 	protected boolean doPearVerification = true;
+	protected boolean casJson = false;
 	
 	/**
 	 * If this parameter is set to true, then additional information about the execution of a rule
@@ -178,6 +180,7 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	private static final String PARAMETER_NAME_LANGUAGE_CODE_ATTRIBUTE = "languageCodeAttribute";
 	private static final String PARAMETER_NAME_VIEW = "view";
 	private static final String PARAMETER_NAME_CAS_OUT = "casOut";
+	private static final String PARAMETER_NAME_CAS_JSON = "casJson";
 	private static final String PARAMETER_NAME_OUTPUT_ATTRIBUTES = "outputAttributes";
 	private static final String PARAMETER_NAME_OUTPUT_VIEWS = "outputViews";
 	private static final String PARAMETER_NAME_OUTPUT_TYPES = "outputTypes";
@@ -202,11 +205,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		this.viewParam = view;
 	}
 
-	@Parameter(name=PARAMETER_NAME_CAS_OUT, description="This parameter specifies the attribute of the output tuples that contains the UIMA CAS as serialized XMI string. The output attribute is of type rstring. If this parameter is not specified, the operator expects that the parameter `outputAttributes` is set.", optional=true)
+	@Parameter(name=PARAMETER_NAME_CAS_OUT, description="This parameter specifies the attribute of the output tuples that contains the UIMA CAS as serialized XMI string (or JSON string, see parameter `casJson`). The output attribute is of type rstring. If this parameter is not specified, the operator expects that the parameter `outputAttributes` is set.", optional=true)
 	public void setOutputAttribute(String casOut) {
 		this.casOut = casOut;
 	}
 
+	@Parameter(name=PARAMETER_NAME_CAS_JSON, description="If this parameter is set to true, then the attribute specified with the parameter `casOut` contains the UIMA CAS as serialized JSON string. If this parameter is not specified or set to false, then XMI serialization is used for the CAS output.", optional=true)
+	public void setCasJson(boolean casJson) {
+		this.casJson = casJson;
+	}
+	
 	@Parameter(name=PARAMETER_NAME_OUTPUT_ATTRIBUTES, description="This parameter specifies the name of tuple attributes on the output port for the annotations. This parameter can be specified more than once. The operator assumes that the views from the parameter `outputViews` are in the same order as the attribute names in this parameter. If this parameter is not specified, the operator expects that the parameter `casOut` is set. The attribute must a list type.", optional=true)
 	public void setOutputAttributes(String[] outputAttributes) {
 		this.outputAttributes = new ArrayList<String>();
@@ -485,6 +493,13 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		ser.serialize(cas, xmlSer.getContentHandler());
 		return strOut.toString();
 	}
+
+	protected String getJsonString() throws Exception {
+		StringWriter strOut = new StringWriter();
+		JsonCasSerializer jcs = new JsonCasSerializer();
+		jcs.serialize(cas, strOut);
+		return strOut.toString();
+	}
 	
 	protected void createCasFromXmiString(String xmi) throws Exception {
 		InputStream stream = new ByteArrayInputStream(xmi.getBytes("UTF-8"));
@@ -732,7 +747,12 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		outTuple.assign(inputTuple);
 		
 		if (null != casOut) {
-			outTuple.setString(casOut, getXmiString());
+			if (this.casJson) {
+				outTuple.setString(casOut, getJsonString());
+			}
+			else {
+				outTuple.setString(casOut, getXmiString());
+			}
 		}
 		if (null != outputAttributes) {
 			StreamSchema outputSchema = outStream.getStreamSchema();
