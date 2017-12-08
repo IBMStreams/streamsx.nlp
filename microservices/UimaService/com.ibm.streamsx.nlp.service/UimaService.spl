@@ -1,0 +1,82 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.nlp.service;
+
+use com.ibm.streamsx.nlp::*;
+use com.ibm.streamsx.topology.topic::Subscribe;
+use com.ibm.streamsx.topology.topic::Publish;
+use com.ibm.streamsx.json::*;
+
+/**
+ *
+ */
+public composite UimaService
+{
+	param
+		expression<rstring> $ingestTopic : getSubmissionTimeValue("ingestTopic", "streamsx/nlp/documents");
+		expression<rstring> $updatePearTopic : getSubmissionTimeValue("updatePearTopic", "streamsx/nlp/update/pear");
+		expression<rstring> $annotationsTopic : getSubmissionTimeValue("annotationsTopic", "streamsx/nlp/annotations");
+		
+	graph
+		/**
+		 * The Subscribe imports the documents
+		 */
+		stream<Json> JsonDocuments = Subscribe() {
+			param
+				topic: $ingestTopic;
+				streamType: Json;
+		}
+		
+		stream<rstring document> Documents = JSONToTuple(JsonDocuments) {
+		}
+
+		/**
+		 * The Subscribe imports the pear file name to update the pear file
+		 */
+		stream<Json> JsonPearFilenames = Subscribe() {
+			param
+				topic: $updatePearTopic;
+				streamType: Json;
+		}
+
+		stream<rstring filename> FilenameStream = JSONToTuple(JsonPearFilenames) {
+		}
+
+		(stream<rstring filename> ControlStream as C ) as CtrlGen = Custom(FilenameStream as I) {
+			logic
+			onTuple I: {
+				if (filename == "") {
+					appTrc (Trace.error, "Empty filename.", "nlp");
+				}
+				else {
+					submit(I, C);
+					submit(Sys.WindowMarker, C); // activate new PEAR
+				}
+			}
+		}
+
+		(stream<rstring document, rstring cas> TextAnnotated) as UimaTextProcessor = UimaText(Documents; ControlStream){
+			param
+				inputDoc: "document";
+				pearFile: "etc/DateTimeAnnotator_Java17.pear";
+				casOut: "cas";
+				casJson: true;
+		}
+
+		/**
+		 * The Publish publishes the annotations messsages to the user-defined topic (default: 'streamsx/nlp/annotations').
+		 */
+		() as PublishAnnotations = Publish(TextAnnotated) {
+			param
+				 topic: $annotationsTopic;
+		}
+
+}
+
+
+

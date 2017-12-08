@@ -14,6 +14,7 @@
   <property name="toolkit" location="com.ibm.streamsx.nlp"/>
   <property name="samples" location="samples"/>
   <property name="tmp" location="tmp" />
+  <property name="microservices" location="microservices" />
 	
   <target name="all"
      description="Build the toolkit." >
@@ -52,19 +53,34 @@
      </exec>
      <ant dir="test" target="clean">
      </ant>
+     <exec executable="make" failonerror="true" dir="${microservices}">
+       <arg value="-f" />
+       <arg value="Makefile" />
+       <arg value="clean" />
+     </exec>
   </target>
 
   
   <!-- Targets to build releases -->
   <target name="release"  depends="clean,all">
 	<mkdir dir="${tmp}" />
-	<!-- Create the time stamp -->
-	<tstamp />
-	<!-- Extract info from the toolkit's info.xml -->
-	<xmlproperty file="${toolkit}/info.xml" prefix="tkinfo" keepRoot="no" />
-	<echo message="Toolkit Version: ${tkinfo.info:identity.info:version}" />
+        <exec executable="make" failonerror="true" dir="${microservices}">
+          <arg value="-f" />
+          <arg value="Makefile" />
+          <arg value="release" />
+        </exec>
+        <exec executable="make" failonerror="true" dir="${microservices}">
+          <arg value="-f" />
+          <arg value="Makefile" />
+          <arg value="clean" />
+        </exec>
+        <!-- Create the time stamp -->
+        <tstamp />
+        <!-- Extract info from the toolkit's info.xml -->
+        <xmlproperty file="${toolkit}/info.xml" prefix="tkinfo" keepRoot="no" />
+        <echo message="Toolkit Version: ${tkinfo.info:identity.info:version}" />
         <property name="releasefilename" value="${tmp}/streamsx.nlp.toolkits-${tkinfo.info:identity.info:version}-${DSTAMP}-${TSTAMP}.tgz" />
-    	<tar compression="gzip" longfile="gnu"
+        <tar compression="gzip" longfile="gnu"
              destfile="${releasefilename}"
     	     basedir="${basedir}"
              includes="com.ibm.streamsx.nlp/** samples/** setup/**"
