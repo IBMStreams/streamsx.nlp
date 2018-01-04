@@ -1,0 +1,76 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.nlp::*;
+
+composite UimaTextErrorPort
+{
+	type
+		AnnoSpan = tuple<rstring text, int32 begin, int32 end, boolean typeDescription>; // wrong type for typeDescription to force error tuples
+
+	graph 
+
+		stream<rstring text> TextStream = FileSource() {
+			param
+				format : line;
+				file : "input.txt";
+		}
+
+		(stream<rstring text, rstring cas, list<AnnoSpan> annotations> TextAnnotated1;
+		stream<rstring text, list<rstring> errors> ErrorStream) as UIMA_Text_ErrorPort = UimaText(TextStream as I){
+			param
+				inputDoc: "text";
+				pearFile: "etc/troubleful9.pear";
+				casOut: "cas";
+				casJson: true;
+				outputAttributes: "annotations";
+				errorsAttribute: "errors";
+		}
+
+		() as Sink1 = FileSink(TextAnnotated1) {
+ 			param
+				file:  "out.txt";
+				format: txt;
+				suppress: cas;
+				flushOnPunctuation: true;
+				writePunctuations: true;
+		}
+
+		() as SinkJson = FileSink(TextAnnotated1) {
+ 			param
+				file:  "out.json";
+				format: csv;
+				suppress: text, annotations;
+				flushOnPunctuation: true;
+				quoteStrings: false;
+				writePunctuations: true;
+		}
+
+
+		() as SinkErr = FileSink(ErrorStream) {
+ 			param
+				file:  "err.txt";
+				format: txt;
+				flushOnPunctuation: true;
+				writePunctuations: true;
+		}
+
+
+		stream<rstring text, list<AnnoSpan> annotations, list<rstring> errors> UIMA_Text_ErrorsAttr = UimaText(TextStream as I){
+			param
+				inputDoc: "text";
+				pearFile: "etc/troubleful9.pear";
+				outputAttributes: "annotations";
+				errorsAttribute: "errors";
+		}
+
+		() as Sink2 = FileSink(UIMA_Text_ErrorsAttr) {
+ 			param
+				file:  "out2.txt";
+				format: txt;
+				flushOnPunctuation: true;
+				writePunctuations: true;
+		}
+
+}
