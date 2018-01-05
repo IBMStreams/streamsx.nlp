@@ -26,7 +26,7 @@ composite RutaDocumentAnnotationsSample
 
 		(stream<rstring text, rstring xmi, list<AnnoSpan> annotations> RutaStream) as UIMA_RUTA_TEXT = RutaText(TextStream){
 			param
-				pearFile: "RutaSampleAnnotator2.pear"; // relative to etc dir
+				pearFile: "etc/RutaSampleAnnotator2.pear";
 				inputDoc: "text"; // text to analyze (input stream attribute name)
 				outputTypes: "uima.ruta.sample1.Main.potentialTrouble", "uima.ruta.sample1.Main.TroubleDocumentAnnotation"; // filter type descriptions
 				outputAttributes: "annotations";
