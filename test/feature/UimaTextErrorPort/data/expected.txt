@@ -1,0 +1,4 @@
+{text="By a former marriage, Mr. Henry Dashwood had one son: by his present lady, three daughters.",annotations=[{text="By a former marriage, Mr. Henry Dashwood had one son: by his present lady, three daughters.",begin=0,end=91,typeDescription=false}]}
+{text="Mrs. Jennings enforced the necessity.",annotations=[{text="Mrs. Jennings enforced the necessity.",begin=0,end=37,typeDescription=false}]}
+Punctuation received: WindowMarker
+Punctuation received: FinalMarker

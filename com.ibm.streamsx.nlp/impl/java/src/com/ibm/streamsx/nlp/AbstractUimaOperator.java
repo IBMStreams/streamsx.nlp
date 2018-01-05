@@ -44,6 +44,7 @@ import org.apache.uima.util.XMLInputSource;
 import org.apache.uima.cas.impl.XmiCasDeserializer;
 import org.apache.uima.cas.impl.XmiCasSerializer;
 import org.apache.uima.cas.text.AnnotationFS;
+import org.apache.uima.json.JsonCasSerializer;
 import org.apache.uima.pear.tools.PackageBrowser;
 import org.apache.uima.pear.tools.PackageInstaller;
 import org.apache.uima.util.XMLSerializer;
@@ -97,12 +98,13 @@ import com.ibm.streams.operator.types.RString;
  * <p>With the exception of operator initialization, all the other events may occur concurrently with each other, 
  * which lead to these methods being called concurrently by different threads.</p> 
  */
-@Libraries({"impl/lib/apache-uima/uima-core.jar"})
+@Libraries({"impl/lib/apache-uima/uima-core.jar","impl/lib/apache-uima/uimaj-json.jar","impl/lib/apache-uima/jackson-core-2.4.2.jar"})
 public abstract class AbstractUimaOperator extends AbstractOperator {
 	
 	private static Logger trace = Logger.getLogger(AbstractUimaOperator.class.getName());
 
 	protected static boolean controlPortDefined = false;
+	protected static boolean errorPortDefined = false;
 	
 	/**
 	 * filename for update/reload on control stream
@@ -123,6 +125,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	protected List<String> outputAttributes = null;
 	protected List<String> outputViews = null;
 	protected List<String> outputTypes = null;
+	protected String errorsAttribute = null;
+	
+	private List<RString> errorsList = null;
 
 	private static final String quoteReserved = "protectreserved_";
 	
@@ -161,6 +166,7 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	protected PackageBrowser instPear = null;
 	
 	protected boolean doPearVerification = true;
+	protected boolean casJson = false;
 	
 	/**
 	 * If this parameter is set to true, then additional information about the execution of a rule
@@ -178,6 +184,8 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	private static final String PARAMETER_NAME_LANGUAGE_CODE_ATTRIBUTE = "languageCodeAttribute";
 	private static final String PARAMETER_NAME_VIEW = "view";
 	private static final String PARAMETER_NAME_CAS_OUT = "casOut";
+	private static final String PARAMETER_NAME_CAS_JSON = "casJson";
+	private static final String PARAMETER_NAME_ERRORS_ATTRIBUTE = "errorsAttribute";
 	private static final String PARAMETER_NAME_OUTPUT_ATTRIBUTES = "outputAttributes";
 	private static final String PARAMETER_NAME_OUTPUT_VIEWS = "outputViews";
 	private static final String PARAMETER_NAME_OUTPUT_TYPES = "outputTypes";
@@ -202,11 +210,21 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		this.viewParam = view;
 	}
 
-	@Parameter(name=PARAMETER_NAME_CAS_OUT, description="This parameter specifies the attribute of the output tuples that contains the UIMA CAS as serialized XMI string. The output attribute is of type rstring. If this parameter is not specified, the operator expects that the parameter `outputAttributes` is set.", optional=true)
+	@Parameter(name=PARAMETER_NAME_CAS_OUT, description="This parameter specifies the attribute of the output tuples that contains the UIMA CAS as serialized XMI string (or JSON string, see parameter `casJson`). The output attribute is of type rstring. If this parameter is not specified, the operator expects that the parameter `outputAttributes` is set.", optional=true)
 	public void setOutputAttribute(String casOut) {
 		this.casOut = casOut;
 	}
 
+	@Parameter(name=PARAMETER_NAME_CAS_JSON, description="If this parameter is set to true, then the attribute specified with the parameter `casOut` contains the UIMA CAS as serialized JSON string. If this parameter is not specified or set to false, then XMI serialization is used for the CAS output.", optional=true)
+	public void setCasJson(boolean casJson) {
+		this.casJson = casJson;
+	}
+
+	@Parameter(name=PARAMETER_NAME_ERRORS_ATTRIBUTE, description="This parameter specifies the attribute name that contains the reported errors. The output attribute is of type list of rstring. If the error port (output port 1) is specified, then the operator expects that output stream on port 1 contains this attribute. Otherwise the errors attribute is required on output port 0, if this parameter is set.", optional=true)
+	public void setErrorsAttribute(String errorsAttribute) {
+		this.errorsAttribute = errorsAttribute;
+	}	
+	
 	@Parameter(name=PARAMETER_NAME_OUTPUT_ATTRIBUTES, description="This parameter specifies the name of tuple attributes on the output port for the annotations. This parameter can be specified more than once. The operator assumes that the views from the parameter `outputViews` are in the same order as the attribute names in this parameter. If this parameter is not specified, the operator expects that the parameter `casOut` is set. The attribute must a list type.", optional=true)
 	public void setOutputAttributes(String[] outputAttributes) {
 		this.outputAttributes = new ArrayList<String>();
@@ -235,10 +253,10 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 	public static void checkParameters(OperatorContextChecker checker) {
 
 		OperatorContext context = checker.getOperatorContext();
-		int numInpoutPorts = context.getNumberOfStreamingInputs();
+		int numInputPorts = context.getNumberOfStreamingInputs();
 
 		// more than 2 input ports is not possible since validated by the operator model
-		if (numInpoutPorts == 2) {
+		if (numInputPorts == 2) {
 			StreamingInput<Tuple> port1 = context.getStreamingInputs().get(1);
 
 			if (!checker.checkRequiredAttributes(port1, CONTROL_STREAM_FILE_ATTR)){
@@ -256,6 +274,10 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 			if (!context.getParameterNames().contains(PARAMETER_NAME_OUTPUT_ATTRIBUTES)) {
 				checker.setInvalidContext("The parameter "+PARAMETER_NAME_OUTPUT_ATTRIBUTES+" must be specified, if the parameter "+PARAMETER_NAME_OUTPUT_VIEWS+" is set.", null);
 			}
+		}
+		
+		if (context.getNumberOfStreamingOutputs() == 2) {
+			errorPortDefined=true;
 		}
 	}
 
@@ -303,6 +325,26 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 			if (!context.getStreamingOutputs().get(0).getStreamSchema().getAttributeNames().contains(value)) {
 				checker.setInvalidContext("The parameter "+PARAMETER_NAME_CAS_OUT+" has a value that does not match an attribute name of the output port 0: {0}", new Object[] {value});
 			}
+		}
+		int numOutputPorts = context.getNumberOfStreamingOutputs();
+		if (numOutputPorts > 1) {
+			if (context.getParameterNames().contains(PARAMETER_NAME_ERRORS_ATTRIBUTE)) {
+				String value = context.getParameterValues(PARAMETER_NAME_ERRORS_ATTRIBUTE).get(0);
+				if (!context.getStreamingOutputs().get(1).getStreamSchema().getAttributeNames().contains(value)) {
+					checker.setInvalidContext("The parameter "+PARAMETER_NAME_ERRORS_ATTRIBUTE+" has a value that does not match an attribute name of the output port 1: {0}", new Object[] {value});
+				}				
+			}
+			else {
+				checker.setInvalidContext("The parameter "+PARAMETER_NAME_ERRORS_ATTRIBUTE+" needs to be set to specify the errors attribute name of the output port 1.", null);
+			}
+		}
+		else {
+			if (context.getParameterNames().contains(PARAMETER_NAME_ERRORS_ATTRIBUTE)) {
+				String value = context.getParameterValues(PARAMETER_NAME_ERRORS_ATTRIBUTE).get(0);
+				if (!context.getStreamingOutputs().get(0).getStreamSchema().getAttributeNames().contains(value)) {
+					checker.setInvalidContext("The parameter "+PARAMETER_NAME_ERRORS_ATTRIBUTE+" has a value that does not match an attribute name of the output port 0: {0}", new Object[] {value});
+				}				
+			}			
 		}
 	}
 
@@ -485,6 +527,13 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		ser.serialize(cas, xmlSer.getContentHandler());
 		return strOut.toString();
 	}
+
+	protected String getJsonString() throws Exception {
+		StringWriter strOut = new StringWriter();
+		JsonCasSerializer jcs = new JsonCasSerializer();
+		jcs.serialize(cas, strOut);
+		return strOut.toString();
+	}
 	
 	protected void createCasFromXmiString(String xmi) throws Exception {
 		InputStream stream = new ByteArrayInputStream(xmi.getBytes("UTF-8"));
@@ -538,6 +587,10 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 			//System.out.println("attrName="+attr1.getName());
 			//System.out.println("attrType="+attr1.getType());
 		//}
+		
+		if (this.errorsAttribute != null) {
+			errorsList = new ArrayList<RString>();	
+		}		
 	}
 
 	private void initSplReservedSet() {
@@ -732,43 +785,87 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 		outTuple.assign(inputTuple);
 		
 		if (null != casOut) {
-			outTuple.setString(casOut, getXmiString());
-		}
-		if (null != outputAttributes) {
-			StreamSchema outputSchema = outStream.getStreamSchema();
-			for (Attribute attr : outputSchema) {
-				String attributeName = attr.getName();
-				//System.out.println("attributeName="+attributeName);
-				//System.out.println("type="+attr.getType());
-				if (outputAttributes.contains(attributeName)) {
-					
-					CollectionType streamsListType = (CollectionType) attr.getType();
-					// Get the type of the streams list element.
-					StreamSchema sSchema = ((TupleType) streamsListType.getElementType()).getTupleSchema();
-					
-					// key is the attribute name in lower case for the compare with UIMA feature name
-					// The value is the origin attribute name
-					Map<String, String> attributeNamesMap = new HashMap<String, String>();
-					for (Attribute attr1 : sSchema) {
-						attributeNamesMap.put(attr1.getName().toLowerCase(), attr1.getName());
-					}
-					
-					if ((outputViews != null) && (outputViews.size() == outputAttributes.size())) {
-						String viewname = outputViews.get(outputAttributes.indexOf(attributeName));
-						trace.debug("Select CAS view " + viewname + " for attribute "+attributeName);
-						cas = cas.getView(viewname);
-					}
-					
-					List<Tuple> listTuple = new ArrayList<Tuple>();
-					fillListTupleWithAnnotations(cas, sSchema, attributeNamesMap, listTuple);
-					// set the list for the output attribute to the outTuple
-					outTuple.setList(attributeName, listTuple);
+			try {
+				if (this.casJson) {
+					outTuple.setString(casOut, getJsonString());
+				}
+				else {
+					outTuple.setString(casOut, getXmiString());
+				}
+			}
+			catch (Exception e) {
+				trace.error("CAS serialization failed: ["+e.getMessage()+"]");
+				if (this.errorsAttribute != null) {
+					errorsList.add(new RString("CAS serialization failed: ["+e.getMessage()+"]"));
 				}
 			}
 		}
-
+		if (null != outputAttributes) {
+			try {
+				StreamSchema outputSchema = outStream.getStreamSchema();
+				for (Attribute attr : outputSchema) {
+					String attributeName = attr.getName();
+					//System.out.println("attributeName="+attributeName);
+					//System.out.println("type="+attr.getType());
+					if (outputAttributes.contains(attributeName)) {
+						
+						CollectionType streamsListType = (CollectionType) attr.getType();
+						// Get the type of the streams list element.
+						StreamSchema sSchema = ((TupleType) streamsListType.getElementType()).getTupleSchema();
+						
+						// key is the attribute name in lower case for the compare with UIMA feature name
+						// The value is the origin attribute name
+						Map<String, String> attributeNamesMap = new HashMap<String, String>();
+						for (Attribute attr1 : sSchema) {
+							attributeNamesMap.put(attr1.getName().toLowerCase(), attr1.getName());
+						}
+						
+						if ((outputViews != null) && (outputViews.size() == outputAttributes.size())) {
+							String viewname = outputViews.get(outputAttributes.indexOf(attributeName));
+							trace.debug("Select CAS view " + viewname + " for attribute "+attributeName);
+							cas = cas.getView(viewname);
+						}
+						
+						List<Tuple> listTuple = new ArrayList<Tuple>();
+						fillListTupleWithAnnotations(cas, sSchema, attributeNamesMap, listTuple);
+						// set the list for the output attribute to the outTuple
+						outTuple.setList(attributeName, listTuple);
+					}
+				}
+			}
+			catch (Exception e) {
+				trace.error("CAS parse failed: ["+e.getMessage()+"]");
+				if (this.errorsAttribute != null) {
+					errorsList.add(new RString("CAS parse failed: ["+e.getMessage()+"]"));
+				}
+			}			
+		}
+		
+		if ((errorPortDefined) && (this.errorsAttribute != null)) {
+			if (errorsList.size() > 0) {
+				StreamingOutput<OutputTuple> errStream = getOutput(1);
+				OutputTuple errTuple = errStream.newTuple();
+				// Copy across all matching attributes.
+				errTuple.assign(inputTuple);
+				// set list of errors
+				errTuple.setList(errorsAttribute, errorsList);
+				errStream.submit(errTuple); // submit to port 1
+			}
+		}
+		else if (this.errorsAttribute != null) {
+			if (errorsList.size() > 0) {
+				outTuple.setList(errorsAttribute, errorsList);
+			}
+		}
+		
 		// Submit new tuple to output port 0
-		outStream.submit(outTuple);
+		outStream.submit(outTuple);		
+		
+		if (this.errorsAttribute != null) {
+			// reset list for next tuple
+			errorsList.clear();
+		}
+		
 	}
 
 	/**
@@ -848,6 +945,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 				}
 				else {
 					trace.error("Expected type is rstring for attribute ["+ listTupleType.getAttribute(UIMA_STREAMS_COVERED_TEXT_ATTRIBUTE).getType() + " " + UIMA_STREAMS_COVERED_TEXT_ATTRIBUTE + "]");
+					if (this.errorsAttribute != null) {
+						errorsList.add(new RString("Expected type is rstring for attribute ["+ listTupleType.getAttribute(UIMA_STREAMS_COVERED_TEXT_ATTRIBUTE).getType() + " " + UIMA_STREAMS_COVERED_TEXT_ATTRIBUTE + "]"));
+					}
 				}
 			}
 			// check if type attribute needs to be filled
@@ -857,6 +957,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 				}
 				else {
 					trace.error("Expected type is rstring for attribute ["+ listTupleType.getAttribute(UIMA_STREAMS_COVERED_TYPE_DESC_ATTRIBUTE).getType() + " " + UIMA_STREAMS_COVERED_TYPE_DESC_ATTRIBUTE + "]");
+					if (this.errorsAttribute != null) {
+						errorsList.add(new RString("Expected type is rstring for attribute ["+ listTupleType.getAttribute(UIMA_STREAMS_COVERED_TYPE_DESC_ATTRIBUTE).getType() + " " + UIMA_STREAMS_COVERED_TYPE_DESC_ATTRIBUTE + "]"));
+					}
 				}
 			}
 		}
@@ -904,6 +1007,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is STRING");
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is STRING"));
+						}
 					}
 				}
 				else if (feat.getName().equals(CAS.FEATURE_FULL_NAME_SOFAID)) {
@@ -916,6 +1022,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_INTEGER);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_INTEGER));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_BOOLEAN.equals(rangeTypeName)) {
@@ -925,6 +1034,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BOOLEAN);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BOOLEAN));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_FLOAT.equals(rangeTypeName)) {
@@ -934,6 +1046,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_FLOAT);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_FLOAT));
+						}						
 					}
 				}
 			} else if (CAS.TYPE_NAME_BYTE.equals(rangeTypeName)) {
@@ -943,6 +1058,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BYTE);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BYTE));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_SHORT.equals(rangeTypeName)) {
@@ -952,6 +1070,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_SHORT);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_SHORT));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_LONG.equals(rangeTypeName)) {
@@ -961,6 +1082,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_LONG);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_LONG));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_DOUBLE.equals(rangeTypeName)) {
@@ -970,6 +1094,9 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_DOUBLE);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_DOUBLE));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_STRING_ARRAY.equals(rangeTypeName)) {
@@ -1003,10 +1130,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_STRING_ARRAY);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_STRING_ARRAY));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_STRING_ARRAY);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_STRING_ARRAY));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_INTEGER_ARRAY.equals(rangeTypeName)) {
@@ -1024,10 +1157,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_INTEGER_ARRAY);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_INTEGER_ARRAY));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_INTEGER_ARRAY);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_INTEGER_ARRAY));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_FLOAT_ARRAY.equals(rangeTypeName)) {
@@ -1045,10 +1184,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_FLOAT_ARRAY);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_FLOAT_ARRAY));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_FLOAT_ARRAY);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_FLOAT_ARRAY));
+						}						
 					}
 				}
 			} else if (CAS.TYPE_NAME_BOOLEAN_ARRAY.equals(rangeTypeName)) {
@@ -1066,10 +1211,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BOOLEAN_ARRAY);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BOOLEAN_ARRAY));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BOOLEAN_ARRAY);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BOOLEAN_ARRAY));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_BYTE_ARRAY.equals(rangeTypeName)) {
@@ -1087,10 +1238,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BYTE_ARRAY);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BYTE_ARRAY));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BYTE_ARRAY);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_BYTE_ARRAY));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_SHORT_ARRAY.equals(rangeTypeName)) {
@@ -1108,10 +1265,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_SHORT_ARRAY);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_SHORT_ARRAY));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_SHORT_ARRAY);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_SHORT_ARRAY));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_LONG_ARRAY.equals(rangeTypeName)) {
@@ -1129,10 +1292,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_LONG_ARRAY);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_LONG_ARRAY));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_LONG_ARRAY);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_LONG_ARRAY));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_DOUBLE_ARRAY.equals(rangeTypeName)) {
@@ -1150,10 +1319,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_DOUBLE_ARRAY);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_DOUBLE_ARRAY));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_DOUBLE_ARRAY);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_DOUBLE_ARRAY));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_EMPTY_FS_LIST.equals(rangeTypeName)) {
@@ -1169,10 +1344,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_INTEGER_LIST);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_INTEGER_LIST));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_INTEGER_LIST);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_INTEGER_LIST));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_EMPTY_INTEGER_LIST.equals(rangeTypeName)) {
@@ -1184,10 +1365,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_INTEGER_LIST);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_INTEGER_LIST));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_INTEGER_LIST);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_INTEGER_LIST));
+						}
 					}
 				}
 			} else if ((CAS.TYPE_NAME_NON_EMPTY_FLOAT_LIST.equals(rangeTypeName)) || (CAS.TYPE_NAME_FLOAT_LIST.equals(rangeTypeName))) {
@@ -1201,10 +1388,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_FLOAT_LIST);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_FLOAT_LIST));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_FLOAT_LIST);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_FLOAT_LIST));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_EMPTY_FLOAT_LIST.equals(rangeTypeName)) {
@@ -1216,10 +1409,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_FLOAT_LIST);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_FLOAT_LIST));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_FLOAT_LIST);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_FLOAT_LIST));
+						}
 					}
 				}
 			} else if ((CAS.TYPE_NAME_NON_EMPTY_STRING_LIST.equals(rangeTypeName)) || (CAS.TYPE_NAME_STRING_LIST.equals(rangeTypeName))) {
@@ -1242,10 +1441,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_STRING_LIST);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_STRING_LIST));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_STRING_LIST);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_NON_EMPTY_STRING_LIST));
+						}
 					}
 				}
 			} else if (CAS.TYPE_NAME_EMPTY_STRING_LIST.equals(rangeTypeName)) {
@@ -1262,10 +1467,16 @@ public abstract class AbstractUimaOperator extends AbstractOperator {
 						}
 						else {
 							trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_STRING_LIST);
+							if (this.errorsAttribute != null) {
+								errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_STRING_LIST));
+							}
 						}
 					}
 					else {
 						trace.error("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_STRING_LIST);
+						if (this.errorsAttribute != null) {
+							errorsList.add(new RString("Type mismatch for attribute ["+ listTupleType.getAttribute(attrName).getType() + " " + attrName + "], feature " + feat.getShortName() + " type is " + CAS.TYPE_NAME_EMPTY_STRING_LIST));
+						}
 					}
 				}
 			// ignore CAS.TYPE_NAME_NON_EMPTY_FS_LIST and CAS.TYPE_NAME_FS_ARRAY types

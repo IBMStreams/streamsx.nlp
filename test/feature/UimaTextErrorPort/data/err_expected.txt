@@ -1,0 +1,4 @@
+{text="By a former marriage, Mr. Henry Dashwood had one son: by his present lady, three daughters.",errors=["Expected type is rstring for attribute [BOOLEAN:boolean typeDescription]"]}
+{text="Mrs. Jennings enforced the necessity.",errors=["Expected type is rstring for attribute [BOOLEAN:boolean typeDescription]"]}
+Punctuation received: WindowMarker
+Punctuation received: FinalMarker

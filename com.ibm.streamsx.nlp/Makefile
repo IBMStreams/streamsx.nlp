@@ -70,7 +70,7 @@ text-gposttl:
 	cd impl/src/gposttl-0.9.3-mod/src/; make all
 
 prepare-header:
-	./tkinstall.pl
+	perl tkinstall.pl
 
 text-libs:
 	cd impl/src/; make -f Makefile.libtextutils all

@@ -1,0 +1,125 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.nlp.service;
+
+use com.ibm.streamsx.nlp::*;
+use com.ibm.streamsx.topology.topic::Subscribe;
+use com.ibm.streamsx.topology.topic::Publish;
+use com.ibm.streamsx.json::*;
+
+/**
+ * Service provides several import and export topics. 
+ * 
+ * ingestTopic: import JSON Schema
+ * \{
+ *   "document" : string
+ * \}
+ * 
+ * updatePearTopic: import JSON Schema
+ * \{
+ *   "filename" : string
+ * \}
+ * 
+ * annotationsTopic: export JSON Schema
+ * \{
+ *   "document" : string,
+ *   "cas" : string
+ * \}
+ * 
+ * errorsTopic: export JSON Schema
+ * \{
+ *   "document" : string
+ *   "errors" : string list
+ * \}
+ */
+public composite UimaService
+{
+	param
+		expression<rstring> $ingestTopic : getSubmissionTimeValue("ingestTopic", "streamsx/nlp/documents");
+		expression<rstring> $updatePearTopic : getSubmissionTimeValue("updatePearTopic", "streamsx/nlp/update/pear");
+		expression<rstring> $annotationsTopic : getSubmissionTimeValue("annotationsTopic", "streamsx/nlp/annotations");
+		expression<rstring> $errorTopic : getSubmissionTimeValue("errorsTopic", "streamsx/nlp/errors");
+		
+	graph
+		/**
+		 * The Subscribe imports the documents
+		 */
+		stream<Json> JsonDocuments = Subscribe() {
+			param
+				topic: $ingestTopic;
+				streamType: Json;
+		}
+		
+		stream<rstring document> Documents = JSONToTuple(JsonDocuments) {
+		}
+
+		/**
+		 * The Subscribe imports the pear file name to update the pear file
+		 */
+		stream<Json> JsonPearFilenames = Subscribe() {
+			param
+				topic: $updatePearTopic;
+				streamType: Json;
+		}
+
+		stream<rstring filename> FilenameStream = JSONToTuple(JsonPearFilenames) {
+		}
+
+		(stream<rstring filename> ControlStream as C ) as CtrlGen = Custom(FilenameStream as I) {
+			logic
+			onTuple I: {
+				if (filename == "") {
+					appTrc (Trace.error, "Empty filename.", "nlp");
+				}
+				else {
+					submit(I, C);
+					submit(Sys.WindowMarker, C); // activate new PEAR
+				}
+			}
+		}
+
+		(stream<rstring document, rstring cas> TextAnnotated;
+		stream<rstring document, list<rstring> errors> ErrorStream) as UimaTextProcessor = UimaText(Documents; ControlStream){
+			param
+				inputDoc: "document";
+				pearFile: "etc/DateTimeAnnotator_Java17.pear";
+				casOut: "cas";
+				casJson: true;
+				errorsAttribute: "errors";
+		}
+
+		/** The TupleToJSON converts the tuple into JSON to prepare it for publishing.		
+		*/
+		stream<Json> JsonTextAnnotated = TupleToJSON(TextAnnotated) {
+		}
+
+		/**
+		 * The Publish publishes the annotations messsages to the user-defined topic (default: 'streamsx/nlp/annotations').
+		 */
+		() as PublishAnnotations = Publish(JsonTextAnnotated) {
+			param
+				 topic: $annotationsTopic;
+		}
+
+		/** The TupleToJSON converts the error message into JSON to prepare it for publishing.		
+		*/
+		stream<Json> JsonErrorMessage = TupleToJSON(ErrorStream) {
+		}
+
+		/**
+		 * The Publish publishes the error messsages to the user-defined topic (default: 'streamsx/nlp/errors').
+		 */
+		() as PublishErrors = Publish(JsonErrorMessage) {
+			param
+				 topic: $errorTopic;
+		}
+
+}
+
+
+

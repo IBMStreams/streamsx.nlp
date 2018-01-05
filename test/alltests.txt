@@ -18,6 +18,7 @@ feature/TfIdfSample
 feature/UimaChainSample
 feature/UimaDynamicUpdateSample
 feature/UimaMultiViewSample
+feature/UimaTextErrorPort
 feature/UimaTextGenerated/
 feature/UimaTextSample
 performance
