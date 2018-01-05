@@ -13,7 +13,29 @@ use com.ibm.streamsx.topology.topic::Publish;
 use com.ibm.streamsx.json::*;
 
 /**
- *
+ * Service provides several import and export topics. 
+ * 
+ * ingestTopic: import JSON Schema
+ * \{
+ *   "document" : string
+ * \}
+ * 
+ * updatePearTopic: import JSON Schema
+ * \{
+ *   "filename" : string
+ * \}
+ * 
+ * annotationsTopic: export JSON Schema
+ * \{
+ *   "document" : string,
+ *   "cas" : string
+ * \}
+ * 
+ * errorsTopic: export JSON Schema
+ * \{
+ *   "document" : string
+ *   "errors" : string list
+ * \}
  */
 public composite UimaService
 {
@@ -21,6 +43,7 @@ public composite UimaService
 		expression<rstring> $ingestTopic : getSubmissionTimeValue("ingestTopic", "streamsx/nlp/documents");
 		expression<rstring> $updatePearTopic : getSubmissionTimeValue("updatePearTopic", "streamsx/nlp/update/pear");
 		expression<rstring> $annotationsTopic : getSubmissionTimeValue("annotationsTopic", "streamsx/nlp/annotations");
+		expression<rstring> $errorTopic : getSubmissionTimeValue("errorsTopic", "streamsx/nlp/errors");
 		
 	graph
 		/**
@@ -60,20 +83,40 @@ public composite UimaService
 			}
 		}
 
-		(stream<rstring document, rstring cas> TextAnnotated) as UimaTextProcessor = UimaText(Documents; ControlStream){
+		(stream<rstring document, rstring cas> TextAnnotated;
+		stream<rstring document, list<rstring> errors> ErrorStream) as UimaTextProcessor = UimaText(Documents; ControlStream){
 			param
 				inputDoc: "document";
 				pearFile: "etc/DateTimeAnnotator_Java17.pear";
 				casOut: "cas";
 				casJson: true;
+				errorsAttribute: "errors";
+		}
+
+		/** The TupleToJSON converts the tuple into JSON to prepare it for publishing.		
+		*/
+		stream<Json> JsonTextAnnotated = TupleToJSON(TextAnnotated) {
 		}
 
 		/**
 		 * The Publish publishes the annotations messsages to the user-defined topic (default: 'streamsx/nlp/annotations').
 		 */
-		() as PublishAnnotations = Publish(TextAnnotated) {
+		() as PublishAnnotations = Publish(JsonTextAnnotated) {
 			param
 				 topic: $annotationsTopic;
+		}
+
+		/** The TupleToJSON converts the error message into JSON to prepare it for publishing.		
+		*/
+		stream<Json> JsonErrorMessage = TupleToJSON(ErrorStream) {
+		}
+
+		/**
+		 * The Publish publishes the error messsages to the user-defined topic (default: 'streamsx/nlp/errors').
+		 */
+		() as PublishErrors = Publish(JsonErrorMessage) {
+			param
+				 topic: $errorTopic;
 		}
 
 }
