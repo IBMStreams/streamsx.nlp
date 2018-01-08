@@ -184,13 +184,16 @@ void MY_OPERATOR::readDictionaryFile(const rstring& filename)
 		std::string line;
 		while( getline(ifs, line)) {
 			if ((line.size() > 0) && (line.at(0) != '#')) {
-				SPL::rstring word = SPL::Functions::String::trim(line, " ");
-				if (SPL::Functions::Collections::has(_dict, word)) {
-					SPLAPPTRC(L_WARN, "dictionary file contains the same word more than once: " << word, aspect);
-				}
-				else {
-					SPLAPPTRC(L_TRACE, "insert from dictionary file: " << word, aspect);
-					SPL::Functions::Collections::insertM(_dict, word, 0);
+				
+				SPL::list<SPL::rstring> tokens = SPL::Functions::String::tokenize(line, " ", false);
+				for (int i = 0; i < SPL::Functions::Collections::size(tokens); i++) {
+					if (SPL::Functions::Collections::has(_dict, tokens[i])) {
+						SPLAPPTRC(L_WARN, "dictionary file contains the same word more than once: " << tokens[i], aspect);
+					}
+					else {
+						SPLAPPTRC(L_ERROR, "insert from dictionary file: " << tokens[i], aspect);
+						SPL::Functions::Collections::insertM(_dict, tokens[i], 0);
+					}
 				}
 			}
 			else {

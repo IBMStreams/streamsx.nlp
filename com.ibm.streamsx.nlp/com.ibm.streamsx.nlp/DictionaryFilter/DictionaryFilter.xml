@@ -63,7 +63,10 @@ Specifies the text attribute of the input stream.
         <name>dictionaryFile</name>
         <description>
 <![CDATA[
-Specifies the dictionary file loaded on startup. If relative path is used, then root is application directory. It is recommended to store the file in etc directory.
+Specifies the dictionary file loaded on startup.
+If relative path is used, then root is application directory. It is recommended to store the file in etc directory.
+
+Words in the dictionary file can be separated by space or new line.
 ]]></description>
         <optional>false</optional>
         <rewriteAllowed>false</rewriteAllowed>

@@ -1,0 +1,42 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.nlp::*;
+
+composite DictionaryFilterTest1
+{
+
+	graph 
+
+ 		stream<rstring text, int32 count> TextStream = Custom() {
+			logic
+			onProcess: {
+				mutable TextStream otuple = {};
+				otuple.text = "two is greater than one";
+				otuple.count = 0;
+				submit (otuple, TextStream);
+				otuple.text = "Watson would affect the testing";
+				otuple.count = 1;
+				submit (otuple, TextStream);
+				otuple.text = "Mr. Thomas Watson Jr is here";
+				otuple.count = 2;
+				submit (otuple, TextStream);
+				submit(Sys.WindowMarker, TextStream);
+			}
+		}
+
+		(stream<I> TextFiltered) as StopWordRemover = DictionaryFilter(TextStream as I){
+			param
+				dictionaryFile: "etc/stopwords.txt";
+				textAttribute: text;
+		}
+
+ 		() as SinkOutput = FileSink(TextFiltered) {
+ 			param                        
+				file:  "out.txt";
+				format: txt;
+				flushOnPunctuation: true;
+		}
+
+}
