@@ -1,0 +1,3 @@
+{text="greater than",count=0}
+{text="affect testing",count=1}
+{text="Mr. here",count=2}

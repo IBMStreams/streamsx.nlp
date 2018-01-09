@@ -6,6 +6,7 @@
 # This is a comment line
 feature/ContentRankingSample
 feature/DictionaryFilterSample
+feature/DictionaryFilterTest1
 feature/FunctionsSample
 feature/Lemmatizer
 feature/LinearClassificationSample
