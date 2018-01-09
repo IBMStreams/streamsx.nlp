@@ -1,0 +1,75 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+use com.ibm.streamsx.nlp::*;
+
+composite DictionaryFilterTest2
+{
+	graph 
+
+ 		(stream<rstring text, int32 count> TextStream;
+		stream<rstring cmd, rstring word> CommandStream) as Sim = Custom() {
+			logic
+			onProcess: {
+				mutable TextStream otuple = {};
+				otuple.text = "two is greater than one";
+				otuple.count = 0;
+				submit (otuple, TextStream);
+
+				block(1.0);
+
+				mutable CommandStream otuple1 = {};
+				otuple1.cmd = "clear";
+				submit (otuple1, CommandStream);
+
+				otuple1.cmd = "add";
+				otuple1.word = "Watson";
+				submit (otuple1, CommandStream);
+
+				// end of dict update
+				submit(Sys.WindowMarker, CommandStream);
+
+				block(1.0);
+
+				otuple.text = "Watson five";
+				otuple.count = 1;
+				submit (otuple, TextStream);
+
+				submit(Sys.WindowMarker, TextStream);
+			}
+		}
+
+		(stream<I> TextFiltered) as DictKeeper = DictionaryFilter(TextStream as I; CommandStream){
+			param
+				dictionaryFile: "etc/dict.txt";
+				textAttribute: text;
+				commandAttribute: cmd;
+				wordAttribute: word;
+				filterMode: DictionaryFilter.keep;
+		}
+
+ 		() as SinkOutput = FileSink(TextFiltered) {
+ 			param                        
+				file:  "out.txt";
+				format: txt;
+				flushOnPunctuation: true;
+		}
+
+		(stream<I> TextFiltered1) as StopWordRemover = DictionaryFilter(TextStream as I; CommandStream){
+			param
+				dictionaryFile: "etc/dict.txt";
+				textAttribute: text;
+				commandAttribute: cmd;
+				wordAttribute: word;
+				filterMode: DictionaryFilter.remove;
+		}
+
+ 		() as SinkOutput1 = FileSink(TextFiltered1) {
+ 			param                        
+				file:  "out1.txt";
+				format: txt;
+				flushOnPunctuation: true;
+		}
+
+}

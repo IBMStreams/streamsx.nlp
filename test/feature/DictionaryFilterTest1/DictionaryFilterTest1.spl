@@ -16,7 +16,7 @@ composite DictionaryFilterTest1
 				otuple.text = "two is greater than one";
 				otuple.count = 0;
 				submit (otuple, TextStream);
-				otuple.text = "Watson would affect the testing";
+				otuple.text = "Watson would affect the testing watson";
 				otuple.count = 1;
 				submit (otuple, TextStream);
 				otuple.text = "Mr. Thomas Watson Jr is here";
@@ -30,11 +30,25 @@ composite DictionaryFilterTest1
 			param
 				dictionaryFile: "etc/stopwords.txt";
 				textAttribute: text;
+				ignoreCase: false;
 		}
 
  		() as SinkOutput = FileSink(TextFiltered) {
  			param                        
 				file:  "out.txt";
+				format: txt;
+				flushOnPunctuation: true;
+		}
+
+		(stream<I> TextFiltered1) as StopWordRemoverIgnoreCase = DictionaryFilter(TextStream as I){
+			param
+				dictionaryFile: "etc/stopwords.txt";
+				textAttribute: text;
+		}
+
+ 		() as SinkOutput1 = FileSink(TextFiltered1) {
+ 			param                        
+				file:  "out1.txt";
 				format: txt;
 				flushOnPunctuation: true;
 		}

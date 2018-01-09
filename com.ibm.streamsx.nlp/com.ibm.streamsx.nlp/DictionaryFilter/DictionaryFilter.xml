@@ -114,6 +114,15 @@ exists, the `read` and `write` commands are not supported.
           <port>1</port>
         </portScope>
       </parameter>
+      <parameter>
+        <name>ignoreCase</name>
+        <description>Specifies whether to perform a case sensitive dictionary match or not. The default value is `true`, meaning that a not case sensitive match is performed.</description>
+        <optional>true</optional>
+        <rewriteAllowed>true</rewriteAllowed>
+        <expressionMode>AttributeFree</expressionMode>
+        <type>boolean</type>
+        <cardinality>1</cardinality>
+      </parameter>      
     </parameters>
     <inputPorts>
       <inputPortSet>
