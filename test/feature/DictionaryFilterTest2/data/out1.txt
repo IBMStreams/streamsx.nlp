@@ -1,2 +1,0 @@
-{text="is greater than",count=0}
-{text="five",count=1}
