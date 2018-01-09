@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.4.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; DictionaryFilter</p>
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.6.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; DictionaryFilter</p>
 
 </div>
 
@@ -55,14 +55,14 @@
  
   <dt class="dt dlterm">Parameters</dt>
 
-  <dd class="dd">This operator supports 5 parameters.
+  <dd class="dd">This operator supports 6 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__dictionaryFile">dictionaryFile</a>, <a class="xref" href="#spldoc_operator__parameter__textAttribute">textAttribute</a>
 
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__commandAttribute">commandAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__filterMode">filterMode</a>, <a class="xref" href="#spldoc_operator__parameter__wordAttribute">wordAttribute</a>
+<a class="xref" href="#spldoc_operator__parameter__commandAttribute">commandAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__filterMode">filterMode</a>, <a class="xref" href="#spldoc_operator__parameter__ignoreCase">ignoreCase</a>, <a class="xref" href="#spldoc_operator__parameter__wordAttribute">wordAttribute</a>
 
 </p>
 </dd>
@@ -255,14 +255,14 @@ A window punctuation marks the end of the dictionary update and must follow the 
 
 <div class="section">
 <p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters">Parameters</a></strong></p>
-This operator supports 5 parameters.
+This operator supports 6 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__dictionaryFile">dictionaryFile</a>, <a class="xref" href="#spldoc_operator__parameter__textAttribute">textAttribute</a>
 
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__commandAttribute">commandAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__filterMode">filterMode</a>, <a class="xref" href="#spldoc_operator__parameter__wordAttribute">wordAttribute</a>
+<a class="xref" href="#spldoc_operator__parameter__commandAttribute">commandAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__filterMode">filterMode</a>, <a class="xref" href="#spldoc_operator__parameter__ignoreCase">ignoreCase</a>, <a class="xref" href="#spldoc_operator__parameter__wordAttribute">wordAttribute</a>
 
 </p>
 <dl class="dl">
@@ -311,7 +311,10 @@ This operator supports 5 parameters.
      <dt class="dt dlterm"><a name="spldoc_operator__parameter__dictionaryFile"><!-- --></a><tt class="ph tt">dictionaryFile</tt></dt>
 
      <dd class="dd">
-<p class="p">Specifies the dictionary file loaded on startup. If relative path is used, then root is application directory. It is recommended to store the file in etc directory. 
+<p class="p">Specifies the dictionary file loaded on startup. If relative path is used, then root is application directory. It is recommended to store the file in etc directory.
+</p>
+
+<p class="p">Words in the dictionary file can be separated by space or new line. 
 </p>
 
   <dl class="dl">
@@ -364,6 +367,41 @@ This operator supports 5 parameters.
      </li>
 
      <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: CustomLiteral
+     </li>
+
+   </ul>
+
+     <p class="p"/>
+     </dd>
+
+    
+  </dl>
+
+     </dd>
+
+  
+  
+     <dt class="dt dlterm"><a name="spldoc_operator__parameter__ignoreCase"><!-- --></a><tt class="ph tt">ignoreCase</tt></dt>
+
+     <dd class="dd">
+<p class="p">Specifies whether to perform a case sensitive dictionary match or not. The default value is <tt class="ph tt">true</tt>, meaning that a not case sensitive match is performed.
+</p>
+
+  <dl class="dl">
+    
+     <dt class="dt dlterm">Properties</dt>
+
+     <dd class="dd">   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: AttributeFree
      </li>
 
    </ul>
