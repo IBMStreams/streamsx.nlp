@@ -33,7 +33,11 @@
 	my $attributeNameTagWords;
 	my $tupleTypeTagWords;
 	my $attributeNameLemmaList;
+	my $attributeNameWordList;
+	my $attributeNamePosTagList;
 	my $usesLemmaList = 0;
+	my $usesWordList = 0;
+	my $usesPosTagList = 0;
 	my $outTupleAssignments = getOutputTupleCppAssignmentsWithSideEffects ("_tuple", $outputPort, 1);
 	my $hasOutTupleAssignments = $outTupleAssignments ne "";
 	
@@ -188,19 +192,25 @@ void MY_OPERATOR::process(Tuple & tuple, uint32_t port)
                 ++it2)
         {
             xx++;
-            if ( xx == 1 )
+            if ( xx == 1 ) // word
             {<%if ($usesTagWords) {%>
                 wplTuple.set_word(static_cast<SPL::rstring>(*it2));
+             <%}%>
+             <%if ($usesWordList) {%>
+             _tuple.get_<%=$attributeNameWordList%>().push_back(static_cast<SPL::rstring>(*it2));
              <%}%>
              <%if ($usesNormalizedText) {%>
              _word = static_cast<SPL::rstring>(*it2);
              <%}%>
             }
-            else if ( xx == 2 )
+            else if ( xx == 2 ) // pos
             {<%if ($usesTagWords) {%>
                 wplTuple.set_pos(static_cast<SPL::rstring>(*it2));<%}%>
+             <%if ($usesPosTagList) {%>
+                _tuple.get_<%=$attributeNamePosTagList%>().push_back(static_cast<SPL::rstring>(*it2));
+             <%}%>
             }
-            else if ( xx == 3 )
+            else if ( xx == 3 ) // lemma
             {
                 <%if ($usesTagWords) {%>
                 wplTuple.set_lemma(static_cast<SPL::rstring>(*it2));<%}%>
@@ -269,9 +279,17 @@ sub getOutputTupleCppAssignmentsWithSideEffects($$$)
             $attributeNameTagWords = $attr->getName();
             $tupleTypeTagWords = $elementCppType;
           }
-	}
-	elsif ($of eq 'Lemmas') {
-	  $attributeNameLemmaList = $attr->getName();
+        }
+        elsif ($of eq 'Words') {
+          $attributeNameWordList = $attr->getName();
+          $usesWordList = 1;
+        }
+        elsif ($of eq 'PosTags') {
+          $attributeNamePosTagList = $attr->getName();
+          $usesPosTagList = 1;
+        }
+        elsif ($of eq 'Lemmas') {
+          $attributeNameLemmaList = $attr->getName();
           $usesLemmaList = 1;
         } else {
           # Must be AsIs
