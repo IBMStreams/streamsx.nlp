@@ -74,7 +74,7 @@ The streamsx.nlp Toolkit integrates the following components:
 * Apache UIMA Java SDK (https://uima.apache.org/) - tested with 2.8.1
 * GPoSTTL (http://gposttl.sourceforge.net/)
    </info:description>
-   <info:version>1.7.0</info:version>
+   <info:version>1.7.1.__dev__</info:version>
    <info:requiredProductVersion>3.2</info:requiredProductVersion>
  </info:identity>
  <info:dependencies/>
