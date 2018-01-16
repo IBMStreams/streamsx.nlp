@@ -1,0 +1,34 @@
+/*
+** Copyright (C) 2016  International Business Machines Corporation
+** All Rights Reserved
+*/
+composite LemmatizerTest1
+{
+	graph 
+
+ 		stream<rstring text> TextStream = FileSource() {
+			param
+				file: "SourceData.txt";
+				parsing: permissive;
+		}
+
+		(
+		stream<rstring text, rstring normalizedtext, list<rstring> words, list<rstring> pos ,list<rstring> lemmas> TextNormalized as O
+		) as Lemmatizer  = com.ibm.streamsx.nlp::Lemmatizer(TextStream) {
+			param
+				textAttribute: text;
+			output O:
+				normalizedtext = NormalizedText(),
+				lemmas = Lemmas(),
+				words = Words(),
+				pos = PosTags();
+		}
+
+ 		() as SinkLemmas = FileSink(TextNormalized) {
+ 			param                        
+				file:  "out.txt";
+				format: txt;
+				flushOnPunctuation: true;
+		}
+
+}

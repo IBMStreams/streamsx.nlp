@@ -8,7 +8,115 @@
   xsi:schemaLocation="http://www.ibm.com/xmlns/prod/streams/spl/operator operatorModel.xsd">
   <cppOperatorModel>
     <context>
-      <description>This operator derives dictionary form of words in a text (aka lemma), (e.g. box for boxes), and determines their part-of-speech tags (e.g. NNS for noun, plural).</description>
+      <description>This operator derives dictionary form of words in a text (aka lemma), (e.g. box for boxes), and determines their part-of-speech tags (e.g. NNS for noun, plural).
+      
+The operator is based on the GPoSTTL [http://gposttl.sourceforge.net/] Parts-of-Speech Tagger, with built-in Tokenizer and Lemmatizer.
+GPoSTTL uses enhanced Penn tagset to make its output compatible with the output of TreeTagger.
+In particular, second letter of the verb tags distinguishes between "be" verbs (B), "have" verbs (H) and other verbs (V).
+The enhancement is done at last step of tagging procedure as its lexicon contains the original Penn tagset.
+
+Alphabetical list of part-of-speech tags:
+---
+| Tag   |  Description |
+|==========|
+| CC | Coordinating conjunction |
+|---|
+| CD | Cardinal number |
+|---|
+| DT | Determiner |
+|---|
+| EX | Existential there |
+|---|
+| FW | Foreign word |
+|---|
+| IN | Preposition or subordinating conjunction |
+|---|
+| JJ | Adjective |
+|---|
+| JJR | Adjective, comparative |
+|---|
+| JJS | Adjective, superlative |
+|---|
+| LS | List item marker |
+|---|
+| MD | Modal |
+|---|
+| NN | Noun, singular or mass |
+|---|
+| NNS | Noun, plural |
+|---|
+| NNP | Proper noun, singular |
+|---|
+| NNPS | Proper noun, plural |
+|---|
+| PDT | Predeterminer |
+|---|
+| POS | Possessive ending |
+|---|
+| PRP | Personal pronoun |
+|---|
+| PRP$ | Possessive pronoun |
+|---|
+| RB | Adverb |
+|---|
+| RBR | Adverb, comparative |
+|---|
+| RBS | Adverb, superlative |
+|---|
+| RP | Particle |
+|---|
+| SYM | Symbol |
+|---|
+| TO | to |
+|---|
+| UH | Interjection |
+|---|
+| VB | "be" Verb, base form |
+|---|
+| VH | "have" Verb, base form |
+|---|
+| VV | "other" Verb, base form |
+|---|
+| VBD | "be" Verb, past tense |
+|---|
+| VHD | "have" Verb, past tense |
+|---|
+| VVD | "other" Verb, past tense |
+|---|
+| VBG | "be" Verb, gerund or present participle |
+|---|
+| VHG | "have" Verb, gerund or present participle |
+|---|
+| VVG | "other" Verb, gerund or present participle |
+|---|
+| VBN | "be" Verb, past participle |
+|---|
+| VHN | "have" Verb, past participle |
+|---|
+| VVN | "other" Verb, past participle |
+|---|
+| VBP | "be" Verb, non-3rd person singular present |
+|---|
+| VHP | "have" Verb, non-3rd person singular present |
+|---|
+| VVP | "other" Verb, non-3rd person singular present |
+|---|
+| VBZ | "be" Verb, 3rd person singular present |
+|---|
+| VHZ | "have" Verb, 3rd person singular present |
+|---|
+| VVZ | "other" Verb, 3rd person singular present |
+|---|
+| WDT | Wh-determiner |
+|---|
+| WP | Wh-pronoun |
+|---|
+| WP$ | Possessive wh-pronoun |
+|---|
+| WRB | Wh-adverb |
+----------
+
+      </description>
 	<customOutputFunctions>
 		<customOutputFunction>
 			<name>Functions</name>
@@ -37,25 +145,50 @@ The converted input text. This function generates normalized text (words are rep
 
     stream<rstring text,rstring normalizedtext> A = Lemmatizer() {
        param ...
-       output A : normalizedtext = (rstring) (NormalizedText());
+       output A : normalizedtext = NormalizedText();
     }
 ]]></description>
 					<prototype><![CDATA[public rstring NormalizedText()]]></prototype>
 			</function>				
 			<function>
 				<description><![CDATA[
-The converted input text. This function generates a list of lemmas.
+This function generates a list of lemmas.
 
 **Example use:**
 
     stream<rstring text, list<rstring> lemmas> A = Lemmatizer() {
        param ...
-       output A : lemmas = list<rstring> (Lemmas());
+       output A : lemmas = list<rstring> Lemmas();
     }
 ]]></description>
 					<prototype><![CDATA[public list<rstring> Lemmas()]]></prototype>
-			</function>				
+			</function>
+			<function>
+				<description><![CDATA[
+This function generates a list of part-of-speech tags.
 
+**Example use:**
+
+    stream<rstring text, list<rstring> pos> A = Lemmatizer() {
+       param ...
+       output A : pos = list<rstring> PosTags();
+    }
+]]></description>
+					<prototype><![CDATA[public list<rstring> PosTags()]]></prototype>
+			</function>
+			<function>
+				<description><![CDATA[
+This function generates a list of words.
+
+**Example use:**
+
+    stream<rstring text, list<rstring> words> A = Lemmatizer() {
+       param ...
+       output A : words = list<rstring> Words();
+    }
+]]></description>
+					<prototype><![CDATA[public list<rstring> Words()]]></prototype>
+			</function>
 		</customOutputFunction>
 	</customOutputFunctions>
      <libraryDependencies>

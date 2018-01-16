@@ -7,8 +7,10 @@
 feature/ContentRankingSample
 feature/DictionaryFilterSample
 feature/DictionaryFilterTest1
+feature/DictionaryFilterTest2
 feature/FunctionsSample
 feature/Lemmatizer
+feature/LemmatizerTest1
 feature/LinearClassificationSample
 feature/NgramBasicSample
 feature/NgramSample
