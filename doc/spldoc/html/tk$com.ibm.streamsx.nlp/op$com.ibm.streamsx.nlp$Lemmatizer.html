@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.6.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; Lemmatizer</p>
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.7.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp</a> &gt; Lemmatizer</p>
 
 </div>
 
@@ -34,6 +34,760 @@
 
 <p class="p">This operator derives dictionary form of words in a text (aka lemma), (e.g. box for boxes), and determines their part-of-speech tags (e.g. NNS for noun, plural).
 </p>
+
+<p class="p">The operator is based on the GPoSTTL <a class="xref" href="http://gposttl.sourceforge.net/">http://gposttl.sourceforge.net/</a> Parts-of-Speech Tagger, with built-in Tokenizer and Lemmatizer. GPoSTTL uses enhanced Penn tagset to make its output compatible with the output of TreeTagger. In particular, second letter of the verb tags distinguishes between "be" verbs (B), "have" verbs (H) and other verbs (V). The enhancement is done at last step of tagging procedure as its lexicon contains the original Penn tagset.
+</p>
+
+<div class="p">Alphabetical list of part-of-speech tags:
+
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" class="table" frame="border" border="1" rules="all">
+
+
+<thead class="thead" align="left">
+<tr class="row">
+<th class="entry" colspan="1" valign="top" id="d8633e65">
+<p class="p">Tag
+</p>
+
+</th>
+
+<th class="entry" colspan="1" valign="top" id="d8633e71">
+<p class="p"> Description
+</p>
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody class="tbody">
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">CC
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Coordinating conjunction
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">CD
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Cardinal number
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">DT
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Determiner
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">EX
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Existential there
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">FW
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Foreign word
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">IN
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Preposition or subordinating conjunction
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">JJ
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Adjective
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">JJR
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Adjective, comparative
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">JJS
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Adjective, superlative
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">LS
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">List item marker
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">MD
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Modal
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">NN
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Noun, singular or mass
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">NNS
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Noun, plural
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">NNP
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Proper noun, singular
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">NNPS
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Proper noun, plural
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">PDT
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Predeterminer
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">POS
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Possessive ending
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">PRP
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Personal pronoun
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">PRP$
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Possessive pronoun
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">RB
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Adverb
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">RBR
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Adverb, comparative
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">RBS
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Adverb, superlative
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">RP
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Particle
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">SYM
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Symbol
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">TO
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">to
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">UH
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Interjection
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VB
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"be" Verb, base form
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VH
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"have" Verb, base form
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VV
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"other" Verb, base form
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VBD
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"be" Verb, past tense
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VHD
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"have" Verb, past tense
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VVD
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"other" Verb, past tense
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VBG
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"be" Verb, gerund or present participle
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VHG
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"have" Verb, gerund or present participle
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VVG
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"other" Verb, gerund or present participle
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VBN
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"be" Verb, past participle
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VHN
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"have" Verb, past participle
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VVN
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"other" Verb, past participle
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VBP
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"be" Verb, non-3rd person singular present
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VHP
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"have" Verb, non-3rd person singular present
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VVP
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"other" Verb, non-3rd person singular present
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VBZ
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"be" Verb, 3rd person singular present
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VHZ
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"have" Verb, 3rd person singular present
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">VVZ
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">"other" Verb, 3rd person singular present
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">WDT
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Wh-determiner
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">WP
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Wh-pronoun
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">WP$
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Possessive wh-pronoun
+</p>
+
+</td>
+
+</tr>
+
+<tr class="row">
+<td class="entry" colspan="1" valign="top" headers="d8633e65 ">
+<p class="p">WRB
+</p>
+
+</td>
+
+<td class="entry" colspan="1" valign="top" headers="d8633e71 ">
+<p class="p">Wh-adverb
+</p>
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+</div>
 
 </div>
 
@@ -213,7 +967,7 @@ stream&lt;rstring text,list&lt;tuple&lt;rstring word, rstring pos, rstring lemma
 <pre class="pre codeblock">
 stream&lt;rstring text,rstring normalizedtext&gt; A = Lemmatizer() {
    param ...
-   output A : normalizedtext = (rstring) (NormalizedText());
+   output A : normalizedtext = NormalizedText();
 }
 </pre>
 
@@ -229,7 +983,7 @@ stream&lt;rstring text,rstring normalizedtext&gt; A = Lemmatizer() {
 
             <dd class="dd">
 
-<p class="p">The converted input text. This function generates a list of lemmas.
+<p class="p">This function generates a list of lemmas.
 </p>
 
 <p class="p"><strong class="ph b">Example use:</strong>
@@ -239,7 +993,59 @@ stream&lt;rstring text,rstring normalizedtext&gt; A = Lemmatizer() {
 <pre class="pre codeblock">
 stream&lt;rstring text, list&lt;rstring&gt; lemmas&gt; A = Lemmatizer() {
    param ...
-   output A : lemmas = list&lt;rstring&gt; (Lemmas());
+   output A : lemmas = list&lt;rstring&gt; Lemmas();
+}
+</pre>
+
+
+</div>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   public list&lt;rstring&gt; PosTags()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function generates a list of part-of-speech tags.
+</p>
+
+<p class="p"><strong class="ph b">Example use:</strong>
+</p>
+
+<div class="p">
+<pre class="pre codeblock">
+stream&lt;rstring text, list&lt;rstring&gt; pos&gt; A = Lemmatizer() {
+   param ...
+   output A : pos = list&lt;rstring&gt; PosTags();
+}
+</pre>
+
+
+</div>
+              <p class="p"/>
+
+            </dd>
+
+                        
+              <dt class="dt dlterm">
+                <tt class="ph tt">   public list&lt;rstring&gt; Words()</tt>              </dt>
+
+            <dd class="dd">
+
+<p class="p">This function generates a list of words.
+</p>
+
+<p class="p"><strong class="ph b">Example use:</strong>
+</p>
+
+<div class="p">
+<pre class="pre codeblock">
+stream&lt;rstring text, list&lt;rstring&gt; words&gt; A = Lemmatizer() {
+   param ...
+   output A : words = list&lt;rstring&gt; Words();
 }
 </pre>
 
