@@ -1,0 +1,16 @@
+# Copyright (C)2016, International Business Machines Corporation
+# All rights reserved.
+
+#Test list file with all available tests
+
+# This is a comment line
+feature/DictionaryFilterSample
+feature/FunctionsSample
+feature/Lemmatizer
+feature/NgramBasicSample
+feature/NgramSample
+feature/RutaTextSample
+feature/TfIdfSample
+feature/UimaTextGenerated/
+feature/UimaTextSample
+
