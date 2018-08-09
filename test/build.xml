@@ -51,4 +51,12 @@
         </exec>
     </target>
 
+    <target name="build-and-test-standalone" depends="clean">
+        <exec executable="python" failonerror="true">
+            <arg value="runtests.py"/>
+            <arg value="-f"/>
+            <arg value="quicktests.txt"/>
+        </exec>
+    </target>	
+	
 </project>
