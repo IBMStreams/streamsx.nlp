@@ -44,7 +44,7 @@
     </target>
 
     <target name="test" depends="clean">
-        <exec executable="python" failonerror="true">
+        <exec executable="python2" failonerror="true">
             <arg value="runtests.py"/>
             <arg value="-f"/>
             <arg value="alltests.txt"/>
@@ -52,7 +52,7 @@
     </target>
 
     <target name="build-and-test-standalone" depends="clean">
-        <exec executable="python" failonerror="true">
+        <exec executable="python2" failonerror="true">
             <arg value="runtests.py"/>
             <arg value="-f"/>
             <arg value="quicktests.txt"/>
