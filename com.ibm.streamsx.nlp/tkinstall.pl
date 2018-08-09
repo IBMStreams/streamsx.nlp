@@ -4,19 +4,15 @@
 
 use strict;
 use Cwd qw(abs_path cwd);
-use Env qw(USER);
 use File::Basename;
 
-my $STREAMS_INSTALL=$ENV{STREAMS_INSTALL};
-$ENV{STREAMS_INSTALL} or die "Error: STREAMS_INSTALL not set. Please source streamsprofile.sh";
-
-my $ST=$STREAMS_INSTALL."/bin/streamtool";
+my $STREAMS_VERION=$ARGV[0];
 
 my $dirname = dirname(abs_path($0));
 
 sub getStreamsVersion()
 {
-	return substr(`$ST version | grep Version`, 8, 3,);
+	return substr($STREAMS_VERION, 0, 3,);
 }
 
 #print getStreamsVersion();
