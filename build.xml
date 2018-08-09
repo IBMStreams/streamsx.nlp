@@ -15,6 +15,7 @@
   <property name="samples" location="samples"/>
   <property name="tmp" location="tmp" />
   <property name="microservices" location="microservices" />
+  <property name="toolkit.test" location="test"/>	
 	
   <target name="all"
      description="Build the toolkit." >
@@ -60,6 +61,10 @@
      </exec>
   </target>
 
+  <!-- Test targets -->
+  <target name="test">
+     <ant dir="${toolkit.test}" target="build-and-test-standalone"/>
+  </target>
   
   <!-- Targets to build releases -->
   <target name="release"  depends="clean,all">
