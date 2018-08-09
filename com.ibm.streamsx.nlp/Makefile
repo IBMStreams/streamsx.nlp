@@ -57,7 +57,6 @@ $(info using $(COMPILER_VERSION) compiler)
 endif
 
 
-
 all: install
 
 toolkit.xml: java-build
@@ -70,7 +69,7 @@ text-gposttl:
 	cd impl/src/gposttl-0.9.3-mod/src/; make all
 
 prepare-header:
-	perl tkinstall.pl
+	perl tkinstall.pl $(ST_VERSION)
 
 text-libs:
 	cd impl/src/; make -f Makefile.libtextutils all
