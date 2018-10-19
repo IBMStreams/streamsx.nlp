@@ -24,6 +24,8 @@ from keras.callbacks import *
 from keras.optimizers import *
 from keras.preprocessing.sequence import pad_sequences
 
+import sys
+
 if ((__name__ == "__main__") and (len(sys.argv) >= 4)):
     x_reg_file = sys.argv[1]
     y_reg_file = sys.argv[2]

@@ -14,7 +14,6 @@
   <property name="toolkit" location="com.ibm.streamsx.nlp"/>
   <property name="samples" location="samples"/>
   <property name="tmp" location="tmp" />
-  <property name="microservices" location="microservices" />
   <property name="toolkit.test" location="test"/>	
 	
   <target name="all"
@@ -54,11 +53,6 @@
      </exec>
      <ant dir="test" target="clean">
      </ant>
-     <exec executable="make" failonerror="true" dir="${microservices}">
-       <arg value="-f" />
-       <arg value="Makefile" />
-       <arg value="clean" />
-     </exec>
   </target>
 
   <!-- Test targets -->
@@ -69,16 +63,6 @@
   <!-- Targets to build releases -->
   <target name="release"  depends="clean,all">
 	<mkdir dir="${tmp}" />
-        <exec executable="make" failonerror="true" dir="${microservices}">
-          <arg value="-f" />
-          <arg value="Makefile" />
-          <arg value="release" />
-        </exec>
-        <exec executable="make" failonerror="true" dir="${microservices}">
-          <arg value="-f" />
-          <arg value="Makefile" />
-          <arg value="clean" />
-        </exec>
         <!-- Create the time stamp -->
         <tstamp />
         <!-- Extract info from the toolkit's info.xml -->
