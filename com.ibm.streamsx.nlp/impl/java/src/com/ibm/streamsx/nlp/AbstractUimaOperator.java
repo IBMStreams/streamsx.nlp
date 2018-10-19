@@ -98,7 +98,7 @@ import com.ibm.streams.operator.types.RString;
  * <p>With the exception of operator initialization, all the other events may occur concurrently with each other, 
  * which lead to these methods being called concurrently by different threads.</p> 
  */
-@Libraries({"impl/lib/apache-uima/uima-core.jar","impl/lib/apache-uima/uimaj-json.jar","impl/lib/apache-uima/jackson-core-2.4.2.jar"})
+@Libraries({"impl/lib/apache-uima/uima-core.jar","impl/lib/apache-uima/uimaj-json.jar","impl/lib/apache-uima/jackson-core-2.9.5.jar"})
 public abstract class AbstractUimaOperator extends AbstractOperator {
 	
 	private static Logger trace = Logger.getLogger(AbstractUimaOperator.class.getName());

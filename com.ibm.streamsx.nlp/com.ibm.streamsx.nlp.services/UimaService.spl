@@ -5,7 +5,7 @@
 // ****************************************************************************
 //
 
-namespace com.ibm.streamsx.nlp.service;
+namespace com.ibm.streamsx.nlp.services;
 
 use com.ibm.streamsx.nlp::*;
 use com.ibm.streamsx.topology.topic::Subscribe;
@@ -87,7 +87,7 @@ public composite UimaService
 		stream<rstring document, list<rstring> errors> ErrorStream) as UimaTextProcessor = UimaText(Documents; ControlStream){
 			param
 				inputDoc: "document";
-				pearFile: "etc/DateTimeAnnotator_Java17.pear";
+				pearFile: getThisToolkitDir()+ "/" + "etc/uima_service.pear";
 				casOut: "cas";
 				casJson: true;
 				errorsAttribute: "errors";
