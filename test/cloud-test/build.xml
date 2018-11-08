@@ -59,12 +59,24 @@
         <fail unless="env.VCAP_SERVICES" message="Please set environment variable VCAP_SERVICES."/>
     </target>
 
-    <target name="test" depends="clean, init">
+    <target name="test" depends="testcloud">
+    </target>
+
+    <target name="testcloud" depends="clean, init">
         <exec executable="python3" failonerror="true">
+            <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="discover"/>
-            <arg value="-v"/>
+            <arg value="test_nlp.TestCloud"/>
+        </exec>
+    </target>
+
+    <target name="testicp" depends="clean, init">
+        <exec executable="python3" failonerror="true">
+            <arg value="-u"/>
+            <arg value="-m"/>
+            <arg value="unittest"/>
+            <arg value="test_nlp.TestICP"/>
         </exec>
     </target>
 
