@@ -90,6 +90,12 @@ class TestICP(TestCloud):
     @classmethod
     def setUpClass(self):
         print (str(self))
+        env_chk = True
+        try:
+            print("STREAMS_REST_URL="+str(os.environ['STREAMS_REST_URL']))
+        except KeyError:
+            env_chk = False
+        assert env_chk, "STREAMS_REST_URL environment variable must be set"     
 
     def setUp(self):
         Tester.setup_distributed(self)
