@@ -22,6 +22,8 @@ userdocs:
     children:
       - title: "Overview"
         url: /docs/user/overview
+      - title: "UIMA"
+        url: /docs/user/uima
 
 # developer documentation links
 developerdocs:
