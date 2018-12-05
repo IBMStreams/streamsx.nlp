@@ -42,6 +42,7 @@ class TestCloud(unittest.TestCase):
         # icp config
         if ("TestICP" in str(self)):
             job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
+            cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
         job_config.add(cfg)
 
         tester.test(self.test_ctxtype, cfg)
