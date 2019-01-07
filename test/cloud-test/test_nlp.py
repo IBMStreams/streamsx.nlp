@@ -13,6 +13,10 @@ class TestCloud(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.service_name = os.environ.get('STREAMING_ANALYTICS_SERVICE_NAME')
+        # start streams service
+        connection = sr.StreamingAnalyticsConnection()
+        service = connection.get_streaming_analytics()
+        result = service.start_instance()
 
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
