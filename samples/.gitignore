@@ -1,2 +1,5 @@
 /.apt_generated/
 /output/
+
+/**/opt/.splpy/
+/**/.lockfile

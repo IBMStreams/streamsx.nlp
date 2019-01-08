@@ -40,3 +40,22 @@ Delete generated files of test suites.
 ```
 ant clean
 ```
+
+### Cloud Test
+
+    python3 -u -m unittest test_nlp.TestCloud
+
+Example for running a single test case:
+
+    python3 -u -m unittest test_nlp.TestCloud.test_ruta_text
+
+
+### ICP Test
+
+    python3 -u -m unittest test_nlp.TestICP
+
+Example for running a single test case:
+
+    python3 -u -m unittest test_nlp.TestICP.test_ruta_text
+
+
