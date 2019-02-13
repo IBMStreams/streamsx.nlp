@@ -7,6 +7,10 @@ import streamsx.spl.toolkit as tk
 import os
 import streamsx.rest as sr
 
+import streamsx.topology.context
+import requests
+from urllib.parse import urlparse
+
 class TestCloud(unittest.TestCase):
     """ Test invocations of composite operators in Streaming Analytics Service """
 
@@ -42,12 +46,15 @@ class TestCloud(unittest.TestCase):
         tester.contents(test_op.stream, [{'result':'ok'}] )
 
         cfg = {}
-        job_config = streamsx.topology.context.JobConfig(tracing='warn')
-        # icp config
         if ("TestICP" in str(self)):
-            job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
-            cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
+            cfg = self._service()
+
+        # change trace level
+        job_config = streamsx.topology.context.JobConfig(tracing='info')
         job_config.add(cfg)
+
+        if ("TestICP" in str(self)):
+            cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
 
         tester.test(self.test_ctxtype, cfg)
         print (str(tester.result))
@@ -105,5 +112,23 @@ class TestICP(TestCloud):
     def setUp(self):
         Tester.setup_distributed(self)
 
-        
+    def _service(self, remote_build=True):
+        auth_host = os.environ['AUTH_HOST']
+        streams_rest_url = os.environ['STREAMS_REST_URL']
+        streams_service_name = os.environ['STREAMS_SERVICE_NAME']
+        streams_user = os.environ['STREAMS_USERNAME']
+        streams_password = os.environ['STREAMS_PASSWORD']
+        uri_parsed = urlparse(streams_rest_url)
+        hostname = uri_parsed.hostname
+        r = requests.get('https://'+auth_host+'/v1/preauth/validateAuth', auth=(streams_user, streams_password), verify=False)
+        token = r.json()['accessToken']
+        cfg =  {
+            'type':'streams',
+            'connection_info':{
+                'serviceBuildEndpoint':'https://'+hostname+':32085',
+                'serviceRestEndpoint': 'https://'+uri_parsed.netloc+'/streams/rest/instances/'+streams_service_name},
+            'service_token': token }
+        cfg[streamsx.topology.context.ConfigParams.FORCE_REMOTE_BUILD] = remote_build
+        return cfg
+
 
