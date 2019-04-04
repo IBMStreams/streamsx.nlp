@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.8.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.services.html">com.ibm.streamsx.nlp.services</a> &gt; UimaService.spl</p>
+<a class="xref" href="../toolkits/toolkits.html">Toolkits</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.nlp.html">com.ibm.streamsx.nlp 1.9.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.nlp.services.html">com.ibm.streamsx.nlp.services</a> &gt; UimaService.spl</p>
 
 </div>
 
@@ -37,7 +37,7 @@
 
       <dd class="dd">
 <ul class="sl simple">
-<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp.services$UimaService.html#spldoc_compilationunit__composite_operator__UimaService">UimaService</a></strong>: Service provides several import and export topics.
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.nlp.services$UimaService.html#spldoc_compilationunit__composite_operator__UimaService">UimaService</a></strong>: Microservice that processes UIMA PEAR file 
 </li>
 
 </ul>
@@ -58,25 +58,51 @@
 </div>
 
 <div class="section splgraph">
-  <embed class="image" src="../../image/tk$com.ibm.streamsx.nlp/op$com.ibm.streamsx.nlp.services$UimaService.svg" width="640" height="154"/>
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.nlp/op$com.ibm.streamsx.nlp.services$UimaService.svg" width="547" height="154"/>
 </div>
 
 <div class="section">
 
-<p class="p">Service provides several import and export topics. 
+<p class="p">Microservice that processes UIMA PEAR file
 </p>
 
-<p class="p">ingestTopic: import JSON Schema {   "document" : string }
+<p class="p"><strong class="ph b">Subscribed topics</strong>
 </p>
 
-<p class="p">updatePearTopic: import JSON Schema {   "filename" : string }
+<p class="p">This microservice subscribes to the following topics.
 </p>
 
-<p class="p">annotationsTopic: export JSON Schema {   "document" : string,   "cas" : string }
+<div class="p">
+<ul class="ul">
+<li class="li"> <tt class="ph tt">streamsx/nlp/documents</tt> - ingest topic of type String</li>
+
+<li class="li"> <tt class="ph tt">streamsx/nlp/update/pear</tt> - update pear topic of type String.    String contains the filename of the pear file location.</li>
+
+</ul>
+
+</div>
+
+<p class="p"><strong class="ph b">Published topics</strong>
 </p>
 
-<p class="p">errorsTopic: export JSON Schema {   "document" : string   "errors" : string list } 
-</p>
+<div class="p">
+<ul class="ul">
+<li class="li"> <tt class="ph tt">streamsx/nlp/annotations</tt> - resulting annotations. Each tuple    represents a processed document. Output is of type Json.    CAS output is transformed to JSON and format depends on PEAR.</li>
+
+<li class="li">
+<div class="p"> <tt class="ph tt">streamsx/nlp/errors</tt> - Document processing errors    errorsTopic: export JSON Schema    {
+<pre class="pre codeblock">
+  "string" : string (document causing the error)
+  "errors" : string list
+</pre>
+
+   } 
+</div>
+</li>
+
+</ul>
+
+</div>
 
 </div>
 
