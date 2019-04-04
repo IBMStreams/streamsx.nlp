@@ -11,31 +11,32 @@ use com.ibm.streamsx.nlp::*;
 use com.ibm.streamsx.topology.topic::Subscribe;
 use com.ibm.streamsx.topology.topic::Publish;
 use com.ibm.streamsx.json::*;
+use com.ibm.streamsx.topology::String;
+
 
 /**
- * Service provides several import and export topics. 
+ * Microservice that processes UIMA PEAR file
  * 
- * ingestTopic: import JSON Schema
- * \{
- *   "document" : string
- * \}
+ * **Subscribed topics**
+ *
+ * This microservice subscribes to the following topics.
+ *
+ * * `streamsx/nlp/documents` - ingest topic of type String
+ * * `streamsx/nlp/update/pear` - update pear topic of type String.
+ *    String contains the filename of the pear file location.
+ *
+ * **Published topics**
  * 
- * updatePearTopic: import JSON Schema
- * \{
- *   "filename" : string
- * \}
- * 
- * annotationsTopic: export JSON Schema
- * \{
- *   "document" : string,
- *   "cas" : string
- * \}
- * 
- * errorsTopic: export JSON Schema
- * \{
- *   "document" : string
- *   "errors" : string list
- * \}
+ * * `streamsx/nlp/annotations` - resulting annotations. Each tuple
+ *    represents a processed document. Output is of type Json.
+ *    CAS output is transformed to JSON and format depends on PEAR.
+ *
+ * * `streamsx/nlp/errors` - Document processing errors
+ *    errorsTopic: export JSON Schema
+ *    \{
+ *       "string" : string (document causing the error)
+ *       "errors" : string list
+ *    \}
  */
 public composite UimaService
 {
@@ -49,59 +50,48 @@ public composite UimaService
 		/**
 		 * The Subscribe imports the documents
 		 */
-		stream<Json> JsonDocuments = Subscribe() {
+		stream<com.ibm.streamsx.topology::String> SubscribeStringDocuments = Subscribe() {
 			param
 				topic: $ingestTopic;
-				streamType: Json;
+				streamType: com.ibm.streamsx.topology::String;
 		}
 		
-		stream<rstring document> Documents = JSONToTuple(JsonDocuments) {
-		}
-
 		/**
 		 * The Subscribe imports the pear file name to update the pear file
 		 */
-		stream<Json> JsonPearFilenames = Subscribe() {
+		stream<com.ibm.streamsx.topology::String> SubscribePearFilenames = Subscribe() {
 			param
 				topic: $updatePearTopic;
-				streamType: Json;
+				streamType: com.ibm.streamsx.topology::String;
 		}
 
-		stream<rstring filename> FilenameStream = JSONToTuple(JsonPearFilenames) {
-		}
-
-		(stream<rstring filename> ControlStream as C ) as CtrlGen = Custom(FilenameStream as I) {
+		(stream<rstring filename> ControlStream as C ) as CtrlGen = Custom(SubscribePearFilenames as I) {
 			logic
 			onTuple I: {
-				if (filename == "") {
+				if (string == "") {
 					appTrc (Trace.error, "Empty filename.", "nlp");
 				}
 				else {
-					submit(I, C);
+					submit({filename=I.string}, C);
 					submit(Sys.WindowMarker, C); // activate new PEAR
 				}
 			}
 		}
 
-		(stream<rstring document, rstring cas> TextAnnotated;
-		stream<rstring document, list<rstring> errors> ErrorStream) as UimaTextProcessor = UimaText(Documents; ControlStream){
+		(stream<Json> TextAnnotated;
+		stream<rstring string, list<rstring> errors> ErrorStream) as UimaTextProcessor = UimaText(SubscribeStringDocuments; ControlStream){
 			param
-				inputDoc: "document";
-				pearFile: getThisToolkitDir()+ "/" + "etc/uima_service.pear";
-				casOut: "cas";
+				inputDoc: "string";
+				pearFile: getThisToolkitDir()+ "/" + "etc/uima_service.pear"; // DateTimeAnnotator
+				casOut: "jsonString";
 				casJson: true;
 				errorsAttribute: "errors";
-		}
-
-		/** The TupleToJSON converts the tuple into JSON to prepare it for publishing.		
-		*/
-		stream<Json> JsonTextAnnotated = TupleToJSON(TextAnnotated) {
 		}
 
 		/**
 		 * The Publish publishes the annotations messsages to the user-defined topic (default: 'streamsx/nlp/annotations').
 		 */
-		() as PublishAnnotations = Publish(JsonTextAnnotated) {
+		() as PublishAnnotations = Publish(TextAnnotated) {
 			param
 				 topic: $annotationsTopic;
 		}
