@@ -7,17 +7,13 @@ from streamsx.topology import context
 import streamsx.spl.op as op
 
 
-def _launch(main):
-    cfg = {}
-    cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
-    rc = streamsx.topology.context.submit('DISTRIBUTED', main, cfg)
 
 def uima_service():
     topo = Topology('UimaService')
     nlp_toolkit = '../../com.ibm.streamsx.nlp'
     streamsx.spl.toolkit.add_toolkit(topo, nlp_toolkit)
     r = op.main_composite(kind='com.ibm.streamsx.nlp.services::UimaService', toolkits=[nlp_toolkit])
-    _launch(r[0])
+    rc = streamsx.topology.context.submit('STREAMING_ANALYTICS_SERVICE', r[0])
 
 
 class StringData(object):
@@ -40,7 +36,7 @@ def sample():
     ts.print()
     ts.isolate()
 
-    _launch(topo)
+    rc = streamsx.topology.context.submit('STREAMING_ANALYTICS_SERVICE', topo)
 
 
 # launch microservice
