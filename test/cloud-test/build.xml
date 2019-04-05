@@ -71,7 +71,7 @@
         </exec>
     </target>
 
-    <target name="testicp" depends="clean, init">
+    <target name="testicp" depends="clean, prepareTestProjects">
         <exec executable="python3" failonerror="true">
             <arg value="-u"/>
             <arg value="-m"/>
