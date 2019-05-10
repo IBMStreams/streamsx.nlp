@@ -13,10 +13,20 @@ def _launch(main):
     rc = streamsx.topology.context.submit('DISTRIBUTED', main, cfg)
 
 def uima_service():
+    json_toolkit_location = None # use remote toolkit from build-service
+    streams_install = os.environ.get('STREAMS_INSTALL')
+    if streams_install is not None:
+        json_toolkit_location = streams_install+'/toolkits/com.ibm.streamsx.json'
+
     topo = Topology('UimaService')
     nlp_toolkit = '../../com.ibm.streamsx.nlp'
     streamsx.spl.toolkit.add_toolkit(topo, nlp_toolkit)
-    r = op.main_composite(kind='com.ibm.streamsx.nlp.services::UimaService', toolkits=[nlp_toolkit])
+    if json_toolkit_location is not None:
+        streamsx.spl.toolkit.add_toolkit(topo, json_toolkit_location)
+        toolkits=[nlp_toolkit, json_toolkit_location]
+    else:
+        toolkits=[nlp_toolkit]
+    r = op.main_composite(kind='com.ibm.streamsx.nlp.services::UimaService', toolkits=toolkits)
     _launch(r[0])
 
 
