@@ -7,13 +7,27 @@ from streamsx.topology import context
 import streamsx.spl.op as op
 
 
+def _launch(main):
+    cfg = {}
+    cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
+    rc = streamsx.topology.context.submit('STREAMING_ANALYTICS_SERVICE', main, cfg)
 
 def uima_service():
+    json_toolkit_location = None # use remote toolkit from build-service
+    streams_install = os.environ.get('STREAMS_INSTALL')
+    if streams_install is not None:
+        json_toolkit_location = streams_install+'/toolkits/com.ibm.streamsx.json'
+
     topo = Topology('UimaService')
     nlp_toolkit = '../../com.ibm.streamsx.nlp'
     streamsx.spl.toolkit.add_toolkit(topo, nlp_toolkit)
-    r = op.main_composite(kind='com.ibm.streamsx.nlp.services::UimaService', toolkits=[nlp_toolkit])
-    rc = streamsx.topology.context.submit('STREAMING_ANALYTICS_SERVICE', r[0])
+    if json_toolkit_location is not None:
+        streamsx.spl.toolkit.add_toolkit(topo, json_toolkit_location)
+        toolkits=[nlp_toolkit, json_toolkit_location]
+    else:
+        toolkits=[nlp_toolkit]
+    r = op.main_composite(kind='com.ibm.streamsx.nlp.services::UimaService', toolkits=toolkits)
+    _launch(r[0])
 
 
 class StringData(object):
@@ -36,7 +50,7 @@ def sample():
     ts.print()
     ts.isolate()
 
-    rc = streamsx.topology.context.submit('STREAMING_ANALYTICS_SERVICE', topo)
+    _launch(topo)
 
 
 # launch microservice
@@ -44,7 +58,4 @@ uima_service()
 
 # launch sample app
 sample()
-
-
-
 

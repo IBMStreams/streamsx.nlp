@@ -2,7 +2,7 @@
 
 ## Before launching the test
 
-Ensure that you have Python 3.5 installed. For example, you can get Python 3.5 from the [Anaconda archive page](https://repo.continuum.io/archive/index.html).
+Ensure that you have Python 3.6 installed. For example, you can get Python 3.6 from the [Anaconda archive page](https://repo.continuum.io/archive/index.html).
 
 Ensure that the bin directory is added to the PATH environment variable. If necessary, add the bin directory by entering the following command on the command line:
 
