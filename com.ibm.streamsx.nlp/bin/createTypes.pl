@@ -119,7 +119,7 @@ sub generateComposite($$$) {
     my ($compositeName, $pearFile, $annoType) = @_;
     $pearFile = basename($pearFile);
     my $prolog=<<END;
-composite $compositeName
+public composite $compositeName
 {
 	graph 
 
