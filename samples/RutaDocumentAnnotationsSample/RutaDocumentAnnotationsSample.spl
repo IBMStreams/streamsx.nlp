@@ -4,7 +4,7 @@
 */
 use com.ibm.streamsx.nlp::*;
 
-composite RutaDocumentAnnotationsSample
+public composite RutaDocumentAnnotationsSample
 {
 	type
 		/**

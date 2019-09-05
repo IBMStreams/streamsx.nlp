@@ -9,7 +9,7 @@ use com.ibm.streamsx.nlp::*;
 /**
  * Sample main composite
  */
-composite NgramBasicSample {
+public composite NgramBasicSample {
 	graph
 	
 		stream<rstring result> NgramBasicResult = NgramBasicComp() {

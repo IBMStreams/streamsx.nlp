@@ -9,7 +9,7 @@ use com.ibm.streamsx.nlp::*;
 /**
  * Sample main composite
  */
-composite DictionaryFilterSample {
+public composite DictionaryFilterSample {
 	graph
 	
 		stream<rstring result> DictionaryFilterResult = DictionaryFilterComp() {
