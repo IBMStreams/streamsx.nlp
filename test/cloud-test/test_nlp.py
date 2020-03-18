@@ -57,8 +57,8 @@ class TestCloud(unittest.TestCase):
         tester.test(self.test_ctxtype, cfg)
         print (str(tester.result))
 
-#    def test_content_ranking(self):
-#        self._build_launch_validate("test_content_ranking", "nlp.sample::ContentRankingComp", {'pythonCommand':'$PYTHONHOME/bin/python3'}, '../../samples/ContentRankingSample')
+    #def test_content_ranking(self):
+    #    self._build_launch_validate("test_content_ranking", "nlp.sample::ContentRankingComp", {'pythonCommand':'$PYTHONHOME/bin/python3'}, '../../samples/ContentRankingSample')
 
     def test_dictionary_filter(self):
         self._build_launch_validate("test_dictionary_filter", "nlp.sample::DictionaryFilterComp", {}, '../../samples/DictionaryFilterSample')
@@ -72,8 +72,8 @@ class TestCloud(unittest.TestCase):
     def test_linear_classification(self):
         self._build_launch_validate("test_linear_classification", "nlp.sample::LinearClassificationComp", {'pythonCommand':'$PYTHONHOME/bin/python3'},'../../samples/LinearClassificationSample')
 
-#    def test_linear_classification_py(self):
-#        self._build_launch_validate("test_linear_classification_py", "nlp.sample::LinearClassificationPyComp", {}, '../../samples/LinearClassificationSplPy')
+    def test_linear_classification_py(self):
+        self._build_launch_validate("test_linear_classification_py", "nlp.sample::LinearClassificationPyComp", {}, '../../samples/LinearClassificationSplPy')
 
     def test_ngram_basic(self):
         self._build_launch_validate("test_ngram_basic", "nlp.sample::NgramBasicComp", {},'../../samples/NgramBasicSample')
