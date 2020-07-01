@@ -14,9 +14,7 @@ In addition to the com.ibm.streams.text toolkit the streamsx.nlp toolkit covers 
 
 Project Overview at: http://ibmstreams.github.io/streamsx.nlp/
 
-Operators, functions & types are described using SPLDOC at
-
-https://ibmstreams.github.io/streamsx.nlp/doc/spldoc/html/tk$com.ibm.streamsx.nlp/tk$com.ibm.streamsx.nlp.html
+Operators, functions & types are described using [SPLDOC](https://ibmstreams.github.io/streamsx.nlp/doc/spldoc/html/tk$com.ibm.streamsx.nlp/tk$com.ibm.streamsx.nlp.html)
 
 # Troubleshooting
 
