@@ -29,4 +29,4 @@ We will make releases after major features have been added. If you wish to reque
 # Learn more about Streams:
 
 * [IBM Streams on Github](http://ibmstreams.github.io/)
-* [StreamsDev](https://developer.ibm.com/streamsdev/)
+
