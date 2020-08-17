@@ -1,5 +1,5 @@
 ---
-title: "LinearClassification operator"
+title: "How to classify text using the LinearClassification operator"
 permalink: /docs/user/classify/
 excerpt: "How to classify text using the LinearClassification operator"
 last_modified_at: 2020-08-17T12:37:48-04:00
@@ -108,8 +108,8 @@ The sample formats the output in two different ways. One with the complete resul
 ["Else"],[0.40863002,-0.58213577,-0.58213406],["Else","First","Second"],something else
 ```
 
-In the sample output the original text ?ibm Streams first? fits to trained model category ?First? with
-distance to hyperplane value 0.14259748. The other model categories (?Else? and ?Second?) do not fit with
+In the sample output the original text "ibm Streams first" fits to trained model category "First" with
+distance to hyperplane value 0.14259748. The other model categories ("Else" and "Second") do not fit with
 negative distance to hyperplane values.
 
 Original text "something else" fits to class "Else" with distance to hyperplane value 0.40863002.

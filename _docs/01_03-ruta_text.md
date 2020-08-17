@@ -1,5 +1,5 @@
 ---
-title: "RutaText operator"
+title: "How to extract text using RutaText operator"
 permalink: /docs/user/extract/
 excerpt: "How to extract text using RutaText operator"
 last_modified_at: 2020-08-17T12:37:48-04:00
