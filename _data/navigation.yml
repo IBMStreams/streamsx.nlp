@@ -24,6 +24,10 @@ userdocs:
         url: /docs/user/overview
       - title: "UIMA"
         url: /docs/user/uima
+      - title: "How to extract text using RutaText operator"
+        url: /docs/user/extract
+      - title: "How to classify text using the LinearClassification operator"
+        url: /docs/user/classify
 
 # developer documentation links
 developerdocs:
