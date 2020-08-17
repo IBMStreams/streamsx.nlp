@@ -125,7 +125,7 @@ With the com.ibm.streamsx.nlp::RutaText operator you get an alternative to the I
 * Apache UIMA Ruta (Rule based text annotation)
 [https://uima.apache.org/ruta.html](https://uima.apache.org/ruta.html)
 
-*IBM Watson Content Analytics (ICA) Studio
+* IBM Watson Content Analytics (ICA) Studio
 [https://www.ibm.com/support/knowledgecenter/en/SS5RWK_3.5.0/com.ibm.discovery.es.in.doc/iiysicasrun.htm](https://www.ibm.com/support/knowledgecenter/en/SS5RWK_3.5.0/com.ibm.discovery.es.in.doc/iiysicasrun.htm)
 
 
