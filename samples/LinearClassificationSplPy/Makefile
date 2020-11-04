@@ -9,16 +9,15 @@ else
     ST=$(STREAMS_INSTALL)/bin/streamtool
 endif
 
-STREAMS_TOPOLOGY_TOOLKIT ?= $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.topology
 
-#VERS=$(shell bash -c "V=$(ST); if [[ ${V} == *Version=4.2* ]]; then echo true; else echo false; fi")
-VERS=$(shell bash -c "$(ST) version | grep Version")
-VERS_FITS=$(shell bash -c "if [[ $(VERS) == *Version=4.2.* ]]; then echo true; else echo false; fi")
-$(info "Streams $(VERS)")
-$(info "Version is fine $(VERS_FITS)")
-ifeq ("$(VERS_FITS)", "false")
-    $(warning The recommended Streams version 4.2.x. Your streams version is not 4.2.x Proceed at your own peril)
+STREAMS_TOPOLOGY_TOOLKIT ?= $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.topology
+TOPO_JAR = ${STREAMS_TOPOLOGY_TOOLKIT}/lib/com.ibm.streamsx.topology.jar
+ifeq ($(realpath ${TOPO_JAR}),)
+   # build service in CP4D - toolkit directories contain version in name
+   TOPO_JAR=`find $(STREAMS_INSTALL)/toolkits/ -name com.ibm.streamsx.topology.jar`
+   STREAMS_TOPOLOGY_TOOLKIT = $(shell dirname -- "$(TOPO_JAR)")/..
 endif
+
 
 SPLC_FLAGS = -a
 OUTPUT_DIR = output
@@ -28,6 +27,9 @@ ifeq ($(STREAMS_STUDIO_BUILDING), 1)
   SPLC = $(STREAMS_STUDIO_SC_PATH)
   SPL_PATH = $(STREAMS_STUDIO_SPL_PATH)
   OUTPUT_DIR = $(STREAMS_STUDIO_OUTPUT_DIRECTORY)
+else ifdef STREAMS_BUILDSERVICE
+  SPLC = $(STREAMS_INSTALL)/bin/sc
+  SPL_PATH = ../toolkits:$(STREAMS_INSTALL)/toolkits
 else
   # Building outside of Streams Studio...
   ifeq ($(STREAMS_INSTALL),)

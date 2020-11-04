@@ -12,6 +12,10 @@ ifeq ($(STREAMS_STUDIO_BUILDING), 1)
   SPLC = $(STREAMS_STUDIO_SC_PATH)
   SPL_PATH = $(STREAMS_STUDIO_SPL_PATH)
   OUTPUT_DIR = $(STREAMS_STUDIO_OUTPUT_DIRECTORY)
+else ifdef STREAMS_BUILDSERVICE
+  SPLC = $(STREAMS_INSTALL)/bin/sc
+  SPL_PATH = ../toolkits:$(STREAMS_INSTALL)/toolkits
+  STREAMSX_NLP_TOOLKIT = ../toolkits/com.ibm.streamsx.nlp
 else
   # Building outside of Streams Studio...
   ifeq ($(STREAMS_INSTALL),)
@@ -38,6 +42,7 @@ build: gentypes distributed
 all: clean build
 
 gentypes:
+	chmod +x $(CREATE_TYPES_BIN)
 	$(CREATE_TYPES_BIN) --pearFile=etc/troubleful9.pear --namespace nlp.sample
 
 distributed:

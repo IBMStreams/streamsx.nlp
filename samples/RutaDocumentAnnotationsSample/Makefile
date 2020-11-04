@@ -6,6 +6,9 @@
 
 # Fill in streamsx.nlp toolkit location here.
 STREAMSX_NLP_TOOLKIT ?= ../../com.ibm.streamsx.nlp
+ifdef STREAMS_BUILDSERVICE
+  STREAMSX_NLP_TOOLKIT = ../toolkits/com.ibm.streamsx.nlp
+endif
 
 SPLC = $(STREAMS_INSTALL)/bin/sc
 SPLC_FLAGS = -a -t $(STREAMSX_NLP_TOOLKIT)
