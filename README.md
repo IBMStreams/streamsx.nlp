@@ -16,6 +16,9 @@ Project Overview at: http://ibmstreams.github.io/streamsx.nlp/
 
 Operators, functions & types are described using [SPLDOC](https://ibmstreams.github.io/streamsx.nlp/doc/spldoc/html/tk$com.ibm.streamsx.nlp/tk$com.ibm.streamsx.nlp.html)
 
+## Changes
+[CHANGELOG.md](com.ibm.streamsx.nlp/CHANGELOG.md)
+
 # Troubleshooting
 
 Please enter an issue on GitHub for defects and other problems. 
