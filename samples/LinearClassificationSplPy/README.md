@@ -32,7 +32,7 @@ Clean the toolkit sample:
 
 ## Run the sample project
 
-Please set PYTHONHOME to a valid Python 3.5 install.
+Please set PYTHONHOME to a valid Python 3.6 install.
 
 `./output/bin/standalone`
 
