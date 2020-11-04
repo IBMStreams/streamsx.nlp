@@ -72,8 +72,8 @@ class TestCloud(unittest.TestCase):
     def test_linear_classification(self):
         self._build_launch_validate("test_linear_classification", "nlp.sample::LinearClassificationComp", {'pythonCommand':'$PYTHONHOME/bin/python3'},'../../samples/LinearClassificationSample')
 
-    def test_linear_classification_py(self):
-        self._build_launch_validate("test_linear_classification_py", "nlp.sample::LinearClassificationPyComp", {}, '../../samples/LinearClassificationSplPy')
+#    def test_linear_classification_py(self):
+#        self._build_launch_validate("test_linear_classification_py", "nlp.sample::LinearClassificationPyComp", {}, '../../samples/LinearClassificationSplPy')
 
     def test_ngram_basic(self):
         self._build_launch_validate("test_ngram_basic", "nlp.sample::NgramBasicComp", {},'../../samples/NgramBasicSample')
@@ -102,10 +102,10 @@ class TestICP(TestCloud):
         print (str(self))
         env_chk = True
         try:
-            print("STREAMS_REST_URL="+str(os.environ['STREAMS_REST_URL']))
+            print("CP4D_URL="+str(os.environ['CP4D_URL']))
         except KeyError:
             env_chk = False
-        assert env_chk, "STREAMS_REST_URL environment variable must be set"     
+        assert env_chk, "CP4D_URL environment variable must be set"     
 
     def setUp(self):
         Tester.setup_distributed(self)

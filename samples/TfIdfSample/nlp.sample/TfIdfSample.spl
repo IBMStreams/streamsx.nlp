@@ -6,7 +6,7 @@ namespace nlp.sample;
 
 use com.ibm.streamsx.nlp::*;
 
-composite TfIdfSample {
+public composite TfIdfSample {
 	
 	graph
 

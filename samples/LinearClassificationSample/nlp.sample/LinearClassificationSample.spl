@@ -7,7 +7,7 @@ namespace nlp.sample;
 use com.ibm.streamsx.nlp::*;
 
 @threading(model=manual)
-composite LinearClassificationSample {
+public composite LinearClassificationSample {
 	param
 		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");
 

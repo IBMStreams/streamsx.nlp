@@ -7,7 +7,7 @@ namespace nlp.sample;
 use com.ibm.streamsx.nlp::*;
 
 @threading(model=manual)
-composite ContentRankingSample {
+public composite ContentRankingSample {
 	param
 		expression<rstring> $nEpoch: getSubmissionTimeValue("nEpoch", "100");
 		expression<rstring> $pythonCommand: getSubmissionTimeValue("pythonCommand", "python");

@@ -10,7 +10,7 @@ use com.ibm.streamsx.nlp::*;
 /**
  * Sample main composite
  */
-composite RutaTextSample {
+public composite RutaTextSample {
 	param
 		expression<int32>   $loop: (int32)getSubmissionTimeValue("loop", "-1"); // infinite loop = -1
 
