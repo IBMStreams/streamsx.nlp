@@ -38,3 +38,5 @@ StreamsLogs*.tgz
 /.project
 
 /tmp/
+
+**/.DS_Store
