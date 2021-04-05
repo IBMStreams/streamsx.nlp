@@ -19,9 +19,6 @@ Operators, functions & types are described using [SPLDOC](https://ibmstreams.git
 ## Changes
 [CHANGELOG.md](com.ibm.streamsx.nlp/CHANGELOG.md)
 
-# Troubleshooting
-
-Please enter an issue on GitHub for defects and other problems. 
 
 # Releases
 
